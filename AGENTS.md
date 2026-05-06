@@ -5,7 +5,7 @@ CodeQuest é um RPG onde o jogador guia um herói por fases usando blocos de com
 
 ## Project overview
 - `DesafioAlphaEdtech/` is the project root.
-- `DESIGN.md` defines the design system — use the exact tokens, colors, typography, and component specs from there for all UI work.
+- `DESIGN.md` define o design system — use as exact tokens, colors, typography, and component specs from there for all UI work.
 - Protótipo visual no Google Stitch: https://stitch.withgoogle.com/projects/7811335591909664974
 
 ## Tech stack (ZERO frameworks)
@@ -67,6 +67,62 @@ DesafioAlphaEdtech/
 | `ui/dragDrop.js` | Eventos dragstart/dragover/drop, snap visual | No (DOM) |
 | `ui/workspace.js` | Gerenciar pilha de blocos no workspace | No (DOM) |
 | `app.js` | Init, listeners de botões, coordena Engine + UI | No (DOM) |
+
+## ENGINE Implementation Summary
+
+### parser.js
+**Função:** Lê blocos do DOM dentro do #workspace e converte para array de comandos.
+
+**Como funciona:**
+- Utiliza `document.getElementById('workspace')` para encontrar o workspace
+- Usa `querySelectorAll('.block[data-command]')` para encontrar todos os blocos com comandos
+- Extrai o `data-command` de cada bloco e retorna um array de strings
+- Exporta a função `parseCommands()` como módulo ES
+
+**Exemplo de uso:**
+```javascript
+import { parseCommands } from './engine/parser.js';
+const commands = parseCommands(); // ["move", "turnRight", "move"]
+```
+
+### runner.js
+**Função:** Recebe array de comandos e executa um por vez com async/await.
+
+**Como funciona:**
+- Define comandos válidos: `['move', 'turnRight', 'attack']`
+- Cria função `delay(ms)` usando Promise e setTimeout
+- Exporta `runCommands(commands, options)` como módulo ES
+- Executa comandos em ordem usando `for...of`
+- Implementa tratamento de erros com try/catch
+- Valida comandos inexistentes antes de executar
+- Suporta handlers customizados para cada comando
+- Emite eventos customizados: `command:start`, `command:end`, `command:error`
+- Usa EventTarget para comunicação com UI
+
+**Exemplo de uso:**
+```javascript
+import { runCommands } from './engine/runner.js';
+
+const handlers = {
+  move: async () => { /* lógica de movimento */ },
+  turnRight: async () => { /* lógica de rotação */ },
+  attack: async () => { /* lógica de ataque */ }
+};
+
+await runCommands(commands, { handlers, delayMs: 500 });
+```
+
+### Comunicação Engine ↔ UI
+O runner.js emite eventos que a UI pode escutar:
+- `command:start` - quando um comando começa a executar
+- `command:end` - quando um comando termina
+- `command:error` - quando ocorre um erro
+
+### Preparação para Futuro
+- Estrutura permite adicionar facilmente: `repeat`, `if`, condicionais
+- `handlers` permite registrar novos comandos dinamicamente
+- Eventos customizados facilitam integração com UI sem acoplamento
+- Parser preparado para ler estruturas aninhadas (loops) futuramente
 
 ## Design system
 See `DESIGN.md` for full spec.
