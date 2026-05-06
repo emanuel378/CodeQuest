@@ -1,0 +1,10 @@
+{
+  "name": "codequest",
+  "version": "0.1.0",
+  "description": "CodeQuest - RPG de programação visual com blocos de comando (HTML/CSS/JS vanilla)",
+  "type": "javascript",
+  "scripts": {
+    "dev": "npx serve . -l 3000",
+    "lint": "npx eslint js/"
+  }
+}
