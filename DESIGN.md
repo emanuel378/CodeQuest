@@ -98,47 +98,79 @@ spacing:
   gutter: 20px
   container-max: 1440px
 ---
+# DESIGN.md
 
-## Brand & Style
-This design system captures the essence of a high-stakes, interstellar computational frontier. The brand personality is rooted in the "Autômato" narrative—where code is the lifeblood of mechanical survival. The visual language blends heavy-tech industrialism with an ethereal digital glow.
+## Forma e Estilo
 
-The aesthetic utilizes **Glassmorphism** and **High-Contrast Neon** to create a sense of depth in the vacuum of deep space. Every element should feel like a holographic projection from a tactical command deck. The emotional response is one of focused adrenaline and intellectual mastery, transforming the act of logic-building into a high-fidelity gaming experience.
+Glassmorphism + High-Contrast Neon sobre fundo Deep Space. Todo elemento deve parecer uma projeção holográfica de um deck de comando tático. Profundidade via camadas translúcidas com backdrop-blur, não sombras tradicionais.
 
-## Colors
-The palette is centered on a "Deep Space" foundation. Gradients should transition from `#0b0f1a` (void blue) to `#02040a` (pure black) to simulate cosmic depth.
+## Cores
 
-- **Primary (Neon Blue):** Reserved for primary actions, active code blocks, and navigational focus.
-- **Secondary (Electric Purple):** Used for logic gates, sensor data, and rare power-ups.
-- **Tertiary (Neon Green):** Specifically designated for "Run" states, successful logic execution, and system health.
-- **Surface & Neutrals:** Surfaces use semi-transparent dark blues to allow background gradients to bleed through. Neutrals are cool-toned grays used for inactive states and metadata.
+Background: usar token `background` do YAML frontmatter.
+Gradientes devem partir de `var(--background)` usando variações de `surface-*`.
 
-## Typography
-The system employs a dual-font strategy. **Space Grotesk** provides the technical, geometric edge required for headlines and tactical labels, evoking a "hacker" aesthetic. **Inter** is used for body text and descriptive content to ensure high legibility during complex logic building.
+- **Primary (tokens: `primary` / `primary-container`):** Ações primárias, blocos de código ativos, foco de navegação
+- **Secondary (tokens: `secondary` / `secondary-container`):** Portas lógicas, dados de sensores, power-ups
+- **Tertiary (tokens: `tertiary` / `tertiary-container`):** Estados de execução, execução bem-sucedida, saúde do sistema
+- **Surfaces (tokens: `surface-*`):** Camadas escuras semitransparentes; `surface-container` para painéis base
 
-All headlines should be rendered in high-contrast white or primary neon blue. Labels used for programming blocks or sensor readouts should be set in all-caps with slight letter spacing to mimic instrumentation panels.
+## Tipografia
 
-## Layout & Spacing
-The layout follows a **Fluid Grid** model with a 12-column structure for the main dashboard and a sidebar-focused workspace for the visual programming area. 
+- **Space Grotesk:** manchetes e rótulos táticos (estética "hacker")
+- **Inter:** corpo de texto e conteúdo descritivo
 
-Spacing is governed by a 4px base unit. Visual programming blocks (the "logic cards") utilize `sm` (8px) internal padding and `md` (16px) external gaps to maintain a tight, technical feel. Margins are generous (`xl`) to prevent the high-contrast elements from feeling cluttered. The interface should feel "breathable" despite its tech-heavy nature.
+Manchetes: branco alto contraste ou `var(--primary)`.
+Rótulos em blocos: maiúsculas com `letter-spacing: 0.05em` (token `code-label`).
 
-## Elevation & Depth
-Depth is created through **Glassmorphism** and **Luminous Layering** rather than traditional shadows.
+## Layout e Espaçamento
 
-1.  **Level 0 (Background):** Deep space gradients with subtle star-field noise.
-2.  **Level 1 (Panels):** Translucent dark surfaces (`rgba(11, 15, 26, 0.6)`) with a 12px backdrop-blur.
-3.  **Level 2 (Active Blocks):** Elements gain a 1px solid border of the primary or secondary color and a soft `0px 0px 15px` outer glow (bloom effect).
-4.  **Level 3 (Overlay/Modals):** High-opacity panels with "circuit-line" border details—thin lines that extend slightly past the corners of the box to suggest modular hardware components.
+Grid Fluido com 12 colunas (dashboard) + sidebar (programação visual).
+Unidade base: 4px (token `spacing.unit`).
+Blocos: padding `sm` (8px), gap `md` (16px). Margens: `xl` (40px).
 
-## Shapes
-The shape language is "Advanced Industrial." While the base containers use a `0.5rem` to `1rem` (8px-16px) radius to feel modern and accessible, this is often interrupted by sharp technical details.
+## Elevação e Profundidade
 
-Buttons and logic blocks should feature "chamfered-style" or "notched" corners where possible, or thin 1px accents that run parallel to the borders. All borders must be thin and crisp. Programming blocks use a "puzzle-piece" interlocking shape language but maintain the glassmorphic style to feel like holographic modules rather than plastic toys.
+Glassmorphism + Camadas Luminosas (sem sombras tradicionais).
 
-## Components
-- **Action Buttons:** Ghost-style buttons by default with 1px neon borders. On hover, the button fills with a low-opacity version of the neon color and the glow intensifies.
-- **Programming Blocks:** Modular cards with a left-hand "accent bar" color-coded by function (Movement = Blue, Logic = Purple, Sensors = Green).
-- **Status Chips:** Small, pill-shaped indicators with a pulsing dot icon to indicate "Active" or "Standby" states.
-- **Glow-Line Icons:** Minimalist 2px stroke icons. When active, the stroke color matches the primary neon blue and emits a soft glow.
-- **Data Visualizers:** Small sparklines or technical readouts using the secondary electric purple, displayed within the glassmorphic sidebars.
-- **Input Fields:** Dark, recessed wells with a bottom-only neon border that illuminates fully when focused.
+1. **Nível 0 (Background):** Gradientes espaço profundo + ruído estelar
+2. **Nível 1 (Painéis):** `background: rgba(13, 21, 21, 0.6)` + `backdrop-filter: blur(12px)`
+3. **Nível 2 (Blocos Ativos):** Borda 1px `var(--primary)` ou `var(--secondary)` + `box-shadow: 0 0 15px var(--primary-container)`
+4. **Nível 3 (Overlay/Modais):** Alta opacidade + borda "circuit-line"
+
+## Formas
+
+"Industrial Avançado": containers base `0.5rem`-`1rem` (tokens `rounded`), interrompidos por detalhes técnicos.
+
+- Botões/blocos: cantos "chanfrados" ou acentos finos de 1px paralelos às bordas
+- Bordas: finas e nítidas
+- Blocos: formas entrelaçadas (CSS `clip-path` ou pseudo-elementos com notch/bump), mantendo glassmorfismo
+
+## Componentes
+
+- **Action Buttons:** Ghost, borda neon 1px, hover preenche com baixa opacidade + brilho intenso
+- **Programming Blocks:** Cards modulares com barra esquerda por função (Movement=`var(--primary)`, Logic=`var(--secondary)`, Sensors=`var(--tertiary)`)
+- **Status Chips:** Pílula com ponto pulsante ("Active" / "Standby")
+- **Glow-Line Icons:** Stroke 2px, ativo: `var(--primary)` com brilho
+- **Data Visualizers:** Sparklines com `var(--secondary)`, sidebars glassmórficas
+- **Input Fields:** Poços rebaixados, borda neon apenas inferior, ilumina ao focar
+
+## Como Aplicar Tokens (CSS)
+
+```css
+/* Cores */
+background: var(--background);
+color: var(--on-background);
+.panel { background: var(--surface-container); }
+.primary-btn { color: var(--primary); border: 1px solid var(--primary); }
+
+/* Tipografia */
+.heading { font-family: Space Grotesk; font-weight: 700; }
+.body-text { font-family: Inter; font-weight: 400; }
+
+/* Espaçamento */
+.block { padding: var(--spacing-sm); margin: var(--spacing-xl); }
+
+/* Bordas */
+.rounded-sm { border-radius: var(--rounded-sm); }
+.rounded-md { border-radius: var(--rounded-md); }
+```
