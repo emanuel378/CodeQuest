@@ -13,9 +13,8 @@ CodeQuest é um RPG onde o jogador guia um herói por fases usando blocos de com
 - **CSS3** — variáveis CSS, glassmorphism, grid/flexbox
 - **JS ES6+** — vanilla, Classes, async/await, módulos (type="module")
 - **ZERO** frameworks runtime (sem React, Vue, jQuery, etc.)
-- **ZERO** bibliotecas runtime (sem npm packages no navegador)
+- **ZERO** bibliotecas runtime
 - **Drag & Drop nativo HTML5** — sem bibliotecas de DnD
-- **Ferramentas dev via npx** — serve para dev server, eslint para lint
 
 ## Folder structure
 ```
@@ -43,7 +42,6 @@ DesafioAlphaEdtech/
 ├── assets/
 │   └── sounds/                # Efeitos (snap, erro, vitória, desbloqueio)
 ├── opencode.json              # Config do projeto para opencode CLI
-├── mcp.json                   # MCP Server config (Stitch)
 ├── AGENTS.md
 ├── DESIGN.md
 └── README.md
@@ -86,10 +84,8 @@ Quick reference:
 - Sensors: Green
 
 ## Development
-- `opencode dev` — roda `npx serve . -l 3000`
-- `opencode lint` — roda `npx eslint js/`
-
-Lint config (`eslint`): usar flat config, parser padrão, env browser + es2021.
+- Projeto 100% estático: basta abrir `index.html` no navegador
+- Servidor local opcional (direto no navegador)
 
 ## Code conventions
 - ES6+ Classes para componentes com estado
@@ -106,9 +102,8 @@ Lint config (`eslint`): usar flat config, parser padrão, env browser + es2021.
 - Ranking local persiste via `localStorage`
 
 ## Stitch & MCP
-- Servidor MCP do Stitch configurado em `mcp.json`
-- Proxy: `npx @_davideast/stitch-mcp proxy`
-- Autenticação: cada dev roda `npx @_davideast/stitch-mcp init` localmente (OAuth Google)
-- **Nunca commitar secrets** — as credenciais ficam em `~/.config/gcloud/`
-- Para usar: `opencode stitch:proxy` (ou configure seu MCP client para iniciar o servidor Stitch)
-- Protótipo atual: https://stitch.withgoogle.com/projects/7811335591909664974
+- Protótipo visual no Google Stitch: https://stitch.withgoogle.com/projects/7811335591909664974
+- MCP servers configurados em `opencode.json`:
+  - **stitch** — servidor MCP do Google Stitch (proxy local, autenticação via `gcloud`)
+  - **filesystem** — acesso ao sistema de arquivos para a IA
+- Para ativar Stitch localmente: rodar `npx @_davideast/stitch-mcp init` uma vez (OAuth Google)
