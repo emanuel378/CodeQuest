@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0d1515;
+      color: #dce4e4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      gap: 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      color: #e1fdff;
+      font-size: 24px;
+    }
+    .panel {
+      background: rgba(25, 33, 34, 0.8);
+      border: 1px solid #3a494b;
+      border-radius: 8px;
+      padding: 16px;
+      width: 100%;
+      max-width: 480px;
+    }
+    .panel-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: #b9cacb;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    /* Block palette */
+    .palette {
+      display: flex;
+      gap: 12px;
+    }
+    .palette .block {
+      cursor: grab;
+      user-select: none;
+      width: 120px;
+    }
+    .palette .block:active { cursor: grabbing; }
+
+    /* Blocks */
+    .block {
+      background: rgba(13, 21, 21, 0.6);
+      border: 1px solid #3a494b;
+      border-left: 4px solid #00dbe7;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #dce4e4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .block:hover {
+      background: rgba(25, 33, 34, 0.9);
+    }
+    .block.move    { border-left-color: #00dbe7; color: #74f5ff; }
+    .block.turn    { border-left-color: #b600f8; color: #ebb2ff; }
+    .block.attack  { border-left-color: #34fc0d; color: #e4ffd6; }
+    .block.active {
+      box-shadow: 0 0 12px rgba(0, 219, 231, 0.4);
+      background: rgba(0, 219, 231, 0.08);
+    }
+
+    /* Workspace */
+    .workspace {
+      min-height: 180px;
+      border: 2px dashed #3a494b;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .workspace.drag-over {
+      border-color: #00dbe7;
+      background: rgba(0, 219, 231, 0.04);
+    }
+    .workspace .block { cursor: default; }
+    .workspace .block .remove-btn {
+      background: none;
+      border: none;
+      color: #849495;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 0 0 8px;
+      line-height: 1;
+    }
+    .workspace .block .remove-btn:hover { color: #ffb4ab; }
+
+    /* Status */
+    .status {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+    }
+    .status span { color: #b600f8; font-weight: 600; }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .controls button {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 6px;
+      background: transparent;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #runBtn {
+      border: 1px solid #34fc0d;
+      color: #34fc0d;
+    }
+    #runBtn:hover { background: rgba(52, 252, 13, 0.15); }
+    #runBtn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    #clearBtn {
+      border: 1px solid #849495;
+      color: #849495;
+    }
+    #clearBtn:hover { background: rgba(132, 148, 149, 0.15); }
+
+    /* Log */
+    #log {
+      max-height: 260px;
+      overflow-y: auto;
+      font-family: 'Inter', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #849495;
+    }
+    #log .entry { border-bottom: 1px solid #232b2c; padding: 4px 0; }
+    #log .success { color: #34fc0d; }
+    #log .fail { color: #ffb4ab; }
+    #log .info { color: #ebb2ff; }
+    #log .executing { color: #e1fdff; }
+  </style>
+</head>
+<body>
+  <h1>Player Test</h1>
+
+  <!-- Block Palette -->
+  <div class="panel">
+    <div class="panel-title">Blocos</div>
+    <div class="palette">
+      <div class="block move" draggable="true" data-command="move">Move</div>
+      <div class="block turn" draggable="true" data-command="turnRight">Turn Right</div>
+      <div class="block attack" draggable="true" data-command="attack">Attack</div>
+    </div>
+  </div>
+
+  <!-- Workspace + Controls -->
+  <div class="panel">
+    <div class="panel-title">Workspace</div>
+    <div id="workspace" class="workspace">
+    </div>
+    <div class="controls">
+      <button id="runBtn">Run</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="panel">
+    <div class="panel-title">Status</div>
+    <div class="status">
+      <div>Facing: <span id="facingLabel">north</span></div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="panel">
+    <div class="panel-title">Log</div>
+    <div id="log"></div>
+  </div>
+
+  <script type="module">
+    import { Player } from './js/actors/player.js';
+    import { parseCommands } from './js/engine/parser.js';
+    import { runCommands } from './js/engine/runner.js';
+
+    const workspace = document.getElementById('workspace');
+    const logEl = document.getElementById('log');
+    const facingEl = document.getElementById('facingLabel');
+    const runBtn = document.getElementById('runBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const paletteBlocks = document.querySelectorAll('.palette .block');
+
+    /* ---- Drag & Drop ---- */
+    paletteBlocks.forEach(block => {
+      block.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', block.dataset.command);
+        e.dataTransfer.setData('type', block.classList.contains('move') ? 'move'
+          : block.classList.contains('turn') ? 'turn' : 'attack');
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    });
+
+    workspace.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      workspace.classList.add('drag-over');
+    });
+
+    workspace.addEventListener('dragleave', () => {
+      workspace.classList.remove('drag-over');
+    });
+
+    workspace.addEventListener('drop', e => {
+      e.preventDefault();
+      workspace.classList.remove('drag-over');
+
+      const command = e.dataTransfer.getData('text/plain');
+      const type = e.dataTransfer.getData('type');
+      if (!command) return;
+
+      addBlockToWorkspace(command, type);
+    });
+
+    function addBlockToWorkspace(command, type) {
+      const block = document.createElement('div');
+      block.className = `block ${type}`;
+      block.dataset.command = command;
+      block.draggable = false;
+
+      const label = document.createElement('span');
+      label.textContent = command === 'turnRight' ? 'Turn Right' : command;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.textContent = '\u00D7';
+      removeBtn.addEventListener('click', () => block.remove());
+
+      block.appendChild(label);
+      block.appendChild(removeBtn);
+      workspace.appendChild(block);
+    }
+
+    /* ---- Mock Stage ---- */
+    const mockStage = {
+      movePlayerForward(dir) {
+        const result = { success: true, direction: dir, message: `moved forward (${dir})` };
+        addLog(`Move \u2192 ${result.message}`, 'success');
+        return result;
+      },
+      attackInFront(dir) {
+        const roll = Math.random();
+        if (roll > 0.5) {
+          const result = { success: true, direction: dir, enemy: 'Drone', defeated: true, message: `enemy defeated ahead (${dir})` };
+          addLog(`Attack \u2192 ${result.message}`, 'success');
+          return result;
+        }
+        const result = { success: true, direction: dir, enemy: 'Drone', defeated: false, reason: 'enemy-damaged', message: `enemy damaged ahead (${dir})` };
+        addLog(`Attack \u2192 ${result.message}`, 'info');
+        return result;
+      }
+    };
+
+    /* ---- Player ---- */
+    const eventBus = new EventTarget();
+
+    eventBus.addEventListener('player:move', e => {
+      updateFacing(player.facing);
+    });
+
+    eventBus.addEventListener('player:turn', e => {
+      addLog(`Turn: ${e.detail.previous} \u2192 ${e.detail.current}`, 'info');
+      updateFacing(player.facing);
+    });
+
+    eventBus.addEventListener('player:attack', e => {
+      if (!e.detail.success) addLog(`Attack failed: ${e.detail.reason}`, 'fail');
+    });
+
+    const player = new Player({ direction: 'north', eventBus, stage: mockStage });
+
+    function updateFacing(dir) { facingEl.textContent = dir; }
+
+    function addLog(text, type = '') {
+      const entry = document.createElement('div');
+      entry.className = `entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      logEl.prepend(entry);
+    }
+
+    function clearHighlights() {
+      workspace.querySelectorAll('.block.active').forEach(b => b.classList.remove('active'));
+    }
+
+    function highlightBlock(index) {
+      clearHighlights();
+      const blocks = workspace.querySelectorAll('.block');
+      if (blocks[index]) blocks[index].classList.add('active');
+    }
+
+    /* ---- Run ---- */
+    runBtn.addEventListener('click', async () => {
+      const commands = parseCommands();
+      if (commands.length === 0) {
+        addLog('No blocks in workspace', 'fail');
+        return;
+      }
+
+      runBtn.disabled = true;
+      player.reset();
+      updateFacing(player.facing);
+      addLog(`\u25B6 Executing: ${commands.join(' \u2192 ')}`, 'executing');
+
+      const handlers = {
+        move: async () => player.move(),
+        turnRight: async () => player.turnRight(),
+        attack: async () => player.attack()
+      };
+
+      let idx = 0;
+      const onStart = e => { highlightBlock(idx); idx++; };
+      const onEnd = () => {};
+
+      eventBus.addEventListener('command:start', onStart);
+      eventBus.addEventListener('command:end', onEnd);
+
+      await runCommands(commands, {
+        handlers,
+        delayMs: 600,
+        eventBus
+      });
+
+      eventBus.removeEventListener('command:start', onStart);
+      eventBus.removeEventListener('command:end', onEnd);
+
+      clearHighlights();
+      addLog('\u2714 Execution complete', 'success');
+      runBtn.disabled = false;
+    });
+
+    /* ---- Clear ---- */
+    clearBtn.addEventListener('click', () => {
+      workspace.innerHTML = '';
+      clearHighlights();
+      addLog('Workspace cleared', 'info');
+    });
+
+    updateFacing(player.facing);
+    addLog('Player initialized facing north', 'info');
+  </script>
+</body>
+</html>
