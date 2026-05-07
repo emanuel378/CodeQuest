@@ -6,10 +6,9 @@
     "stitch": {
       "type": "remote",
       "url": "https://stitch.googleapis.com/mcp",
-      "timeout": 600000,
+      "timeout": 300000,
       "headers": {
-        "Accept": "application/json",
-        "X-Goog-Api-Key": "{env:STITCH_API_KEY}"
+        "X-Goog-Api-Key": "{file:./secrets/stitch-api-key}"
       }
     },
     "filesystem": {
