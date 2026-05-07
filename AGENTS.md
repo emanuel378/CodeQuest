@@ -35,7 +35,7 @@ As Skills abaixo são atalhos inteligentes carregados sob demanda. Em caso de co
 
 ### Regras de Conformidade
 
-- Arquivos em `engine/` **NUNCA** referenciam DOM (`document`, `window`, eventos DOM)
+- Arquivos em `engine/` **NUNCA** referenciam DOM (`document`, `window`, eventos DOM), exceto `parser.js` que apenas lê o DOM
 - Arquivos em `ui/` **NUNCA** contêm lógica de jogo (condições de vitória/derrota, colisão, estado do herói)
 - `app.js` é o único arquivo que pode importar engine e UI; apenas coordena execução, não adiciona lógica a nenhuma das camadas
 
@@ -70,7 +70,7 @@ Se bloqueado ou se um pedido do usuário contradisser `DESIGN.md`/`GAME.md`:
 - Must usar ES6+ Classes para todos os componentes com estado; proibido padrão de função para componentes de engine/ator/ui
 - async/await para runner (cadeia de execução)
 - Event delegation para interações com múltiplos blocos
-- **NUNCA** misturar manipulação de DOM com lógica de jogo: arquivos de engine não acessam DOM, arquivos de UI não contêm lógica de jogo
+- **NUNCA** misturar manipulação de DOM com lógica de jogo: arquivos de engine não acessam DOM (exceto `parser.js` para leitura), arquivos de UI não contêm lógica de jogo
 - **NUNCA** adicionar comentários desnecessários
 - Nomes de arquivos em camelCase, classes em PascalCase
 
@@ -80,7 +80,7 @@ Para detalhes de stack tecnógica e invariantes arquiteturais, veja `ARCHITECTUR
 
 Tarefa só está completa se:
 
-- [ ] Nenhum arquivo de `engine/` tem referências ao DOM
+- [ ] Nenhum arquivo de `engine/` tem referências ao DOM (exceto `parser.js` que apenas lê)
 - [ ] Nenhum arquivo de `ui/` tem lógica de jogo
 - [ ] CSS usa *apenas* variáveis do frontmatter de `DESIGN.md` (sem cores/espaçamentos hardcoded)
 - [ ] Novos blocos de jogo seguem exatamente o formato do catálogo em `GAME.md`
