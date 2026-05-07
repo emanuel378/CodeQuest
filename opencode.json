@@ -1,7 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "shell": "pwsh",
-  "instructions": ["AGENTS.md", "DESIGN.md"],
+  "instructions": ["AGENTS.md", "ARCHITECTURE.md", "DESIGN.md"],
   "mcp": {
     "stitch": {
       "type": "remote",
