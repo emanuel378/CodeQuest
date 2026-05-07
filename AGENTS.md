@@ -1,165 +1,88 @@
 # AGENTS.md
 
-## Game concept
-CodeQuest é um RPG onde o jogador guia um herói por fases usando blocos de comando (Mover, Girar, Repetir, Se Sensor). Cada fase concluída desbloqueia novos blocos de comando para as fases seguintes. O objetivo é programar visualmente a sequência correta de ações para superar obstáculos e alcançar o objetivo de cada fase.
+## Visão geral do projeto
 
-## Project overview
-- `DesafioAlphaEdtech/` is the project root.
-- `DESIGN.md` define o design system — use as exact tokens, colors, typography, and component specs from there for all UI work.
-- Protótipo visual no Google Stitch: https://stitch.withgoogle.com/projects/7811335591909664974
+- Para arquitetura detalhada, veja `ARCHITECTURE.md`
+- `DESIGN.md` define o design system — use os tokens exatos, cores, tipografia e especificações de componentes para todo trabalho de UI.
+- Protótipo visual no Google Stitch: [https://stitch.withgoogle.com/projects/7811335591909664974]
+- `GAME.md` define o desenvolvimento do jogo e regras: sistema de progressão, catálogo de blocos, progressão de níveis.
 
-## Tech stack (ZERO frameworks)
-- **HTML5** — semântico, acessível
-- **CSS3** — variáveis CSS, glassmorphism, grid/flexbox
-- **JS ES6+** — vanilla, Classes, async/await, módulos (type="module")
-- **ZERO** frameworks runtime (sem React, Vue, jQuery, etc.)
-- **ZERO** bibliotecas runtime
-- **Drag & Drop nativo HTML5** — sem bibliotecas de DnD
+## Ordem de Leitura para Agentes
 
-## Folder structure
-```
-DesafioAlphaEdtech/
-├── index.html
-├── styles/
-│   ├── design-system.css      # Cores, tipografia, glassmorfismo
-│   ├── blocks.css             # Formatos de encaixe (notch/bump), dropzones
-│   └── stage.css              # Grid RPG, ator, obstáculos, telemetry
-├── js/
-│   ├── engine/
-│   │   ├── parser.js          # Converte blocos DOM → array de comandos
-│   │   └── runner.js          # Executor assíncrono (async/await, delays)
-│   ├── ui/
-│   │   ├── dragDrop.js        # HTML5 Drag & Drop nativo
-│   │   └── workspace.js       # Snap magnético, gerenciar pilha de blocos
-│   ├── actors/
-│   │   └── player.js          # Estado do herói no grid (pos, dir, animação)
-│   ├── stage/
-│   │   └── stage.js           # Grid, obstáculos, colisão, objetivos da fase
-│   ├── game/
-│   │   ├── levels.js          # Definição das fases (mapa, objetivos, blocos liberados)
-│   │   └── progression.js     # Desbloqueio de comandos, pontuação, ranking local
-│   └── app.js                 # Init, listeners, game loop
-├── assets/
-│   └── sounds/                # Efeitos (snap, erro, vitória, desbloqueio)
-├── opencode.json              # Config do projeto para opencode CLI
-├── AGENTS.md
-├── DESIGN.md
-└── README.md
-```
+- `ARCHITECTURE.md` – arquitetura, fluxo de dados, invariantes, mapa de arquivos
+- `DESIGN.md` – use *apenas* tokens YAML do frontmatter para UI; em conflitos entre YAML e prosa, prefira o YAML
+- `GAME.md` – use para lógica de jogo, catálogo de blocos, regras de níveis
 
-## Architecture
+## Skills Disponíveis (`.opencode/skills/`)
 
-### Engine vs UI separation (STRICT)
-- **Engine** (`engine/`, `actors/`, `stage/`, `game/`): lógica pura, sem tocar no DOM.
-- **UI** (`ui/`, `app.js`, `styles/`, `index.html`): renderização, eventos do usuário.
-- Comunicação entre Engine e UI via **eventos customizados** (EventTarget/custom events).
+As Skills abaixo são atalhos inteligentes carregados sob demanda. Em caso de conflito, **AGENTS.md sempre vence**.
 
-### File responsibilities
+| Skill | Nome | Quando Usar |
+| ------ | ------ | ------------- |
+| Conformidade Arquitetural | `architecture-compliance` | Ao trabalhar em `engine/`, `ui/` ou `app.js` |
+| Design System | `design-system` | Ao trabalhar em `styles/` ou componentes UI |
+| Lógica de Jogo | `game-logic` | Ao trabalhar em `game/`, níveis ou progressão |
+| Estilo de Código | `code-style` | Ao criar ou editar arquivos JavaScript |
+| Catálogo de Blocos | `block-catalog` | Ao adicionar novos blocos ao catálogo |
 
-| File | Role | DOM-free? |
-|---|---|---|
-| `engine/parser.js` | Lê workspace DOM → array de comandos | No (lê DOM) |
-| `engine/runner.js` | Executa array de comandos com async/await | Yes |
-| `actors/player.js` | Estado do herói (posição, direção, animação) | Yes |
-| `stage/stage.js` | Grid, obstáculos, colisão, objetivos, vitória/derrota | Yes |
-| `game/levels.js` | Config de fases (mapa, objetivos, blocos liberados) | Yes |
-| `game/progression.js` | Sistema de desbloqueio, pontuação, ranking local | Yes |
-| `ui/dragDrop.js` | Eventos dragstart/dragover/drop, snap visual | No (DOM) |
-| `ui/workspace.js` | Gerenciar pilha de blocos no workspace | No (DOM) |
-| `app.js` | Init, listeners de botões, coordena Engine + UI | No (DOM) |
+### Instrução para Agentes
 
-## ENGINE Implementation Summary
+- Skills são carregadas automaticamente conforme a tarefa (via ferramenta `skill`)
+- Cada Skill referencia seu documento fonte (`ARCHITECTURE.md`, `DESIGN.md`, `GAME.md`) como verdade
+- Skills são complementares, nunca substituem os documentos originais
 
-### parser.js
-**Função:** Lê blocos do DOM dentro do #workspace e converte para array de comandos.
+## Arquitetura
 
-**Como funciona:**
-- Utiliza `document.getElementById('workspace')` para encontrar o workspace
-- Usa `querySelectorAll('.block[data-command]')` para encontrar todos os blocos com comandos
-- Extrai o `data-command` de cada bloco e retorna um array de strings
-- Exporta a função `parseCommands()` como módulo ES
+### Regras de Conformidade
 
-**Exemplo de uso:**
-```javascript
-import { parseCommands } from './engine/parser.js';
-const commands = parseCommands(); // ["move", "turnRight", "move"]
-```
+- Arquivos em `engine/` **NUNCA** referenciam DOM (`document`, `window`, eventos DOM)
+- Arquivos em `ui/` **NUNCA** contêm lógica de jogo (condições de vitória/derrota, colisão, estado do herói)
+- `app.js` é o único arquivo que pode importar engine e UI; apenas coordena execução, não adiciona lógica a nenhuma das camadas
 
-### runner.js
-**Função:** Recebe array de comandos e executa um por vez com async/await.
+Violações das regras de conformidade são erros críticos; rejeite qualquer código que misture camadas.
 
-**Como funciona:**
-- Define comandos válidos: `['move', 'turnRight', 'attack']`
-- Cria função `delay(ms)` usando Promise e setTimeout
-- Exporta `runCommands(commands, options)` como módulo ES
-- Executa comandos em ordem usando `for...of`
-- Implementa tratamento de erros com try/catch
-- Valida comandos inexistentes antes de executar
-- Suporta handlers customizados para cada comando
-- Emite eventos customizados: `command:start`, `command:end`, `command:error`
-- Usa EventTarget para comunicação com UI
+Para mapa completo de arquivos e fluxo de dados, veja `ARCHITECTURE.md`.
 
-**Exemplo de uso:**
-```javascript
-import { runCommands } from './engine/runner.js';
+## Desenvolvimento
 
-const handlers = {
-  move: async () => { /* lógica de movimento */ },
-  turnRight: async () => { /* lógica de rotação */ },
-  attack: async () => { /* lógica de ataque */ }
-};
+- Projeto 100% estático: sem etapas de build, basta abrir `index.html` no navegador
+- Servidor local opcional para recarregamento automático, não obrigatório
 
-await runCommands(commands, { handlers, delayMs: 500 });
-```
+## Git Workflow
 
-### Comunicação Engine ↔ UI
-O runner.js emite eventos que a UI pode escutar:
-- `command:start` - quando um comando começa a executar
-- `command:end` - quando um comando termina
-- `command:error` - quando ocorre um erro
+- Mensagens de commit: padrão conventional commits (`feat:`, `fix:`, `docs:`, `chore:`)
+- Nunca comite arquivos temporários, `.env` ou pastas de dependências
+- Mudanças em `DESIGN.md`/`GAME.md` devem ter prefixo `docs:` e resumo das alterações de regras
+- PRs devem listar qual regra de AGENTS.md foi seguida para cada arquivo alterado
 
-### Preparação para Futuro
-- Estrutura permite adicionar facilmente: `repeat`, `if`, condicionais
-- `handlers` permite registrar novos comandos dinamicamente
-- Eventos customizados facilitam integração com UI sem acoplamento
-- Parser preparado para ler estruturas aninhadas (loops) futuramente
+## Regras de Escalonamento
 
-## Design system
-See `DESIGN.md` for full spec.
+Se bloqueado ou se um pedido do usuário contradisser `DESIGN.md`/`GAME.md`:
 
-Quick reference:
-- **Primary (neon cyan):** `#e1fdff` / `#00f2ff` — ações principais, blocos ativos
-- **Secondary (electric purple):** `#ebb2ff` / `#b600f8` — lógica, sensores
-- **Tertiary (neon green):** `#34fc0d` — Run state, vitória, sistema OK
-- **Background:** `#0d1515` (deep dark)
-- **Fonts:** Space Grotesk (headlines/labels), Inter (body/terminal)
+1. PARE o trabalho imediatamente
+2. Cite a regra exata violada (copie do doc)
+3. Explique o impacto no projeto (ex: "usar React viola a regra de zero frameworks")
+4. Proponha 3 alternativas que sigam todas as regras
+5. Aguarde aprovação explícita do usuário antes de prosseguir
 
-### Block color coding (left accent bar)
-- Movement: Blue
-- Logic/Loops: Purple
-- Sensors: Green
+## Convenções de código
 
-## Development
-- Projeto 100% estático: basta abrir `index.html` no navegador
-- Servidor local opcional (direto no navegador)
-
-## Code conventions
-- ES6+ Classes para componentes com estado
+- Must usar ES6+ Classes para todos os componentes com estado; proibido padrão de função para componentes de engine/ator/ui
 - async/await para runner (cadeia de execução)
 - Event delegation para interações com múltiplos blocos
-- **NUNCA** misturar DOM com lógica de jogo (engine não toca no DOM)
+- **NUNCA** misturar manipulação de DOM com lógica de jogo: arquivos de engine não acessam DOM, arquivos de UI não contêm lógica de jogo
 - **NUNCA** adicionar comentários desnecessários
 - Nomes de arquivos em camelCase, classes em PascalCase
 
-## Progression system
-- `levels.js` define cada fase: grid layout, posição inicial do herói, objetivo, obstáculos, blocos disponíveis
-- `progression.js` gerencia: fase atual, histórico de fases concluídas, quais blocos estão desbloqueados, pontuação local (ranking no localStorage)
-- A cada fase concluída, `progression.js` libera novos blocos para as próximas fases
-- Ranking local persiste via `localStorage`
+Para detalhes de stack tecnógica e invariantes arquiteturais, veja `ARCHITECTURE.md`.
 
-## Stitch & MCP
-- Protótipo visual no Google Stitch: https://stitch.withgoogle.com/projects/7811335591909664974
-- MCP servers configurados em `opencode.json`:
-  - **stitch** — servidor MCP do Google Stitch (proxy local, autenticação via `gcloud`)
-  - **filesystem** — acesso ao sistema de arquivos para a IA
-- Para ativar Stitch localmente: rodar `npx @_davideast/stitch-mcp init` uma vez (OAuth Google)
+## Critérios de Conclusão de Tarefas
+
+Tarefa só está completa se:
+
+- [ ] Nenhum arquivo de `engine/` tem referências ao DOM
+- [ ] Nenhum arquivo de `ui/` tem lógica de jogo
+- [ ] CSS usa *apenas* variáveis do frontmatter de `DESIGN.md` (sem cores/espaçamentos hardcoded)
+- [ ] Novos blocos de jogo seguem exatamente o formato do catálogo em `GAME.md`
+- [ ] Código segue convenções de nomenclatura (arquivos camelCase, classes PascalCase)
+- [ ] Skill correspondente foi carregada e seguida (quando aplicável)
