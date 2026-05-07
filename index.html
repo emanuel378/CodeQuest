@@ -1,29 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodeQuest</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cidade da Lógica - Protocolo Autômato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/design-system.css">
+  <link rel="stylesheet" href="styles/blocks.css">
+  <link rel="stylesheet" href="styles/stage.css">
 </head>
 <body>
 
-    <div id="workspace">
-
-        <div class="block" data-command="move"></div>
-
-        <div class="block" data-command="move"></div>
-
-        <div class="block" data-command="turnRight"></div>
-
-        <div class="block" data-command="attack"></div>
-
+  <header class="top-navbar">
+    <div class="nav-brand">
+      <h1 class="app-title">Cidade da Lógica</h1>
     </div>
+    <div class="nav-controls">
+      <div class="progress-container">
+        <div class="progress-labels">
+          <span>Integridade do Sistema</span>
+          <span>60%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+      <div class="star-rating">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+        <span class="material-symbols-outlined" style="color: var(--outline-variant);">star</span>
+      </div>
+      <button class="menu-btn">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </header>
 
-    <button id="runButton">
-        RUN
-    </button>
+  <main class="workspace-layout">
 
-    <script type="module" src="./js/app.js"></script>
+    <aside class="sidebar-palette">
+      <div class="palette-header">
+        <h2 class="palette-title">Paleta de Blocos</h2>
+        <p class="palette-subtitle">Módulos Lógicos</p>
+      </div>
+      <div class="palette-content">
 
+        <div>
+          <h3 class="palette-category-title primary">
+            <span class="material-symbols-outlined">navigation</span>
+            Movimento
+          </h3>
+          <div class="palette-blocks">
+            <div class="logic-block block-move">
+              <span class="material-symbols-outlined icon-block primary">arrow_upward</span>
+              <span class="block-label">Mover Frente</span>
+              <input class="block-input" type="text" value="1">
+            </div>
+            <div class="logic-block block-move">
+              <span class="material-symbols-outlined icon-block primary">rotate_right</span>
+              <span class="block-label">Girar Direita</span>
+              <input class="block-input" type="text" value="90">
+            </div>
+            <div class="logic-block block-move">
+              <span class="material-symbols-outlined icon-block primary">rotate_left</span>
+              <span class="block-label">Girar Esquerda</span>
+              <input class="block-input" type="text" value="90">
+            </div>
+            <div class="logic-block block-move">
+              <span class="material-symbols-outlined icon-block primary">keyboard_double_arrow_up</span>
+              <span class="block-label">Pular</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="palette-category">
+          <h3 class="palette-category-title secondary">
+            <span class="material-symbols-outlined">settings_ethernet</span>
+            Controle
+          </h3>
+          <div class="palette-blocks">
+
+            <div class="c-block-wrapper">
+              <div class="logic-block block-action c-block-top">
+                <span class="material-symbols-outlined icon-block secondary">call_split</span>
+                <span class="block-label">Se</span>
+                <div class="hex-placeholder"></div>
+              </div>
+              <div class="c-block-drop-zone">
+                <div class="c-block-drop-indent"></div>
+                <div class="c-block-drop-area">
+                  <span class="drop-hint">Solte blocos aqui</span>
+                </div>
+              </div>
+              <div class="c-block-bottom"></div>
+            </div>
+
+            <div class="c-block-wrapper">
+              <div class="logic-block block-action c-block-top">
+                <span class="material-symbols-outlined icon-block secondary">alt_route</span>
+                <span class="block-label">Senão</span>
+              </div>
+              <div class="c-block-drop-zone">
+                <div class="c-block-drop-indent"></div>
+                <div class="c-block-drop-area">
+                  <span class="drop-hint">Solte blocos aqui</span>
+                </div>
+              </div>
+              <div class="c-block-bottom"></div>
+            </div>
+
+            <div class="c-block-wrapper">
+              <div class="logic-block block-action c-block-top">
+                <span class="material-symbols-outlined icon-block secondary">repeat</span>
+                <span class="block-label">Repetir</span>
+                <input class="block-input" type="text" value="5">
+              </div>
+              <div class="c-block-drop-zone">
+                <div class="c-block-drop-indent"></div>
+                <div class="c-block-drop-area">
+                  <span class="drop-hint">Solte blocos aqui</span>
+                </div>
+              </div>
+              <div class="c-block-bottom"></div>
+            </div>
+
+            <div class="c-block-wrapper">
+              <div class="logic-block block-action c-block-top">
+                <span class="material-symbols-outlined icon-block secondary">loop</span>
+                <span class="block-label">Enquanto</span>
+                <div class="hex-placeholder"></div>
+              </div>
+              <div class="c-block-drop-zone">
+                <div class="c-block-drop-indent"></div>
+                <div class="c-block-drop-area">
+                  <span class="drop-hint">Solte blocos aqui</span>
+                </div>
+              </div>
+              <div class="c-block-bottom"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="palette-category">
+          <h3 class="palette-category-title gradient">
+            <span class="material-symbols-outlined" style="color: var(--primary-container);">bolt</span>
+            Ações
+          </h3>
+          <div class="palette-blocks">
+            <div class="logic-block block-action">
+              <span class="material-symbols-outlined icon-block secondary">swords</span>
+              <span class="block-label">Atacar</span>
+            </div>
+            <div class="logic-block block-action">
+              <span class="material-symbols-outlined icon-block secondary">back_hand</span>
+              <span class="block-label">Pegar</span>
+            </div>
+            <div class="logic-block block-action">
+              <span class="material-symbols-outlined icon-block secondary">do_not_disturb_on</span>
+              <span class="block-label">Soltar</span>
+            </div>
+            <div class="logic-block block-action">
+              <span class="material-symbols-outlined icon-block secondary">power_settings_new</span>
+              <span class="block-label">Ativar</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <section class="canvas-center">
+      <div class="grid-pattern" style="position: absolute; inset: 0;"></div>
+      <div class="logic-stack-area">
+        <div class="logic-stack"></div>
+      </div>
+      <div class="canvas-controls">
+        <button class="btn-zoom">
+          <span class="material-symbols-outlined">zoom_in</span>
+        </button>
+        <button class="btn-zoom">
+          <span class="material-symbols-outlined">zoom_out</span>
+        </button>
+        <button class="btn-zoom">
+          <span class="material-symbols-outlined">center_focus_strong</span>
+        </button>
+      </div>
+    </section>
+
+    <aside class="simulation-panel">
+      <div class="sim-header">
+        <h3 class="sim-title">Palco de Simulação</h3>
+        <span class="status-chip">
+          <span class="status-dot"></span>
+          Pronto
+        </span>
+      </div>
+      <div class="sim-viewport">
+        <div class="sim-glow-overlay"></div>
+        <div class="sim-grid">
+          <div class="sim-robot">
+            <span class="material-symbols-outlined">smart_toy</span>
+          </div>
+          <div class="sim-crystal"></div>
+          <div class="sim-wall"></div>
+        </div>
+      </div>
+      <div class="sim-controls">
+        <button class="btn-executar">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+          EXECUTAR
+        </button>
+        <button class="btn-pausar">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
+          PAUSAR
+        </button>
+        <button class="btn-limpar">
+          <span class="material-symbols-outlined">restart_alt</span>
+          LIMPAR
+        </button>
+      </div>
+    </aside>
+
+  </main>
+
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>

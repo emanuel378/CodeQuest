@@ -1,0 +1,96 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --surface: #0d1515;
+  --surface-dim: #0d1515;
+  --surface-bright: #333b3b;
+  --surface-container-lowest: #080f10;
+  --surface-container-low: #151d1e;
+  --surface-container: #192122;
+  --surface-container-high: #232b2c;
+  --surface-container-highest: #2e3637;
+  --on-surface: #dce4e4;
+  --on-surface-variant: #b9cacb;
+  --inverse-surface: #dce4e4;
+  --inverse-on-surface: #2a3232;
+  --outline: #849495;
+  --outline-variant: #3a494b;
+  --surface-tint: #00dbe7;
+  --primary: #e1fdff;
+  --on-primary: #00363a;
+  --primary-container: #00f2ff;
+  --on-primary-container: #006a71;
+  --inverse-primary: #00696f;
+  --secondary: #ebb2ff;
+  --on-secondary: #520072;
+  --secondary-container: #b600f8;
+  --on-secondary-container: #fff6fc;
+  --tertiary: #e4ffd6;
+  --on-tertiary: #053900;
+  --tertiary-container: #34fc0d;
+  --on-tertiary-container: #106f00;
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+  --primary-fixed: #74f5ff;
+  --primary-fixed-dim: #00dbe7;
+  --on-primary-fixed: #002022;
+  --on-primary-fixed-variant: #004f54;
+  --secondary-fixed: #f8d8ff;
+  --secondary-fixed-dim: #ebb2ff;
+  --on-secondary-fixed: #320047;
+  --on-secondary-fixed-variant: #74009f;
+  --tertiary-fixed: #79ff5b;
+  --tertiary-fixed-dim: #2ae500;
+  --on-tertiary-fixed: #022100;
+  --on-tertiary-fixed-variant: #095300;
+  --background: #0d1515;
+  --on-background: #dce4e4;
+  --surface-variant: #2e3637;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --rounded-sm: 0.25rem;
+  --rounded-default: 0.5rem;
+  --rounded-md: 0.75rem;
+  --rounded-lg: 1rem;
+  --rounded-xl: 1.5rem;
+  --rounded-full: 9999px;
+
+  --sp-unit: 4px;
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 40px;
+  --sp-gutter: 20px;
+  --container-max: 1440px;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--on-surface);
+  background-color: var(--background);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
