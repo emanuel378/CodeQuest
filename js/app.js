@@ -8,6 +8,7 @@ import { getLevel } from './game/levels.js';
 import { Progression } from './game/progression.js';
 import { router, ROUTE_CHANGE } from './ui/routes.js';
 import { GameErrorHandler } from './ui/gameErrorHandler.js';
+import { GameTutorial } from './ui/gameTutorial.js';
 
 let gs = null;
 
@@ -166,14 +167,9 @@ function syncSimEntities() {
   }
 }
 
-function highlightWorkspaceBlock(index) {
-  const chains = gs.workspace.getAllBlocks();
-  let i = 0;
-  for (const chain of chains) {
-    for (const block of chain) {
-      block.el.classList.toggle('executing', i === index);
-      i++;
-    }
+function highlightWorkspaceBlock(blockId) {
+  for (const b of gs.workspace.blocks.values()) {
+    b.el.classList.toggle('executing', b.id === blockId);
   }
 }
 
@@ -338,11 +334,11 @@ function initGame() {
     const cmdEventTarget = new EventTarget();
 
     cmdEventTarget.addEventListener('command:start', e => {
-      highlightWorkspaceBlock(-1);
+      highlightWorkspaceBlock(e.detail.blockId);
     });
 
     cmdEventTarget.addEventListener('command:end', e => {
-      highlightWorkspaceBlock(-1);
+      highlightWorkspaceBlock(null);
     });
 
     try {
@@ -412,13 +408,83 @@ function initGame() {
 }
 
 let _gameInitialized = false;
+let _currentTutorial = null;
+let _namePromptEl = null;
+
+function showNamePrompt() {
+  const savedName = localStorage.getItem('codequest_player_name');
+  if (savedName) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'name-prompt-overlay';
+  overlay.innerHTML = `
+    <div class="name-prompt-modal">
+      <div class="name-prompt-icon-wrapper">
+        <span class="material-symbols-outlined name-prompt-icon">badge</span>
+      </div>
+      <h2 class="name-prompt-title">IDENTIFICAÇÃO</h2>
+      <p class="name-prompt-text">Digite seu nome, programador:</p>
+      <input class="name-prompt-input" id="name-input" type="text" placeholder="Seu nome" maxlength="20" autocomplete="off">
+      <button class="name-prompt-btn" id="name-save-btn">SALVAR</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('active'));
+  _namePromptEl = overlay;
+
+  const input = overlay.querySelector('#name-input');
+  const btn = overlay.querySelector('#name-save-btn');
+
+  function save() {
+    const name = input.value.trim();
+    if (!name) {
+      input.focus();
+      input.style.borderColor = 'var(--error)';
+      input.style.boxShadow = '0 0 10px rgba(255, 180, 171, 0.3)';
+      return;
+    }
+    localStorage.setItem('codequest_player_name', name);
+    overlay.classList.remove('active');
+    overlay.addEventListener('transitionend', () => {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, { once: true });
+    _namePromptEl = null;
+  }
+
+  btn.addEventListener('click', save);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') save();
+    input.style.borderColor = '';
+    input.style.boxShadow = '';
+  });
+  setTimeout(() => input.focus(), 400);
+}
+
+function onTutorialComplete() {
+  _currentTutorial = null;
+  showNamePrompt();
+}
 
 document.addEventListener('game:ready', () => {
   initGame();
+
+  _currentTutorial = new GameTutorial(onTutorialComplete);
+  setTimeout(() => {
+    if (_currentTutorial) _currentTutorial.show();
+  }, 300);
+
   _gameInitialized = true;
 });
 
 document.addEventListener(ROUTE_CHANGE, (e) => {
+  if (_namePromptEl) {
+    _namePromptEl.remove();
+    _namePromptEl = null;
+  }
+  if (_currentTutorial && e.detail.path !== '/game') {
+    _currentTutorial.hide();
+    _currentTutorial = null;
+  }
   if (e.detail.path === '/' || e.detail.path === '/levels') {
     _gameInitialized = false;
     gs = null;

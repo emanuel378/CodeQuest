@@ -30,7 +30,7 @@ class RankingPage extends PageComponent {
 
   _formatPlayer(entry, index) {
     if (entry._placeholder) return entry._name;
-    return `Nível ${entry.level}`;
+    return entry.playerName || `Nível ${entry.level}`;
   }
 
   _formatScore(score) {

@@ -5,7 +5,7 @@
   overflow: hidden;
 }
 
-.sb-palette {
+.sb-palette { 
   width: 240px;
   background: var(--surface-container);
   border-right: 1px solid var(--outline-variant);
