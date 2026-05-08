@@ -13,6 +13,7 @@ export class Progression {
     this.completedLevels = [];
     this.unlockedCommands = [];
     this.ranking = [];
+    this.totalXP = 0;
     this._load();
   }
 
@@ -24,6 +25,7 @@ export class Progression {
         this.currentLevel = data.currentLevel || 0;
         this.completedLevels = data.completedLevels || [];
         this.ranking = data.ranking || [];
+        this.totalXP = data.totalXP || 0;
       }
     } catch { }
 
@@ -36,7 +38,8 @@ export class Progression {
         currentLevel: this.currentLevel,
         completedLevels: this.completedLevels,
         unlockedCommands: this.unlockedCommands,
-        ranking: this.ranking
+        ranking: this.ranking,
+        totalXP: this.totalXP
       }));
     } catch { }
   }
@@ -72,6 +75,7 @@ export class Progression {
       this.currentLevel = id + 1;
     }
     const playerName = localStorage.getItem('codequest_player_name') || 'Anônimo';
+    this.totalXP += score;
     this.ranking.push({
       playerName,
       score,
@@ -80,6 +84,14 @@ export class Progression {
     });
     this._syncUnlocked();
     this._save();
+  }
+
+  getPlayerSkin() {
+    const thresholds = [100, 80, 60, 20, 10, 0];
+    for (const t of thresholds) {
+      if (this.totalXP >= t) return `img/player_${t}xp.png`;
+    }
+    return 'img/player_0xp.png';
   }
 
   isCommandUnlocked(command) {

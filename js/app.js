@@ -130,14 +130,23 @@ function renderSimGrid(level) {
 
   const robot = document.createElement('div');
   robot.className = 'sim-robot';
-  const robotIcon = document.createElement('span');
-  robotIcon.className = 'material-symbols-outlined';
-  robotIcon.textContent = 'smart_toy';
-  robot.appendChild(robotIcon);
+  const robotImg = document.createElement('img');
+  robotImg.className = 'sim-robot-img';
+  robotImg.src = 'img/player_0xp.png';
+  robotImg.alt = 'player';
+  robotImg.draggable = false;
+  robot.appendChild(robotImg);
   gs.simGrid.appendChild(robot);
 
   gs.player.__robotEl = robot;
   updateSimView();
+}
+
+function updatePlayerSkin() {
+  const robot = gs.player.__robotEl;
+  if (!robot) return;
+  const img = robot.querySelector('.sim-robot-img');
+  if (img) img.src = gs.progression.getPlayerSkin();
 }
 
 function updateSimView() {
@@ -151,6 +160,7 @@ function updateSimView() {
   robot.style.height = `${cellSize * 0.7}px`;
 
   robot.style.transform = `rotate(${gs.player.direction * 90}deg)`;
+  updatePlayerSkin();
 }
 
 function syncSimEntities() {
@@ -354,6 +364,7 @@ function initGame() {
       if (stage.checkVictory()) {
         setStatus('Vitória!', '#00FF3D');
         progression.completeLevel(progression.getCurrentLevel(), 1000);
+        updatePlayerSkin();
         setTimeout(() => {
           loadCurrentLevel();
           workspace.clear();
