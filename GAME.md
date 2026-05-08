@@ -43,12 +43,12 @@ Cores das categorias (definidas no DESIGN.md):
 
 ## Progressão de Níveis
 
-| Nível | Tema | Novos Blocos Desbloqueados | Objetivo | Tamanho da Grade | Obstáculos |
-| --- | --- | --- | --- | --- | --- |
-| 0 (Inicial) | Tutorial | Mover Frente, Girar Direita, Girar Esquerda, Pular, Detectar obstáculo, Detectar inimigo, Atacar, Pegar, Soltar, Ativar | Aprender controles básicos | 5x5 | Nenhum |
-| 1 | Cidade da Lógica | Se (if), Senão (else) | Mover até o inimigo e Atacar | 5x5 | Nenhum |
-| 2 | Floresta dos Algoritmos | Repetir, Enquanto | Chegar ao inimigo, tomar decisões automaticamente e atacar apenas quando necessário | 5x5 | Pedras, Árvores |
-| 3 | Núcleo de Logicron | Nenhum | Chegar ao núcleo e Derrotar o boss final | 5x5 | Pedras, Árvores, Inimigos móveis |
+| Nível | Nome da Fase | Tema Visual | Novos Blocos Desbloqueados | Objetivo | Tamanho da Grade | Obstáculos |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 (Inicial) | Tutorial | `ocean` | Mover Frente, Girar Direita, Girar Esquerda, Pular, Detectar obstáculo, Detectar inimigo, Atacar, Pegar, Soltar, Ativar | Aprender controles básicos | 5x5 | Nenhum |
+| 1 | Cidade da Lógica | `ocean` | Se (if), Senão (else) | Mover até o inimigo e Atacar | 5x5 | Nenhum |
+| 2 | Floresta dos Algoritmos | `forest` | Repetir, Enquanto | Chegar ao inimigo, tomar decisões automaticamente e atacar apenas quando necessário | 5x5 | Pedras, Árvores |
+| 3 | Núcleo de Logicron | `void` | Nenhum | Chegar ao núcleo e Derrotar o boss final | 5x5 | Pedras, Árvores, Inimigos móveis |
 
 ### Tipos de Obstáculos
 
@@ -68,6 +68,7 @@ Cores das categorias (definidas no DESIGN.md):
   - Objetivo (ex: "Derrotar o boss final")
   - Obstáculos (tipos e posições no grid)
   - Blocos disponíveis para aquele nível
+  - `theme` — token visual que define o esquema de cores do nível (`ocean`, `forest`, `void`)
 
 - `progression.js` gerencia:
   - Nível atual
@@ -100,7 +101,7 @@ Cores das categorias (definidas no DESIGN.md):
 
 1. Adicionar linha na tabela "Progressão de Níveis":
 ```markdown
-| 4 | Caverna dos Loops | Para Cada (for), Enquanto (while) | Completar o labirinto usando loops | 7x7 | Pedras, Água, Inimigos |
+| 4 | Caverna dos Loops | `cave` | Para Cada (for), Enquanto (while) | Completar o labirinto usando loops | 7x7 | Pedras, Água, Inimigos |
 ```
 
 2. Adicionar novos blocos na tabela "Catálogo de Blocos":

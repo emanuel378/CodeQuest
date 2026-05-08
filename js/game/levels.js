@@ -2,6 +2,7 @@ export const LEVELS = [
   {
     id: 0,
     name: 'Tutorial',
+    theme: 'ocean',
     gridSize: 5,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 0 },
@@ -14,6 +15,7 @@ export const LEVELS = [
   {
     id: 1,
     name: 'Cidade da Lógica',
+    theme: 'ocean',
     gridSize: 5,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: null,
@@ -26,6 +28,7 @@ export const LEVELS = [
   {
     id: 2,
     name: 'Floresta dos Algoritmos',
+    theme: 'forest',
     gridSize: 5,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: null,
@@ -42,6 +45,7 @@ export const LEVELS = [
   {
     id: 3,
     name: 'Núcleo de Logicron',
+    theme: 'void',
     gridSize: 5,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 4 },

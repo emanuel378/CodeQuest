@@ -25,6 +25,12 @@ function loadCurrentLevel() {
     level.playerStart.direction
   );
 
+  const container = document.querySelector('.game-container');
+  if (container) {
+    const cls = level.theme || 'ocean';
+    container.className = `game-container theme-${cls}`;
+  }
+
   if (gs.indicator) gs.indicator.textContent = `Nível ${level.id}: ${level.name}`;
 
   renderSimGrid(level);
