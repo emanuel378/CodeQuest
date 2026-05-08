@@ -6,60 +6,42 @@ import { Player } from './actors/player.js';
 import { Stage } from './stage/stage.js';
 import { getLevel } from './game/levels.js';
 import { Progression } from './game/progression.js';
+import { router, ROUTE_CHANGE } from './ui/routes.js';
+import { GameErrorHandler } from './ui/gameErrorHandler.js';
 
-const workspaceEl = document.getElementById('workspace');
-const paletteEl = document.getElementById('palette');
-
-const workspace = new BlockWorkspace(workspaceEl);
-const palette = new BlockPalette(paletteEl);
-
-const player = new Player(5);
-const stage = new Stage(5);
-const progression = new Progression();
-
-const simGrid = document.querySelector('.sim-grid');
-const statusDot = document.querySelector('.status-dot');
-const statusText = document.querySelector('.status-text');
-const runButton = document.querySelector('.btn-executar');
-const clearButton = document.querySelector('.btn-limpar');
-const pauseButton = document.querySelector('.btn-pausar');
-
-let isRunning = false;
-let shouldPause = false;
-let shouldStop = false;
+let gs = null;
 
 function loadCurrentLevel() {
-  const levelId = progression.getCurrentLevel();
+  const levelId = gs.progression.getCurrentLevel();
   const level = getLevel(levelId);
   if (!level) return;
 
-  stage.loadLevel(level);
-  stage.setPlayer(player);
-  player.reset(
+  gs.stage.loadLevel(level);
+  gs.stage.setPlayer(gs.player);
+  gs.player.reset(
     level.playerStart.x,
     level.playerStart.y,
     level.playerStart.direction
   );
 
-  const indicator = document.querySelector('.level-indicator');
-  if (indicator) indicator.textContent = `Nível ${level.id}: ${level.name}`;
+  if (gs.indicator) gs.indicator.textContent = `Nível ${level.id}: ${level.name}`;
 
   renderSimGrid(level);
-  palette.filterByUnlocked(progression.getUnlockedCommands());
+  gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
   setStatus('Pronto', '#00FF3D');
 }
 
 function renderSimGrid(level) {
-  if (!simGrid) return;
+  if (!gs.simGrid) return;
 
-  simGrid.innerHTML = '';
-  simGrid.style.backgroundSize = `${100 / level.gridSize}px ${100 / level.gridSize}px`;
-  simGrid.style.backgroundImage = `
+  gs.simGrid.innerHTML = '';
+  gs.simGrid.style.backgroundSize = `${100 / level.gridSize}px ${100 / level.gridSize}px`;
+  gs.simGrid.style.backgroundImage = `
     linear-gradient(rgba(0, 242, 255, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 242, 255, 0.2) 1px, transparent 1px)
   `;
 
-  const cellW = simGrid.offsetWidth / level.gridSize;
+  const cellW = gs.simGrid.offsetWidth / level.gridSize;
 
   for (const obs of (level.obstacles || [])) {
     const el = document.createElement('div');
@@ -70,7 +52,7 @@ function renderSimGrid(level) {
     el.style.top = `${obs.y * cellW}px`;
     el.style.width = `${cellW}px`;
     el.style.height = `${cellW}px`;
-    simGrid.appendChild(el);
+    gs.simGrid.appendChild(el);
 
     if (obs.type === 'tree') {
       const icon = document.createElement('span');
@@ -106,7 +88,7 @@ function renderSimGrid(level) {
     hpLabel.textContent = `HP:${enemy.hp || 1}`;
     el.appendChild(hpLabel);
 
-    simGrid.appendChild(el);
+    gs.simGrid.appendChild(el);
   }
 
   for (const item of (level.items || [])) {
@@ -124,7 +106,7 @@ function renderSimGrid(level) {
     icon.textContent = 'diamond';
     el.appendChild(icon);
 
-    simGrid.appendChild(el);
+    gs.simGrid.appendChild(el);
   }
 
   if (level.goal) {
@@ -142,7 +124,7 @@ function renderSimGrid(level) {
     icon.textContent = 'flag';
     el.appendChild(icon);
 
-    simGrid.appendChild(el);
+    gs.simGrid.appendChild(el);
   }
 
   const robot = document.createElement('div');
@@ -151,30 +133,30 @@ function renderSimGrid(level) {
   robotIcon.className = 'material-symbols-outlined';
   robotIcon.textContent = 'smart_toy';
   robot.appendChild(robotIcon);
-  simGrid.appendChild(robot);
+  gs.simGrid.appendChild(robot);
 
-  player.__robotEl = robot;
+  gs.player.__robotEl = robot;
   updateSimView();
 }
 
 function updateSimView() {
-  const robot = player.__robotEl;
-  if (!robot || !simGrid) return;
-  const cellSize = simGrid.offsetWidth / stage.gridSize;
+  const robot = gs.player.__robotEl;
+  if (!robot || !gs.simGrid) return;
+  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
 
-  robot.style.left = `${player.x * cellSize + cellSize * 0.15}px`;
-  robot.style.top = `${player.y * cellSize + cellSize * 0.15}px`;
+  robot.style.left = `${gs.player.x * cellSize + cellSize * 0.15}px`;
+  robot.style.top = `${gs.player.y * cellSize + cellSize * 0.15}px`;
   robot.style.width = `${cellSize * 0.7}px`;
   robot.style.height = `${cellSize * 0.7}px`;
 
-  robot.style.transform = `rotate(${player.direction * 90}deg)`;
+  robot.style.transform = `rotate(${gs.player.direction * 90}deg)`;
 }
 
 function syncSimEntities() {
-  for (const el of simGrid.querySelectorAll('.sim-enemy')) {
+  for (const el of gs.simGrid.querySelectorAll('.sim-enemy')) {
     const ex = parseInt(el.dataset.x);
     const ey = parseInt(el.dataset.y);
-    const enemy = stage.enemies.find(e => e.x === ex && e.y === ey);
+    const enemy = gs.stage.enemies.find(e => e.x === ex && e.y === ey);
     if (!enemy) {
       el.remove();
     } else {
@@ -185,7 +167,7 @@ function syncSimEntities() {
 }
 
 function highlightWorkspaceBlock(index) {
-  const chains = workspace.getAllBlocks();
+  const chains = gs.workspace.getAllBlocks();
   let i = 0;
   for (const chain of chains) {
     for (const block of chain) {
@@ -196,24 +178,20 @@ function highlightWorkspaceBlock(index) {
 }
 
 function setStatus(text, color = 'var(--on-surface-variant)') {
-  if (statusText) statusText.textContent = text;
-  if (statusDot) {
-    statusDot.style.background = color;
-    statusDot.style.boxShadow = `0 0 8px ${color}`;
+  if (gs.statusText) gs.statusText.textContent = text;
+  if (gs.statusDot) {
+    gs.statusDot.style.background = color;
+    gs.statusDot.style.boxShadow = `0 0 8px ${color}`;
   }
 }
 
-const errorLog = document.createElement('div');
-errorLog.className = 'error-log';
-document.querySelector('.simulation-panel')?.appendChild(errorLog);
-
 function showErrors(validation) {
-  errorLog.innerHTML = '';
+  gs.errorLog.innerHTML = '';
   if (!validation || (!validation.hasErrors() && !validation.hasWarnings())) {
-    errorLog.style.display = 'none';
+    gs.errorLog.style.display = 'none';
     return;
   }
-  errorLog.style.display = 'flex';
+  gs.errorLog.style.display = 'flex';
 
   for (const msg of validation.getAllMessages()) {
     const el = document.createElement('div');
@@ -222,161 +200,229 @@ function showErrors(validation) {
     const span = document.createElement('span');
     span.textContent = msg.message;
     el.appendChild(span);
-    errorLog.appendChild(el);
+    gs.errorLog.appendChild(el);
   }
 }
 
-const withGuard = (fn) => async (...args) => {
-  if (shouldStop) throw new Error('Execution stopped');
-  while (shouldPause && !shouldStop) {
-    await new Promise(r => setTimeout(r, 100));
-  }
-  if (shouldStop) throw new Error('Execution stopped');
-  return fn(...args);
-};
+function withGuard(fn) {
+  return async (...args) => {
+    if (gs.shouldStop) throw new Error('Execution stopped');
+    while (gs.shouldPause && !gs.shouldStop) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (gs.shouldStop) throw new Error('Execution stopped');
+    return fn(...args);
+  };
+}
 
-runButton?.addEventListener('click', async () => {
-  if (isRunning) return;
+function initGame() {
+  const els = router.currentPage.elements;
 
-  loadCurrentLevel();
-  isRunning = true;
-  shouldPause = false;
-  shouldStop = false;
-  setStatus('Validando...', '#ebb2ff');
+  const errorHandler = new GameErrorHandler(els.statusText, els.statusDot);
 
-  const commands = workspace.getCommandTree();
-  console.log('Commands:', JSON.stringify(commands, null, 2));
-
-  const validation = validateCommands(commands);
-  showErrors(validation);
-
-  if (validation.hasErrors()) {
-    setStatus('Erro nos comandos', '#ef4444');
-    isRunning = false;
+  if (!errorHandler.checkRequired({
+    workspace: els.workspace,
+    palette: els.palette,
+    simGrid: els.simGrid
+  })) {
+    errorHandler.showFatalError('Falha ao carregar o jogo: componentes essenciais ausentes');
     return;
   }
 
-  const runtimeValidation = { executedCount: 0, running: false };
+  const workspace = new BlockWorkspace(els.workspace);
+  const palette = new BlockPalette(els.palette);
+  const player = new Player(5);
+  const stage = new Stage(5);
+  const progression = new Progression();
 
-  setStatus('Executando...', '#00f2ff');
+  const simGrid = els.simGrid;
+  const statusDot = els.statusDot;
+  const statusText = els.statusText;
+  const indicator = els.indicator;
 
-  const handlers = {
-    move: withGuard(async (cmd) => {
-      const steps = Math.max(1, cmd.value || 1);
-      for (let i = 0; i < steps; i++) {
-        const ahead = player.peekForward();
-        if (!stage.canMoveTo(ahead.x, ahead.y)) break;
-        player.moveForward(1);
-        updateSimView();
-      }
-    }),
+  const errorLog = document.createElement('div');
+  errorLog.className = 'error-log';
+  document.querySelector('.simulation-panel')?.appendChild(errorLog);
 
-    turnRight: withGuard(async () => {
-      player.turnRight();
-      updateSimView();
-    }),
-
-    turnLeft: withGuard(async () => {
-      player.turnLeft();
-      updateSimView();
-    }),
-
-    jump: withGuard(async () => {
-      const jumpPos = player.peekJump();
-      const mid = player.peekForward();
-      if (stage.isInBounds(jumpPos.x, jumpPos.y) && stage.isInBounds(mid.x, mid.y)) {
-        player.jump();
-        updateSimView();
-      }
-    }),
-
-    attack: withGuard(async () => {
-      stage.attackEnemy();
-      syncSimEntities();
-    }),
-
-    pickup: withGuard(async () => {
-      stage.pickupItem();
-    }),
-
-    drop: withGuard(async () => {
-      stage.dropItem();
-    }),
-
-    activate: withGuard(async () => {
-      return;
-    }),
-
-    detectObstacle: withGuard(async () => {
-      return stage.detectObstacleAhead();
-    }),
-
-    detectEnemy: withGuard(async () => {
-      return stage.detectEnemyNearby(3);
-    })
+  gs = {
+    workspace, palette, player, stage, progression,
+    simGrid, statusDot, statusText, indicator, errorLog, els,
+    isRunning: false,
+    shouldPause: false,
+    shouldStop: false,
   };
 
-  const cmdEventTarget = new EventTarget();
+  const runWithGuard = withGuard;
 
-  cmdEventTarget.addEventListener('command:start', e => {
-    highlightWorkspaceBlock(-1);
-  });
+  els.runBtn?.addEventListener('click', async () => {
+    if (gs.isRunning) return;
 
-  cmdEventTarget.addEventListener('command:end', e => {
-    highlightWorkspaceBlock(-1);
-  });
+    loadCurrentLevel();
+    gs.isRunning = true;
+    gs.shouldPause = false;
+    gs.shouldStop = false;
+    setStatus('Validando...', '#ebb2ff');
 
-  try {
-    await runCommands(commands, {
-      handlers,
-      delayMs: 500,
-      eventTarget: cmdEventTarget,
-      validation: runtimeValidation
+    const commands = workspace.getCommandTree();
+    console.log('Commands:', JSON.stringify(commands, null, 2));
+
+    const validation = validateCommands(commands);
+    showErrors(validation);
+
+    if (validation.hasErrors()) {
+      setStatus('Erro nos comandos', '#ef4444');
+      gs.isRunning = false;
+      return;
+    }
+
+    const runtimeValidation = { executedCount: 0, running: false };
+
+    setStatus('Executando...', '#00f2ff');
+
+    const handlers = {
+      move: runWithGuard(async (cmd) => {
+        const steps = Math.max(1, cmd.value || 1);
+        for (let i = 0; i < steps; i++) {
+          const ahead = player.peekForward();
+          if (!stage.canMoveTo(ahead.x, ahead.y)) break;
+          player.moveForward(1);
+          updateSimView();
+        }
+      }),
+
+      turnRight: runWithGuard(async () => {
+        player.turnRight();
+        updateSimView();
+      }),
+
+      turnLeft: runWithGuard(async () => {
+        player.turnLeft();
+        updateSimView();
+      }),
+
+      jump: runWithGuard(async () => {
+        const jumpPos = player.peekJump();
+        const mid = player.peekForward();
+        if (stage.isInBounds(jumpPos.x, jumpPos.y) && stage.isInBounds(mid.x, mid.y)) {
+          player.jump();
+          updateSimView();
+        }
+      }),
+
+      attack: runWithGuard(async () => {
+        stage.attackEnemy();
+        syncSimEntities();
+      }),
+
+      pickup: runWithGuard(async () => {
+        stage.pickupItem();
+      }),
+
+      drop: runWithGuard(async () => {
+        stage.dropItem();
+      }),
+
+      activate: runWithGuard(async () => {
+        return;
+      }),
+
+      detectObstacle: runWithGuard(async () => {
+        return stage.detectObstacleAhead();
+      }),
+
+      detectEnemy: runWithGuard(async () => {
+        return stage.detectEnemyNearby(3);
+      })
+    };
+
+    const cmdEventTarget = new EventTarget();
+
+    cmdEventTarget.addEventListener('command:start', e => {
+      highlightWorkspaceBlock(-1);
     });
 
-    await new Promise(r => setTimeout(r, 200));
+    cmdEventTarget.addEventListener('command:end', e => {
+      highlightWorkspaceBlock(-1);
+    });
 
-    if (stage.checkVictory()) {
-      setStatus('Vitória!', '#00FF3D');
-      progression.completeLevel(progression.getCurrentLevel(), 1000);
-      setTimeout(() => {
-        loadCurrentLevel();
-        workspace.clear();
-      }, 1500);
-    } else {
-      setStatus('Tente novamente', '#ef4444');
+    try {
+      await runCommands(commands, {
+        handlers,
+        delayMs: 500,
+        eventTarget: cmdEventTarget,
+        validation: runtimeValidation
+      });
+
+      await new Promise(r => setTimeout(r, 200));
+
+      if (stage.checkVictory()) {
+        setStatus('Vitória!', '#00FF3D');
+        progression.completeLevel(progression.getCurrentLevel(), 1000);
+        setTimeout(() => {
+          loadCurrentLevel();
+          workspace.clear();
+        }, 1500);
+      } else {
+        setStatus('Tente novamente', '#ef4444');
+      }
+    } catch (error) {
+      if (error.message === 'Execution stopped') {
+        setStatus('Interrompido', '#ebb2ff');
+      } else if (error.message === 'Command limit exceeded') {
+        setStatus('Limite de comandos excedido', '#ef4444');
+        const el = document.createElement('div');
+        el.className = 'log-entry log-error';
+        el.innerHTML = '<span>✕ Limite de ' + MAX_TOTAL_COMMANDS + ' comandos excedido. Possível loop infinito.</span>';
+        errorLog.appendChild(el);
+        errorLog.style.display = 'flex';
+      } else {
+        console.error('Execution error:', error);
+        setStatus('Erro', '#ef4444');
+      }
     }
-  } catch (error) {
-    if (error.message === 'Execution stopped') {
-      setStatus('Interrompido', '#ebb2ff');
-    } else if (error.message === 'Command limit exceeded') {
-      setStatus('Limite de comandos excedido', '#ef4444');
-      const el = document.createElement('div');
-      el.className = 'log-entry log-error';
-      el.innerHTML = '<span>✕ Limite de ' + MAX_TOTAL_COMMANDS + ' comandos excedido. Possível loop infinito.</span>';
-      errorLog.appendChild(el);
-      errorLog.style.display = 'flex';
-    } else {
-      console.error('Execution error:', error);
-      setStatus('Erro', '#ef4444');
-    }
+
+    highlightWorkspaceBlock(-1);
+    gs.isRunning = false;
+  });
+
+  els.clearBtn?.addEventListener('click', () => {
+    gs.shouldStop = true;
+    workspace.clear();
+    loadCurrentLevel();
+    setStatus('Pronto', '#00FF3D');
+  });
+
+  els.pauseBtn?.addEventListener('click', () => {
+    if (!gs.isRunning) return;
+    gs.shouldPause = !gs.shouldPause;
+    setStatus(gs.shouldPause ? 'Pausado' : 'Executando...', gs.shouldPause ? '#ebb2ff' : '#00f2ff');
+  });
+
+  if (els.simViewport) {
+    const ro = new ResizeObserver(() => {
+      if (gs && gs.stage && gs.simGrid) {
+        const level = getLevel(gs.progression.getCurrentLevel());
+        if (level) renderSimGrid(level);
+      }
+    });
+    ro.observe(els.simViewport);
   }
 
-  highlightWorkspaceBlock(-1);
-  isRunning = false;
-});
-
-clearButton?.addEventListener('click', () => {
-  shouldStop = true;
-  workspace.clear();
   loadCurrentLevel();
-  setStatus('Pronto', '#00FF3D');
+}
+
+let _gameInitialized = false;
+
+document.addEventListener('game:ready', () => {
+  initGame();
+  _gameInitialized = true;
 });
 
-pauseButton?.addEventListener('click', () => {
-  if (!isRunning) return;
-  shouldPause = !shouldPause;
-  setStatus(shouldPause ? 'Pausado' : 'Executando...', shouldPause ? '#ebb2ff' : '#00f2ff');
+document.addEventListener(ROUTE_CHANGE, (e) => {
+  if (e.detail.path === '/' || e.detail.path === '/levels') {
+    _gameInitialized = false;
+    gs = null;
+  }
 });
 
-loadCurrentLevel();
+router.start();

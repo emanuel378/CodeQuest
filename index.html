@@ -1,81 +1,228 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="dark" lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cidade da Lógica - Protocolo Autômato</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/design-system.css">
-  <link rel="stylesheet" href="styles/blocks.css">
-  <link rel="stylesheet" href="styles/stage.css">
-  <link rel="stylesheet" href="styles/blockly.css">
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cidade da Lógica - Protocolo Autômato</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500&display=swap"
+      rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div id="root"></div>
 
-  <header class="top-navbar">
-    <div class="nav-brand">
-      <h1 class="app-title"><span class="level-indicator">Nível 0</span> Cidade da Lógica</h1>
-    </div>
-    <div class="nav-controls">
-      <div class="progress-container">
-        <div class="progress-labels">
-          <span>Integridade do Sistema</span>
-          <span>60%</span>
+    <template id="page-game">
+      <header class="top-navbar">
+        <div class="nav-brand">
+          <h1 class="app-title">
+            <span class="level-indicator">Nível 0</span> Cidade da Lógica
+          </h1>
         </div>
-        <div class="progress-track">
-          <div class="progress-fill"></div>
+        <div class="nav-controls">
+          <div class="progress-container">
+            <div class="progress-labels">
+              <span>Integridade do Sistema</span>
+              <span>60%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+          <div class="star-rating">
+            <span
+              class="material-symbols-outlined"
+              style="font-variation-settings: &quot;FILL&quot; 1"
+              >star</span
+            >
+            <span
+              class="material-symbols-outlined"
+              style="font-variation-settings: &quot;FILL&quot; 1"
+              >star</span
+            >
+            <span
+              class="material-symbols-outlined"
+              style="color: var(--outline-variant)"
+              >star</span
+            >
+          </div>
+
         </div>
+      </header>
+
+      <main class="sb-layout">
+        <aside class="sb-palette" id="palette"></aside>
+        <div class="sb-workspace" id="workspace" tabindex="0"></div>
+        <aside class="simulation-panel">
+          <div class="sim-header">
+            <h3 class="sim-title">Palco de Simulação</h3>
+            <span class="status-chip">
+              <span class="status-dot"></span>
+              <span class="status-text">Pronto</span>
+            </span>
+          </div>
+          <div class="sim-viewport">
+            <div class="sim-glow-overlay"></div>
+            <div class="sim-grid"></div>
+          </div>
+          <div class="sim-controls">
+            <button class="btn-executar">
+              <span
+                class="material-symbols-outlined"
+                style="font-variation-settings: &quot;FILL&quot; 1"
+                >play_arrow</span
+              >
+              EXECUTAR
+            </button>
+            <button class="btn-pausar">
+              <span
+                class="material-symbols-outlined"
+                style="font-variation-settings: &quot;FILL&quot; 1"
+                >pause</span
+              >
+              PAUSAR
+            </button>
+            <button class="btn-limpar">
+              <span class="material-symbols-outlined">restart_alt</span>
+              LIMPAR
+            </button>
+          </div>
+        </aside>
+      </main>
+    </template>
+
+    <template id="page-landing">
+      <div class="landing-page">
+        <header class="lp-header">
+          <div class="lp-logo">CodeQuest</div>
+          <nav class="lp-nav">
+            <button class="lp-btn-outline" data-action="ranking">
+              Ranking
+            </button>
+            <button class="lp-btn-primary" data-action="play">
+              Jogar agora
+            </button>
+          </nav>
+        </header>
+
+        <main class="lp-hero">
+          <div class="lp-badge">
+            <span class="lp-badge-dot"></span>
+            <span class="lp-badge-text">Sistema Operacional Online</span>
+          </div>
+
+          <h1 class="lp-title">CodeQuest</h1>
+
+          <p class="lp-description">
+            CodeQuest é um RPG de lógica baseado em blocos onde o jogador
+            programa ações de um herói para superar desafios. Mergulhe na rede e
+            domine os algoritmos.
+          </p>
+
+          <button class="lp-cta" data-action="play">
+            <svg
+              class="lp-cta-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Jogar agora
+          </button>
+
+          <div class="lp-bar">
+            <div class="lp-bar-segment lp-bar-cyan"></div>
+            <div class="lp-bar-segment lp-bar-purple"></div>
+            <div class="lp-bar-segment lp-bar-green"></div>
+          </div>
+        </main>
+
+        <footer class="lp-footer">
+          <span class="lp-footer-text">CodeQuest</span>
+        </footer>
       </div>
-      <div class="star-rating">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
-        <span class="material-symbols-outlined" style="color: var(--outline-variant);">star</span>
+    </template>
+
+    <template id="page-ranking">
+      <div class="ranking-page">
+        <nav class="rank-navbar">
+          <div class="rank-nav-inner">
+            <span class="rank-logo">CodeQuest</span>
+            <button class="rank-btn-play" data-action="play">Jogar agora</button>
+          </div>
+        </nav>
+
+        <main class="rank-content">
+          <header class="rank-header">
+            <h1 class="rank-title">Ranking Local</h1>
+            <p class="rank-subtitle">Os melhores codificadores do sistema. Prove sua lógica e alcance o topo.</p>
+          </header>
+
+          <section class="rank-podium" id="rank-podium">
+            <div class="podium-item podium-silver" data-rank="2">
+              <span class="podium-label">2nd</span>
+              <div class="podium-avatar">
+                <img class="podium-avatar-img" src="https://lh3.googleusercontent.com/aida/ADBb0uiUBryX7X2icDkkK-mj6lz_2YyT7YrnyVGKTTXaqs8Y9dcywMKRWmYkPM8g3uvlW3-bhTgGwGkOUDqzrj7UOnodO-Rhd1BAouXBV8hXJibFLSsaBuMcIZZRniTl8PNOzvRdmXzySbLkMRrz4qFXo3H7Q8UQHTEGMnKX_WhtKhiLPcNHxRUzbNSSqEhtiv6zsbtpMI3VPowBv2E7L0tZMLh2s-wYVaf1Z9ifixcBIsIBkOY1nsZkvPumzj0" alt="Silver Trophy">
+              </div>
+              <span class="podium-badge">Silver</span>
+              <span class="podium-name">---</span>
+              <span class="podium-score">0 pts</span>
+            </div>
+
+            <div class="podium-item podium-gold" data-rank="1">
+              <span class="material-symbols-outlined podium-trophy">emoji_events</span>
+              <div class="podium-avatar podium-avatar-lg">
+                <img class="podium-avatar-img" src="https://lh3.googleusercontent.com/aida/ADBb0uitd8VqiysSlemF8YSsg5s728iwUliP0JnIi0wdCHXvifkZYWZgBCMiyDjotqk0m7d18ExkRE1wDrTIBpUhTJOE4uRoZFOAfmwjAF7ZJ_WQ9rwzNdNDI7xI5OsNpNmt7__aDQsngfTq2TDgtnOH6mQK3XWZsILcTOofivXA7fGl3Ev91WIBygcgc9wzdv3F25NysCMCKA9PEZvKULsqn0oytChST7er-eQpb3R7BW_RHQazJt4flvIqGg" alt="Gold Trophy">
+              </div>
+              <span class="podium-badge podium-badge-gold">Master</span>
+              <span class="podium-name">---</span>
+              <span class="podium-score podium-score-gold">0 pts</span>
+            </div>
+
+            <div class="podium-item podium-bronze" data-rank="3">
+              <span class="podium-label">3rd</span>
+              <div class="podium-avatar">
+                <img class="podium-avatar-img" src="https://lh3.googleusercontent.com/aida/ADBb0uhyh1gK6ZWllwgHcWwhTVi3z4j9DorjONNLiIJOMVEk5jFJM26lk5_F4jM65DFzHbF_7BwrqVN56cl6xm8jNg10g4EvXkNoDspI5rOthALNaGFgDsW0zKch9enKhBgJea0cSGU8hx9dSv28K2lzYAdiTKfjDSlufLR0K9Wtf6TvWnoFufzkn97jPVHczYZm1n1br9ARh3KdDmMGqA4w0-Ya6WzFV39s5hfK0a_vgdtbRF-wVvIaw_KRU_Q" alt="Bronze Trophy">
+              </div>
+              <span class="podium-badge">Bronze</span>
+              <span class="podium-name">---</span>
+              <span class="podium-score">0 pts</span>
+            </div>
+          </section>
+
+          <section class="rank-list-section">
+            <div class="rank-list-panel">
+              <div class="rank-list-header">
+                <span class="rank-col-rank">Rank</span>
+                <span class="rank-col-player">Player</span>
+                <span class="rank-col-score">Score</span>
+              </div>
+              <div class="rank-list-body" id="rank-list-body"></div>
+              <div class="rank-list-footer">
+                <button class="rank-btn-more" id="rank-btn-more">
+                  Carregar mais
+                  <span class="material-symbols-outlined rank-more-icon">expand_more</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <footer class="rank-footer">
+          <span class="rank-footer-logo">CodeQuest</span>
+        </footer>
       </div>
-      <button class="menu-btn">
-        <span class="material-symbols-outlined">menu</span>
-      </button>
-    </div>
-  </header>
+    </template>
 
-  <main class="sb-layout">
-
-    <aside class="sb-palette" id="palette"></aside>
-
-    <div class="sb-workspace" id="workspace" tabindex="0"></div>
-
-    <aside class="simulation-panel">
-      <div class="sim-header">
-        <h3 class="sim-title">Palco de Simulação</h3>
-        <span class="status-chip">
-          <span class="status-dot"></span>
-          <span class="status-text">Pronto</span>
-        </span>
-      </div>
-      <div class="sim-viewport">
-        <div class="sim-glow-overlay"></div>
-        <div class="sim-grid"></div>
-      </div>
-      <div class="sim-controls">
-        <button class="btn-executar">
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
-          EXECUTAR
-        </button>
-        <button class="btn-pausar">
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
-          PAUSAR
-        </button>
-        <button class="btn-limpar">
-          <span class="material-symbols-outlined">restart_alt</span>
-          LIMPAR
-        </button>
-      </div>
-    </aside>
-
-  </main>
-
-  <script type="module" src="./js/app.js"></script>
-</body>
+    <script type="module" src="./js/app.js"></script>
+  </body>
 </html>
