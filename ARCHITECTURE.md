@@ -17,18 +17,29 @@ CodeQuest é um RPG de lógica baseado em blocos onde o jogador programa ações
 
 ```text
 CODEQUEST/
-├── index.html
+├── index.html                 # Templates SPA (#page-game, #page-landing, #page-ranking) + div#root
 ├── styles/
-│   ├── design-system.css      # Cores, tipografia, glassmorfismo
-│   ├── blocks.css             # Formatos de encaixe (notch/bump), dropzones
-│   └── stage.css              # Grid RPG, ator, obstáculos, telemetry
+│   ├── main.css               # Orquestrador de imports
+│   ├── design-system.css      # Tokens: cores, tipografia, glassmorfismo, espaçamento
+│   ├── blockly.css            # Layout workspace (sb-layout), blocos (sb-block), paleta (sb-palette)
+│   ├── stage.css              # Grid RPG, simulação, obstáculos, controles, log de erros
+│   ├── pages.css              # Animações de transição de página, estilos do ranking
+│   └── landing.css            # Landing page (hero, navegação, CTA)
 ├── js/
 │   ├── engine/
-│   │   ├── parser.js          # Converte blocos DOM → array de comandos
-│   │   └── runner.js          # Executor assíncrono (async/await, delays)
+│   │   ├── validator.js       # Validação de comandos (tipos, profundidade, limites)
+│   │   └── runner.js          # Executor assíncrono com if/repeat/while
 │   ├── ui/
-│   │   ├── dragDrop.js        # HTML5 Drag & Drop nativo
-│   │   └── workspace.js       # Snap magnético, gerenciar pilha de blocos
+│   │   ├── router.js          # HashRouter SPA — ciclo de vida mount/unmount
+│   │   ├── routes.js          # Mapeamento de rotas → PageComponents
+│   │   ├── pages/
+│   │   │   ├── pageComponent.js   # Classe base com animações de transição
+│   │   │   ├── landingPage.js     # Página inicial
+│   │   │   ├── gamePage.js        # Tela do jogo (workspace + simulação)
+│   │   │   └── rankingPage.js     # Pódio e lista de pontuações
+│   │   ├── blockWorkspace.js  # Gerenciamento de blocos, snap, drag DOM nativo
+│   │   ├── blockPalette.js    # Paleta de blocos por categoria com drag
+│   │   └── gameErrorHandler.js # Validação de elementos essenciais + erro fatal
 │   ├── actors/
 │   │   └── player.js          # Estado do herói no grid (pos, dir, animação)
 │   ├── stage/
@@ -36,7 +47,7 @@ CODEQUEST/
 │   ├── game/
 │   │   ├── levels.js          # Definição das fases (mapa, objetivos, blocos liberados)
 │   │   └── progression.js     # Desbloqueio de comandos, pontuação, ranking local
-│   └── app.js                 # Init, listeners, game loop
+│   └── app.js                 # Init, escuta game:ready + ROUTE_CHANGE
 ├── assets/
 │   └── sounds/                # Efeitos (snap, erro, vitória, desbloqueio)
 ├── opencode.json              # Config do projeto para opencode CLI
@@ -49,12 +60,17 @@ CODEQUEST/
 ## Fluxo de Dados
 
 ```text
-[Workspace DOM] → parser.js → [Command Array] → runner.js → [Player/Stage state]
+[Hash Router] → Rota / → LandingPage
+              → Rota /game → GamePage → dispatches game:ready
+                                        → app.js initGame()
+                                          → BlockWorkspace + BlockPalette + Stage + Player
+                                            → [Command Tree] → validator.js → runner.js
+                                              → [Player/Stage state] → updateSimView()
 ```
 
 ## Invariantes Arquiteturais
 
-- Arquivos em `engine/` NUNCA acessam DOM (exceto parser.js para leitura)
+- Arquivos em `engine/` NUNCA acessam DOM
 - Arquivos em `ui/` NUNCA contêm lógica de jogo (condições de vitória/derrota, colisão, estado do herói)
 - `app.js` é o único arquivo que pode importar engine e UI; apenas coordena execução, não adiciona lógica a nenhuma das camadas
 
@@ -62,15 +78,22 @@ CODEQUEST/
 
 | Arquivo | Função | Sem DOM? |
 | --- | --- | --- |
-| `engine/parser.js` | Lê workspace DOM → array de comandos | Não (lê DOM) |
+| `engine/validator.js` | Validação de comandos (tipos, profundidade, limites) | Sim |
 | `engine/runner.js` | Executa array de comandos com async/await | Sim |
 | `actors/player.js` | Estado do herói (posição, direção, animação) | Sim |
 | `stage/stage.js` | Grid, obstáculos, colisão, objetivos, vitória/derrota | Sim |
 | `game/levels.js` | Config de fases (mapa, objetivos, blocos liberados) | Sim |
 | `game/progression.js` | Sistema de desbloqueio, pontuação, ranking local | Sim |
-| `ui/dragDrop.js` | Eventos dragstart/dragover/drop, snap visual | Não (DOM) |
-| `ui/workspace.js` | Gerenciar pilha de blocos no workspace | Não (DOM) |
-| `app.js` | Init, listeners de botões, coordena Engine + UI | Não (DOM) |
+| `ui/router.js` | HashRouter SPA — mount/unmount de páginas | Não (DOM) |
+| `ui/routes.js` | Mapeamento path → PageComponent | Sim |
+| `ui/pages/pageComponent.js` | Classe base com animações de transição | Não (DOM) |
+| `ui/pages/landingPage.js` | Página inicial (hero, navegação) | Não (DOM) |
+| `ui/pages/gamePage.js` | Tela do jogo (workspace + simulação) | Não (DOM) |
+| `ui/pages/rankingPage.js` | Pódio e lista de pontuações | Não (DOM) |
+| `ui/blockWorkspace.js` | Gerenciamento de blocos, snap, drag DOM nativo | Não (DOM) |
+| `ui/blockPalette.js` | Paleta de blocos por categoria com drag | Não (DOM) |
+| `ui/gameErrorHandler.js` | Validação de elementos + erro fatal | Não (DOM) |
+| `app.js` | Init, escuta game:ready + ROUTE_CHANGE | Não (DOM) |
 
 ## Preocupações Transversais (Cross-Cutting)
 
