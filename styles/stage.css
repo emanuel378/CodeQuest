@@ -5,8 +5,18 @@
   background-size: 20px 20px;
 }
 
+.game-container,
+.game-container .top-navbar,
+.game-container .sb-layout,
+.game-container .sb-palette,
+.game-container .sb-workspace,
+.game-container .simulation-panel,
+.game-container .sim-viewport {
+  transition: background-color 1s ease, background 1s ease;
+}
+
 .top-navbar {
-  background: rgba(13, 21, 21, 0.6);
+  background: var(--surface);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--outline-variant);
   box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
@@ -98,7 +108,7 @@
 }
 
 .sidebar-palette {
-  background: rgba(0, 17, 34, 0.8);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
   backdrop-filter: blur(12px);
   border-right: 1px solid var(--outline-variant);
   position: fixed;
@@ -217,7 +227,7 @@
   flex: 1;
   margin-left: 256px;
   position: relative;
-  background: #000000;
+  background: var(--surface-dim);
   overflow: hidden;
 }
 
@@ -249,7 +259,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--rounded-full);
-  background: rgba(0, 17, 34, 0.95);
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
   border: 1px solid rgba(0, 242, 255, 0.5);
   display: flex;
   align-items: center;
@@ -269,7 +279,7 @@
 .simulation-panel {
   width: 400px;
   border-left: 1px solid var(--outline-variant);
-  background: rgba(0, 17, 34);
+  background: var(--surface-container);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -280,7 +290,7 @@
 .sim-header {
   padding: var(--sp-sm);
   border-bottom: 1px solid var(--outline-variant);
-  background: rgba(0, 17, 34, 0.8);
+  background: var(--surface-container);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -329,7 +339,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
+  background: var(--surface-dim);
   padding: var(--sp-lg);
 }
 
@@ -450,7 +460,7 @@
   position: absolute;
   z-index: 20;
   transition: left 0.3s ease, top 0.3s ease;
-  background: rgba(0, 17, 34);
+  background: var(--surface);
   border: 2px solid var(--primary-container);
   border-radius: var(--rounded-full);
   box-shadow: 0 0 15px rgba(0, 242, 255, 0.8);
@@ -502,7 +512,7 @@
 
 .sim-controls {
   padding: var(--sp-md);
-  background: rgba(0, 17, 34);
+  background: var(--surface-container);
   border-top: 1px solid var(--outline-variant);
   display: grid;
   grid-template-columns: repeat(3, 1fr);

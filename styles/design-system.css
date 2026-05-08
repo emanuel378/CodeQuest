@@ -90,6 +90,45 @@ body {
   flex-direction: column;
 }
 
+.game-container.theme-ocean {
+  --background: #0d1515;
+  --surface: #0d1515;
+  --surface-dim: #0d1515;
+  --surface-bright: #333b3b;
+  --surface-container-lowest: #080f10;
+  --surface-container-low: #151d1e;
+  --surface-container: #192122;
+  --surface-container-high: #232b2c;
+  --surface-container-highest: #2e3637;
+  --surface-variant: #2e3637;
+}
+
+.game-container.theme-forest {
+  --background: #05140a;
+  --surface: #05140a;
+  --surface-dim: #05140a;
+  --surface-bright: #233d2c;
+  --surface-container-lowest: #030a06;
+  --surface-container-low: #0a1a11;
+  --surface-container: #0d1f14;
+  --surface-container-high: #1a2a1f;
+  --surface-container-highest: #233d2c;
+  --surface-variant: #1a2a1f;
+}
+
+.game-container.theme-void {
+  --background: #1a0d26;
+  --surface: #1a0d26;
+  --surface-dim: #0d0714;
+  --surface-bright: #1a0d26;
+  --surface-container-lowest: #1a0d26;
+  --surface-container-low: #1a0d26;
+  --surface-container: #1a0d26;
+  --surface-container-high: #1a0d26;
+  --surface-container-highest: #1a0d26;
+  --surface-variant: #1a0d26;
+}
+
 ::selection {
   background: var(--primary-container);
   color: var(--on-primary-container);
