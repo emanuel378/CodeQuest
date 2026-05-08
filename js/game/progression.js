@@ -71,7 +71,9 @@ export class Progression {
     if (id >= this.currentLevel) {
       this.currentLevel = id + 1;
     }
+    const playerName = localStorage.getItem('codequest_player_name') || 'Anônimo';
     this.ranking.push({
+      playerName,
       score,
       level: id,
       time: new Date().toISOString()

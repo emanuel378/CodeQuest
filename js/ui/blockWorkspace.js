@@ -96,7 +96,7 @@ export class BlockWorkspace {
   }
 
   _toCmd(b) {
-    const c = { type: b.type };
+    const c = { type: b.type, _blockId: b.id };
     if (b.value != null) c.value = b.value;
     if (b.condition) c.condition = b.condition;
     if (b.ctrl) {

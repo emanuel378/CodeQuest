@@ -79,7 +79,7 @@ async function executeCommand(cmd, handlers, delayMs, eventTarget, validation) {
   }
 
   eventTarget.dispatchEvent(new CustomEvent('command:start', {
-    detail: { command: cmd.type }
+    detail: { command: cmd.type, blockId: cmd._blockId }
   }));
 
   switch (cmd.type) {
@@ -102,7 +102,7 @@ async function executeCommand(cmd, handlers, delayMs, eventTarget, validation) {
   await delay(delayMs);
 
   eventTarget.dispatchEvent(new CustomEvent('command:end', {
-    detail: { command: cmd.type }
+    detail: { command: cmd.type, blockId: cmd._blockId }
   }));
 }
 
