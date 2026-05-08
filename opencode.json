@@ -3,14 +3,6 @@
   "shell": "pwsh",
   "instructions": ["AGENTS.md", "DESIGN.md"],
   "mcp": {
-    "stitch": {
-      "type": "remote",
-      "url": "https://stitch.googleapis.com/mcp",
-      "timeout": 300000,
-      "headers": {
-        "X-Goog-Api-Key": "{file:./secrets/stitch-api-key}"
-      }
-    },
     "filesystem": {
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "."],
