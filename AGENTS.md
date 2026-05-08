@@ -7,11 +7,13 @@
 - Protótipo visual no Google Stitch: [https://stitch.withgoogle.com/projects/7811335591909664974]
 - `GAME.md` define o desenvolvimento do jogo e regras: sistema de progressão, catálogo de blocos, progressão de níveis.
 
-## Ordem de Leitura para Agentes
+## Instruções Carregadas Automaticamente
 
+Os seguintes arquivos são injetados no contexto em toda sessão via `opencode.json`:
 - `ARCHITECTURE.md` – arquitetura, fluxo de dados, invariantes, mapa de arquivos
 - `DESIGN.md` – use *apenas* tokens YAML do frontmatter para UI; em conflitos entre YAML e prosa, prefira o YAML
-- `GAME.md` – use para lógica de jogo, catálogo de blocos, regras de níveis
+
+Demais documentos (ex: `GAME.md`) são carregados sob demanda via Skills.
 
 ## Skills Disponíveis (`.opencode/skills/`)
 
