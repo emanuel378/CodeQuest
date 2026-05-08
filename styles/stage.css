@@ -89,32 +89,6 @@
   gap: var(--sp-xs);
   color: var(--primary-container);
 }
-
-.menu-btn {
-  padding: var(--sp-sm);
-  border-radius: var(--rounded-full);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--on-surface-variant);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.menu-btn:hover {
-  background: var(--surface-container-highest);
-}
-
-.menu-btn .material-symbols-outlined {
-  transition: color 0.2s ease;
-}
-
-.menu-btn:hover .material-symbols-outlined {
-  color: var(--primary-container);
-}
-
 .workspace-layout {
   flex: 1;
   display: flex;
@@ -488,6 +462,42 @@
 .sim-robot .material-symbols-outlined {
   color: var(--primary-container);
   font-size: 18px;
+}
+
+.error-log {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-sm) var(--sp-md);
+  background: rgba(0, 0, 0, 0.6);
+  border-top: 1px solid var(--outline-variant);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.log-entry {
+  font-family: var(--font-display);
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 2px 4px;
+  border-radius: var(--rounded-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.log-entry span {
+  flex: 1;
+}
+
+.log-error {
+  color: var(--error);
+  background: rgba(147, 0, 10, 0.15);
+}
+
+.log-warning {
+  color: var(--secondary);
+  background: rgba(182, 0, 248, 0.1);
 }
 
 .sim-controls {

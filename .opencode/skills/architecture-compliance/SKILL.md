@@ -18,7 +18,7 @@ Esta skill é um guia complementar - `ARCHITECTURE.md` é a fonte da verdade.
 
 ### 1. Arquivos em `engine/` NUNCA acessam DOM
 - Proibido: `document`, `window`, eventos DOM
-- Exceção: `parser.js` pode ler DOM para conversão
+- A conversão de blocos para comandos é feita na UI via `BlockWorkspace.getCommandTree()`
 - **Violação é erro crítico**
 
 ### 2. Arquivos em `ui/` NUNCA contêm lógica de jogo
@@ -31,7 +31,7 @@ Esta skill é um guia complementar - `ARCHITECTURE.md` é a fonte da verdade.
 - **Violação é erro crítico**
 
 ## Checklist de Verificação
-- [ ] engine/*.js tem zero referências ao DOM (exceto parser.js para leitura)?
+- [ ] engine/*.js tem zero referências ao DOM?
 - [ ] ui/*.js tem zero lógica de jogo?
 - [ ] app.js apenas coordena, não adiciona lógica às camadas?
 - [ ] Novos arquivos seguem o padrão de camada correto?
@@ -39,12 +39,14 @@ Esta skill é um guia complementar - `ARCHITECTURE.md` é a fonte da verdade.
 ## Mapa de Arquivos (Referência Rápida)
 | Arquivo | Função | Sem DOM? |
 | --- | --- | --- |
-| `engine/parser.js` | Lê workspace DOM → array de comandos | Não (lê DOM) |
+| `engine/validator.js` | Validação de comandos | Sim |
 | `engine/runner.js` | Executa array de comandos | Sim |
 | `actors/player.js` | Estado do herói | Sim |
 | `stage/stage.js` | Grid, obstáculos, colisão | Sim |
 | `game/levels.js` | Config de fases | Sim |
 | `game/progression.js` | Sistema de desbloqueio | Sim |
-| `ui/dragDrop.js` | Eventos drag & drop | Não (DOM) |
-| `ui/workspace.js` | Gerencia pilha de blocos | Não (DOM) |
+| `ui/blockWorkspace.js` | Gerencia blocos + getCommandTree() | Não (DOM) |
+| `ui/blockPalette.js` | Paleta de blocos por categoria | Não (DOM) |
+| `ui/router.js` | HashRouter SPA | Não (DOM) |
+| `ui/gameErrorHandler.js` | Validação de elementos essenciais | Não (DOM) |
 | `app.js` | Coordena Engine + UI | Não (DOM) |
