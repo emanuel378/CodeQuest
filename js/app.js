@@ -109,26 +109,23 @@ function renderSimGrid(level) {
 
   for (const obs of (level.obstacles || [])) {
     const el = document.createElement('div');
-    el.className = `sim-entity sim-obstacle sim-${obs.type || 'rock'}`;
+    el.className = 'sim-entity sim-obstacle';
     el.dataset.x = obs.x;
     el.dataset.y = obs.y;
     el.style.left = `${obs.x * cellW}px`;
     el.style.top = `${obs.y * cellW}px`;
     el.style.width = `${cellW}px`;
     el.style.height = `${cellW}px`;
-    gs.simGrid.appendChild(el);
 
-    if (obs.type === 'tree') {
-      const icon = document.createElement('span');
-      icon.className = 'material-symbols-outlined';
-      icon.textContent = 'forest';
-      el.appendChild(icon);
-    } else if (obs.type === 'rock') {
-      const icon = document.createElement('span');
-      icon.className = 'material-symbols-outlined';
-      icon.textContent = 'boulder';
-      el.appendChild(icon);
-    }
+    const obsSprite = obs.sprite;
+
+    const img = document.createElement('img');
+    img.src = obsSprite;
+    img.alt = obs.type;
+    img.className = 'sim-sprite';
+    el.appendChild(img);
+
+    gs.simGrid.appendChild(el);
   }
 
   for (const enemy of (level.enemies || [])) {
@@ -142,10 +139,21 @@ function renderSimGrid(level) {
     el.style.width = `${cellW}px`;
     el.style.height = `${cellW}px`;
 
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-outlined';
-    icon.textContent = 'bug_report';
-    el.appendChild(icon);
+    const enemySprite = enemy.sprite || null;
+
+    if (enemySprite) {
+      const img = document.createElement('img');
+      img.src = enemySprite;
+      img.alt = 'Inimigo';
+      img.className = 'sim-sprite';
+      el.appendChild(img);
+      el.classList.add('sim-enemy-sprite');
+    } else {
+      const icon = document.createElement('span');
+      icon.className = 'material-symbols-outlined';
+      icon.textContent = 'bug_report';
+      el.appendChild(icon);
+    }
 
     const hpLabel = document.createElement('span');
     hpLabel.className = 'enemy-hp';
@@ -184,7 +192,7 @@ function renderSimGrid(level) {
     el.style.height = `${cellW}px`;
 
     const goalImg = document.createElement('img');
-    goalImg.src = 'assets/sprites/goal/portalciano.png';
+    goalImg.src = level.goal.sprite;
     goalImg.alt = 'Objetivo';
     goalImg.className = 'sim-sprite';
     el.appendChild(goalImg);
