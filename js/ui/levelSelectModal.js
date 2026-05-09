@@ -11,41 +11,35 @@ const THEME_GLOW = {
   void: 'var(--secondary)'
 };
 
-const STORAGE_KEY = 'codequest_ranking';
-
 class LevelSelectModal {
-  constructor(onSelect) {
+  constructor(onSelect, onClosed, { currentLevel = 0, completedLevels = [] } = {}) {
     this.onSelect = onSelect;
+    this.onClosed = onClosed;
+    this.currentLevel = currentLevel;
+    this.completedLevels = completedLevels;
     this.el = null;
     this._handlers = [];
-  }
-
-  _getProgression() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { currentLevel: 0, completedLevels: [] };
-      const data = JSON.parse(raw);
-      return {
-        currentLevel: data.currentLevel || 0,
-        completedLevels: data.completedLevels || []
-      };
-    } catch {
-      return { currentLevel: 0, completedLevels: [] };
-    }
+    this._closing = false;
+    this._closeTimer = null;
   }
 
   _close(callback) {
-    if (!this.el) return;
+    if (!this.el || this._closing) return;
+    this._closing = true;
+
     const modal = this.el.querySelector('.lvl-modal');
     if (modal) modal.classList.remove('active');
     this.el.classList.remove('active');
 
-    this.el.addEventListener('transitionend', () => {
+    const transHandler = () => {
       this._destroy();
       if (callback) callback();
-    }, { once: true });
+    };
+    this.el.addEventListener('transitionend', transHandler, { once: true });
+    this._handlers.push({ el: this.el, type: 'transitionend', handler: transHandler });
 
-    setTimeout(() => {
+    this._closeTimer = setTimeout(() => {
+      this._closing = false;
       if (this.el && this.el.parentNode) {
         this._destroy();
         if (callback) callback();
@@ -54,19 +48,27 @@ class LevelSelectModal {
   }
 
   _destroy() {
+    if (this._closeTimer) {
+      clearTimeout(this._closeTimer);
+      this._closeTimer = null;
+    }
+
     for (const { el, type, handler } of this._handlers) {
       el.removeEventListener(type, handler);
     }
     this._handlers = [];
+
     if (this.el && this.el.parentNode) {
       this.el.parentNode.removeChild(this.el);
     }
+    document.body.style.overflow = '';
     this.el = null;
+    this._closing = false;
+
+    if (this.onClosed) this.onClosed();
   }
 
   _build() {
-    const prog = this._getProgression();
-
     if (this.el) this._destroy();
 
     const overlay = document.createElement('div');
@@ -99,8 +101,8 @@ class LevelSelectModal {
     grid.className = 'lvl-modal-grid';
 
     for (const level of LEVEL_META) {
-      const isUnlocked = level.id <= prog.currentLevel;
-      const isCompleted = prog.completedLevels.includes(level.id);
+      const isUnlocked = level.id <= this.currentLevel;
+      const isCompleted = this.completedLevels.includes(level.id);
       const glow = THEME_GLOW[level.theme] || 'var(--primary-container)';
 
       const card = document.createElement('div');
@@ -187,6 +189,7 @@ class LevelSelectModal {
 
   show() {
     this._build();
+    document.body.style.overflow = 'hidden';
     document.body.appendChild(this.el);
     requestAnimationFrame(() => {
       this.el.classList.add('active');

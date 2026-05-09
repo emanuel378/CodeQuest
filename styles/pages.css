@@ -107,6 +107,13 @@
   color: var(--primary);
   text-shadow: 0 0 8px rgba(0, 219, 231, 0.6);
   letter-spacing: -0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: text-shadow 0.2s;
+}
+
+.rank-logo:hover {
+  text-shadow: 0 0 16px rgba(0, 219, 231, 0.9);
 }
 
 .rank-btn-play {

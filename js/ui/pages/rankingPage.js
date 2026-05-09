@@ -129,15 +129,28 @@ class RankingPage extends PageComponent {
   _bindEvents() {
     this._handlers = [];
 
+    const homeBtn = this.el.querySelector('[data-action="home"]');
+    if (homeBtn) {
+      const handler = (e) => {
+        e.preventDefault();
+        router.navigate('/');
+      };
+      homeBtn.addEventListener('click', handler);
+      this._handlers.push({ el: homeBtn, type: 'click', handler });
+    }
+
     const playBtn = this.el.querySelector('[data-action="play"]');
     if (playBtn) {
       const handler = () => {
         if (this._levelModal) return;
-        this._levelModal = new LevelSelectModal((levelId) => {
-          this._levelModal = null;
-          setPendingLevelId(levelId);
-          router.navigate('/game');
-        });
+        this._levelModal = new LevelSelectModal(
+          (levelId) => {
+            this._levelModal = null;
+            setPendingLevelId(levelId);
+            router.navigate('/game');
+          },
+          () => { this._levelModal = null; }
+        );
         this._levelModal.show();
       };
       playBtn.addEventListener('click', handler);
