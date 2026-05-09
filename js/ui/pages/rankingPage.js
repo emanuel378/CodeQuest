@@ -1,6 +1,9 @@
 import { PageComponent } from './pageComponent.js';
 import { router, setPendingLevelId } from '../routes.js';
 import { LevelSelectModal } from '../levelSelectModal.js';
+import { PlayerManager } from '../../game/playerManager.js';
+import { Progression } from '../../game/progression.js';
+import { ProfileMenu } from '../profileMenu.js';
 
 const RANKING_KEY = 'codequest_ranking';
 
@@ -129,6 +132,11 @@ class RankingPage extends PageComponent {
   _bindEvents() {
     this._handlers = [];
 
+    this._profileMenu = new ProfileMenu(new PlayerManager(), () => {
+      router.navigate('/ranking');
+    }, () => {});
+    this._profileMenu.mount();
+
     const homeBtn = this.el.querySelector('[data-action="home"]');
     if (homeBtn) {
       const handler = (e) => {
@@ -143,13 +151,23 @@ class RankingPage extends PageComponent {
     if (playBtn) {
       const handler = () => {
         if (this._levelModal) return;
+        const pm = new PlayerManager();
+        const active = pm.getActivePlayer();
+        const prog = active
+          ? new Progression(active.id, active.name)
+          : new Progression('default', 'Anônimo');
+
         this._levelModal = new LevelSelectModal(
           (levelId) => {
             this._levelModal = null;
             setPendingLevelId(levelId);
             router.navigate('/game');
           },
-          () => { this._levelModal = null; }
+          () => { this._levelModal = null; },
+          {
+            currentLevel: prog.getCurrentLevel(),
+            completedLevels: prog.completedLevels
+          }
         );
         this._levelModal.show();
       };
@@ -174,6 +192,10 @@ class RankingPage extends PageComponent {
       el.removeEventListener(type, handler);
     }
     this._handlers = [];
+    if (this._profileMenu) {
+      this._profileMenu.destroy();
+      this._profileMenu = null;
+    }
     if (this._levelModal) {
       this._levelModal._destroy();
       this._levelModal = null;

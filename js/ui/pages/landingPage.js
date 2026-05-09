@@ -12,9 +12,10 @@ class LandingPage extends PageComponent {
 
   _bindEvents() {
     this._handlers = [];
+    this._updateContinueButton();
 
-    const playBtns = this.el.querySelectorAll('[data-action="play"]');
-    for (const btn of playBtns) {
+    const selectBtns = this.el.querySelectorAll('[data-action="select-level"]');
+    for (const btn of selectBtns) {
       const handler = (e) => {
         e.preventDefault();
         if (this._levelModal || this._profileOverlay) return;
@@ -23,11 +24,39 @@ class LandingPage extends PageComponent {
         const activePlayer = playerManager.getActivePlayer();
 
         if (!activePlayer) {
-          this._showProfilePrompt(playerManager);
+          this._showProfilePrompt(playerManager, (pm, ap) => {
+            this._openLevelModal(pm, ap);
+          });
           return;
         }
 
         this._openLevelModal(playerManager, activePlayer);
+      };
+      btn.addEventListener('click', handler);
+      this._handlers.push({ el: btn, type: 'click', handler });
+    }
+
+    const continueBtns = this.el.querySelectorAll('[data-action="continue"]');
+    for (const btn of continueBtns) {
+      const handler = (e) => {
+        e.preventDefault();
+        if (btn.disabled || this._levelModal || this._profileOverlay) return;
+
+        const playerManager = new PlayerManager();
+        const activePlayer = playerManager.getActivePlayer();
+
+        if (!activePlayer) {
+          this._showProfilePrompt(playerManager, (pm, ap) => {
+            const progression = new Progression(ap.id, ap.name);
+            setPendingLevelId(progression.getCurrentLevel());
+            router.navigate('/game');
+          });
+          return;
+        }
+
+        const progression = new Progression(activePlayer.id, activePlayer.name);
+        setPendingLevelId(progression.getCurrentLevel());
+        router.navigate('/game');
       };
       btn.addEventListener('click', handler);
       this._handlers.push({ el: btn, type: 'click', handler });
@@ -41,6 +70,22 @@ class LandingPage extends PageComponent {
       };
       rankingBtn.addEventListener('click', handler);
       this._handlers.push({ el: rankingBtn, type: 'click', handler });
+    }
+  }
+
+  _updateContinueButton() {
+    const continueBtns = this.el.querySelectorAll('[data-action="continue"]');
+    const playerManager = new PlayerManager();
+    const activePlayer = playerManager.getActivePlayer();
+    let disabled = true;
+
+    if (activePlayer) {
+      const progression = new Progression(activePlayer.id, activePlayer.name);
+      disabled = progression.getCurrentLevel() === 0;
+    }
+
+    for (const btn of continueBtns) {
+      btn.disabled = disabled;
     }
   }
 
@@ -62,7 +107,7 @@ class LandingPage extends PageComponent {
     this._levelModal.show();
   }
 
-  _showProfilePrompt(playerManager) {
+  _showProfilePrompt(playerManager, onResolve) {
     const players = playerManager.getPlayers();
     const hasPlayers = players.length > 0;
 
@@ -86,13 +131,13 @@ class LandingPage extends PageComponent {
     const doClose = () => this._closeProfileOverlay();
 
     if (hasPlayers) {
-      this._renderPlayerList(overlay, playerManager, doClose);
+      this._renderPlayerList(overlay, playerManager, doClose, onResolve);
     } else {
-      this._renderPlayerCreate(overlay, playerManager, doClose);
+      this._renderPlayerCreate(overlay, playerManager, doClose, onResolve);
     }
   }
 
-  _renderPlayerList(overlay, playerManager, doClose) {
+  _renderPlayerList(overlay, playerManager, doClose, onResolve) {
     const content = overlay.querySelector('#profile-prompt-content');
     const actions = overlay.querySelector('#profile-prompt-actions');
     let selectedId = null;
@@ -124,7 +169,7 @@ class LandingPage extends PageComponent {
     newBtn.style.width = '100%';
     newBtn.innerHTML = '<span class="material-symbols-outlined">person_add</span> Novo Jogador';
     newBtn.addEventListener('click', () => {
-      this._renderPlayerCreate(overlay, playerManager, doClose);
+      this._renderPlayerCreate(overlay, playerManager, doClose, onResolve);
     });
     content.appendChild(newBtn);
 
@@ -139,11 +184,11 @@ class LandingPage extends PageComponent {
       playerManager.setActivePlayer(selectedId);
       const active = playerManager.getActivePlayer();
       doClose();
-      this._openLevelModal(playerManager, active);
+      if (onResolve) onResolve(playerManager, active);
     });
   }
 
-  _renderPlayerCreate(overlay, playerManager, doClose) {
+  _renderPlayerCreate(overlay, playerManager, doClose, onResolve) {
     const content = overlay.querySelector('#profile-prompt-content');
     content.innerHTML = `
       <input class="profile-modal-input" id="prompt-input" type="text" placeholder="Nome do jogador" maxlength="20" autocomplete="off">
@@ -167,7 +212,7 @@ class LandingPage extends PageComponent {
       const player = playerManager.addPlayer(name);
       playerManager.setActivePlayer(player.id);
       doClose();
-      this._openLevelModal(playerManager, player);
+      if (onResolve) onResolve(playerManager, player);
     };
 
     actions.querySelector('#prompt-create').addEventListener('click', save);

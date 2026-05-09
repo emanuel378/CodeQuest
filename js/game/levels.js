@@ -27,6 +27,32 @@ export const LEVELS = [
   },
   {
     id: 2,
+    name: 'Nível 2',
+    theme: 'ocean',
+    gridSize: 5,
+    playerStart: { x: 0, y: 4, direction: 0 },
+    goal: { x: 4, y: 0 },
+    obstacles: [],
+    enemies: [],
+    items: [],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    description: 'Navegue pelo grid e alcance o objetivo.'
+  },
+  {
+    id: 3,
+    name: 'Nível 3',
+    theme: 'ocean',
+    gridSize: 5,
+    playerStart: { x: 0, y: 4, direction: 0 },
+    goal: { x: 4, y: 0 },
+    obstacles: [],
+    enemies: [],
+    items: [],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    description: 'Navegue pelo grid e alcance o objetivo.'
+  },
+  {
+    id: 4,
     name: 'Floresta dos Algoritmos',
     theme: 'forest',
     gridSize: 5,
@@ -43,7 +69,33 @@ export const LEVELS = [
     description: 'Use repetição para navegar pela floresta e derrotar inimigos.'
   },
   {
-    id: 3,
+    id: 5,
+    name: 'Nível 5',
+    theme: 'forest',
+    gridSize: 5,
+    playerStart: { x: 0, y: 4, direction: 0 },
+    goal: { x: 4, y: 0 },
+    obstacles: [],
+    enemies: [],
+    items: [],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    description: 'Navegue pelo grid e alcance o objetivo.'
+  },
+  {
+    id: 6,
+    name: 'Nível 6',
+    theme: 'forest',
+    gridSize: 5,
+    playerStart: { x: 0, y: 4, direction: 0 },
+    goal: { x: 4, y: 0 },
+    obstacles: [],
+    enemies: [],
+    items: [],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    description: 'Navegue pelo grid e alcance o objetivo.'
+  },
+  {
+    id: 7,
     name: 'Núcleo de Logicron',
     theme: 'void',
     gridSize: 5,
@@ -61,6 +113,32 @@ export const LEVELS = [
     items: [],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Derrote o boss final e chegue ao núcleo do Logicron!'
+  },
+  {
+    id: 8,
+    name: 'Nível 8',
+    theme: 'void',
+    gridSize: 5,
+    playerStart: { x: 0, y: 4, direction: 0 },
+    goal: { x: 4, y: 0 },
+    obstacles: [],
+    enemies: [],
+    items: [],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    description: 'Navegue pelo grid e alcance o objetivo.'
+  },
+  {
+    id: 9,
+    name: 'Nível 9',
+    theme: 'void',
+    gridSize: 5,
+    playerStart: { x: 0, y: 4, direction: 0 },
+    goal: { x: 4, y: 0 },
+    obstacles: [],
+    enemies: [],
+    items: [],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    description: 'Navegue pelo grid e alcance o objetivo.'
   }
 ];
 
