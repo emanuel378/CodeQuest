@@ -11,8 +11,28 @@ class RankingPage extends PageComponent {
       const raw = localStorage.getItem(RANKING_KEY);
       if (!raw) return [];
       const data = JSON.parse(raw);
-      const ranking = data.ranking || [];
-      return ranking.sort((a, b) => b.score - a.score);
+      const entries = Array.isArray(data) ? data : (data.ranking || []);
+
+      const playersRaw = localStorage.getItem('codequest_players');
+      const validIds = playersRaw ? new Set(JSON.parse(playersRaw).map(p => p.id)) : new Set();
+
+      const map = new Map();
+      for (const e of entries) {
+        if (validIds.size > 0 && !validIds.has(e.playerId)) continue;
+        const key = e.playerId || e.playerName || 'desconhecido';
+        if (map.has(key)) {
+          map.get(key).score += e.score;
+          map.get(key).levels = Math.max(map.get(key).levels, (e.level || 0) + 1);
+        } else {
+          map.set(key, {
+            playerName: e.playerName || `Nível ${e.level}`,
+            playerId: e.playerId,
+            score: e.score,
+            levels: (e.level || 0) + 1
+          });
+        }
+      }
+      return [...map.values()].sort((a, b) => b.score - a.score);
     } catch {
       return [];
     }
@@ -38,23 +58,14 @@ class RankingPage extends PageComponent {
   }
 
   _populatePodium(ranking) {
-    const items = this.el.querySelectorAll('.podium-item');
-
-    for (let i = 0; i < items.length; i++) {
+    for (let i = 0; i < 3; i++) {
       const entry = ranking[i];
-      const el = items[i];
-
-      if (entry) {
-        const nameEl = el.querySelector('.podium-name');
-        const scoreEl = el.querySelector('.podium-score');
-        if (nameEl) nameEl.textContent = this._formatPlayer(entry, i);
-        if (scoreEl) scoreEl.textContent = this._formatScore(entry.score);
-      } else {
-        const nameEl = el.querySelector('.podium-name');
-        const scoreEl = el.querySelector('.podium-score');
-        if (nameEl) nameEl.textContent = '---';
-        if (scoreEl) scoreEl.textContent = '0 pts';
-      }
+      const el = this.el.querySelector(`.podium-item[data-rank="${i + 1}"]`);
+      if (!el) continue;
+      const nameEl = el.querySelector('.podium-name');
+      const scoreEl = el.querySelector('.podium-score');
+      if (nameEl) nameEl.textContent = entry ? this._formatPlayer(entry, i) : '---';
+      if (scoreEl) scoreEl.textContent = entry ? this._formatScore(entry.score) : '0 pts';
     }
   }
 
@@ -64,16 +75,15 @@ class RankingPage extends PageComponent {
 
     body.innerHTML = '';
 
-    const rest = ranking.slice(3);
-    const show = rest.slice(0, this._renderRows);
-    const hasMore = rest.length > this._renderRows;
-
-    if (rest.length === 0) {
+    if (ranking.length === 0) {
       const emptyRow = document.createElement('div');
       emptyRow.className = 'rank-row rank-row-empty';
       emptyRow.innerHTML = '<span class="rank-empty-msg">Nenhuma pontuação ainda. Complete um nível!</span>';
       body.appendChild(emptyRow);
     } else {
+      const show = ranking.slice(0, this._renderRows);
+      const hasMore = ranking.length > this._renderRows;
+
       for (const entry of show) {
         const row = document.createElement('div');
         row.className = 'rank-row';
@@ -95,11 +105,11 @@ class RankingPage extends PageComponent {
         row.appendChild(scoreCell);
         body.appendChild(row);
       }
-    }
 
-    const btnMore = this.el.querySelector('#rank-btn-more');
-    if (btnMore) {
-      btnMore.style.display = hasMore ? 'inline-flex' : 'none';
+      const btnMore = this.el.querySelector('#rank-btn-more');
+      if (btnMore) {
+        btnMore.style.display = hasMore ? 'inline-flex' : 'none';
+      }
     }
   }
 
