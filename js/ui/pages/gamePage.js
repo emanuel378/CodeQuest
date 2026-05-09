@@ -1,4 +1,5 @@
 import { PageComponent } from './pageComponent.js';
+import { router } from '../routes.js';
 
 class GamePage extends PageComponent {
   _render() {
@@ -7,7 +8,26 @@ class GamePage extends PageComponent {
   }
 
   _bindEvents() {
+    this._handlers = [];
+
     document.dispatchEvent(new CustomEvent('game:ready'));
+
+    const homeBtn = this.el.querySelector('[data-action="home"]');
+    if (homeBtn) {
+      const handler = (e) => {
+        e.preventDefault();
+        router.navigate('/');
+      };
+      homeBtn.addEventListener('click', handler);
+      this._handlers.push({ el: homeBtn, type: 'click', handler });
+    }
+  }
+
+  _unbindEvents() {
+    for (const { el, type, handler } of this._handlers) {
+      el.removeEventListener(type, handler);
+    }
+    this._handlers = [];
   }
 
   getRequiredElement(selector) {

@@ -7,18 +7,35 @@ import { Stage } from './stage/stage.js';
 import { getLevel } from './game/levels.js';
 import { Progression } from './game/progression.js';
 import { PlayerManager } from './game/playerManager.js';
-import { router, ROUTE_CHANGE } from './ui/routes.js';
+import { router, ROUTE_CHANGE, consumePendingLevelId } from './ui/routes.js';
 import { GameErrorHandler } from './ui/gameErrorHandler.js';
 import { GameTutorial } from './ui/gameTutorial.js';
 import { ProfileMenu } from './ui/profileMenu.js';
 
 let gs = null;
 
-function loadCurrentLevel() {
-  const levelId = gs.progression.getCurrentLevel();
-  const level = getLevel(levelId);
-  if (!level) return;
+function getInitialLevelId() {
+  const pendingId = consumePendingLevelId();
+  const levelId = pendingId !== null ? pendingId : gs.progression.getCurrentLevel();
+  if (getLevel(levelId)) return levelId;
+  for (let fallbackId = levelId - 1; fallbackId >= 0; fallbackId--) {
+    if (getLevel(fallbackId)) return fallbackId;
+  }
+  return 0;
+}
 
+function loadLevelById(levelId) {
+  const level = getLevel(levelId);
+  if (!level) {
+    if (gs.simGrid) {
+      gs.simGrid.innerHTML = '';
+      gs.simGrid.style.backgroundImage = '';
+    }
+    setStatus('Nenhum nível disponível', '#ef4444');
+    return;
+  }
+
+  gs.activeLevelId = level.id;
   gs.stage.loadLevel(level);
   gs.stage.setPlayer(gs.player);
   gs.player.reset(
@@ -26,6 +43,7 @@ function loadCurrentLevel() {
     level.playerStart.y,
     level.playerStart.direction
   );
+  gs.player.gridSize = level.gridSize;
 
   const container = document.querySelector('.game-container');
   if (container) {
@@ -40,6 +58,15 @@ function loadCurrentLevel() {
   setStatus('Pronto', '#00FF3D');
 }
 
+function loadCurrentLevel() {
+  loadLevelById(getInitialLevelId());
+}
+
+function resetActiveLevel() {
+  const levelId = gs.activeLevelId ?? getInitialLevelId();
+  loadLevelById(levelId);
+}
+
 function renderSimGrid(level) {
   if (!gs.simGrid) return;
 
@@ -51,6 +78,7 @@ function renderSimGrid(level) {
   `;
 
   const cellW = gs.simGrid.offsetWidth / level.gridSize;
+  if (!cellW || cellW <= 0) return;
 
   for (const obs of (level.obstacles || [])) {
     const el = document.createElement('div');
@@ -138,14 +166,18 @@ function renderSimGrid(level) {
 
   const robot = document.createElement('div');
   robot.className = 'sim-robot';
+  robot.style.transition = 'none';
   const robotIcon = document.createElement('span');
   robotIcon.className = 'material-symbols-outlined';
   robotIcon.textContent = 'smart_toy';
   robot.appendChild(robotIcon);
+  gs.player.__robotEl = robot;
   gs.simGrid.appendChild(robot);
 
-  gs.player.__robotEl = robot;
   updateSimView();
+  requestAnimationFrame(() => {
+    robot.style.transition = '';
+  });
 }
 
 function updateSimView() {
@@ -258,6 +290,7 @@ function initGame() {
     workspace, palette, player, stage, progression,
     playerManager,
     simGrid, statusDot, statusText, indicator, errorLog, els,
+    activeLevelId: null,
     isRunning: false,
     shouldPause: false,
     shouldStop: false,
@@ -297,10 +330,12 @@ function initGame() {
       return;
     }
 
-    loadCurrentLevel();
+    resetActiveLevel();
     gs.isRunning = true;
     gs.shouldPause = false;
     gs.shouldStop = false;
+    setStatus('Preparando...', '#00f2ff');
+    await new Promise(r => setTimeout(r, 500));
     setStatus('Validando...', '#ebb2ff');
 
     const commands = workspace.getCommandTree();
@@ -399,7 +434,12 @@ function initGame() {
         setStatus('Vitória!', '#00FF3D');
         gs.progression.completeLevel(gs.progression.getCurrentLevel(), 1000);
         setTimeout(() => {
-          loadCurrentLevel();
+          const nextLevel = getLevel(gs.activeLevelId + 1);
+          if (nextLevel && nextLevel.id <= gs.progression.getCurrentLevel()) {
+            loadLevelById(nextLevel.id);
+          } else {
+            resetActiveLevel();
+          }
           workspace.clear();
         }, 1500);
       } else {
@@ -428,7 +468,7 @@ function initGame() {
   els.clearBtn?.addEventListener('click', () => {
     gs.shouldStop = true;
     workspace.clear();
-    loadCurrentLevel();
+    resetActiveLevel();
     setStatus('Pronto', '#00FF3D');
   });
 
@@ -440,12 +480,12 @@ function initGame() {
 
   if (els.simViewport) {
     const ro = new ResizeObserver(() => {
-      if (gs && gs.stage && gs.simGrid) {
-        const level = getLevel(gs.progression.getCurrentLevel());
-        if (level) renderSimGrid(level);
+      if (gs && gs.stage && gs.simGrid && !gs.isRunning) {
+        updateSimView();
       }
     });
     ro.observe(els.simViewport);
+    gs._resizeObserver = ro;
   }
 
   if (!gs._needsProfile) loadCurrentLevel();
