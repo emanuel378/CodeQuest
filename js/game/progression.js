@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'codequest_ranking';
+const GLOBAL_RANKING_KEY = 'codequest_ranking';
 
 const LEVEL_UNLOCKS = {
   0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
@@ -8,22 +8,25 @@ const LEVEL_UNLOCKS = {
 };
 
 export class Progression {
-  constructor() {
+  constructor(playerId = 'default', playerName = 'Anônimo') {
+    this.playerId = playerId;
+    this.playerName = playerName;
+    this._storageKey = `codequest_player_${playerId}`;
     this.currentLevel = 0;
     this.completedLevels = [];
     this.unlockedCommands = [];
-    this.ranking = [];
+    this.totalXP = 0;
     this._load();
   }
 
   _load() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(this._storageKey);
       if (raw) {
         const data = JSON.parse(raw);
         this.currentLevel = data.currentLevel || 0;
         this.completedLevels = data.completedLevels || [];
-        this.ranking = data.ranking || [];
+        this.totalXP = data.totalXP || 0;
       }
     } catch { }
 
@@ -32,12 +35,27 @@ export class Progression {
 
   _save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      localStorage.setItem(this._storageKey, JSON.stringify({
         currentLevel: this.currentLevel,
         completedLevels: this.completedLevels,
         unlockedCommands: this.unlockedCommands,
-        ranking: this.ranking
+        totalXP: this.totalXP
       }));
+    } catch { }
+  }
+
+  _loadGlobalRanking() {
+    try {
+      const raw = localStorage.getItem(GLOBAL_RANKING_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  _saveGlobalRanking(ranking) {
+    try {
+      localStorage.setItem(GLOBAL_RANKING_KEY, JSON.stringify(ranking));
     } catch { }
   }
 
@@ -71,13 +89,24 @@ export class Progression {
     if (id >= this.currentLevel) {
       this.currentLevel = id + 1;
     }
-    const playerName = localStorage.getItem('codequest_player_name') || 'Anônimo';
-    this.ranking.push({
-      playerName,
-      score,
-      level: id,
-      time: new Date().toISOString()
-    });
+    this.totalXP += score;
+
+    const ranking = this._loadGlobalRanking();
+    const existing = ranking.findIndex(e => e.playerId === this.playerId && e.level === id);
+    if (existing !== -1) {
+      ranking[existing].score = score;
+      ranking[existing].time = new Date().toISOString();
+    } else {
+      ranking.push({
+        playerName: this.playerName,
+        playerId: this.playerId,
+        score,
+        level: id,
+        time: new Date().toISOString()
+      });
+    }
+    this._saveGlobalRanking(ranking);
+
     this._syncUnlocked();
     this._save();
   }
@@ -90,12 +119,15 @@ export class Progression {
     return [...this.unlockedCommands];
   }
 
-  addScore(entry) {
-    this.ranking.push(entry);
-    this._save();
+  getPlayerSkin() {
+    const thresholds = [100, 80, 60, 20, 10, 0];
+    for (const t of thresholds) {
+      if (this.totalXP >= t) return `img/player_${t}xp.png`;
+    }
+    return 'img/player_0xp.png';
   }
 
-  getRanking() {
-    return [...this.ranking].sort((a, b) => b.score - a.score);
+  getGlobalRanking() {
+    return this._loadGlobalRanking().sort((a, b) => b.score - a.score);
   }
 }
