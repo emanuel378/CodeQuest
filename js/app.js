@@ -14,6 +14,28 @@ import { ProfileMenu } from './ui/profileMenu.js';
 
 let gs = null;
 
+// --- Profile compartilhado (landing + game) ---
+let _playerManager = null;
+let _profileMenu = null;
+
+function _getPlayerManager() {
+  if (!_playerManager) _playerManager = new PlayerManager();
+  return _playerManager;
+}
+
+function _mountProfileForLanding() {
+  _destroyProfile();
+  _profileMenu = new ProfileMenu(_getPlayerManager(), () => {}, () => {});
+  _profileMenu.mount();
+}
+
+function _destroyProfile() {
+  if (_profileMenu) {
+    _profileMenu.destroy();
+    _profileMenu = null;
+  }
+}
+
 function loadCurrentLevel() {
   const levelId = gs.progression.getCurrentLevel();
   const level = getLevel(levelId);
@@ -238,7 +260,7 @@ function initGame() {
   const player = new Player(5);
   const stage = new Stage(5);
 
-  const playerManager = new PlayerManager();
+  const playerManager = _getPlayerManager();
   const activePlayer = playerManager.getActivePlayer();
   const playerId = activePlayer ? activePlayer.id : 'default';
   const playerName = activePlayer ? activePlayer.name : 'Anônimo';
@@ -489,10 +511,19 @@ document.addEventListener(ROUTE_CHANGE, (e) => {
     _currentTutorial.hide();
     _currentTutorial = null;
   }
-  if (e.detail.path === '/' || e.detail.path === '/levels' || e.detail.path === '/ranking') {
+
+  // Clean up game state when leaving game page
+  if (e.detail.path !== '/game' && e.detail.path !== '/levels') {
     if (gs && gs.profileMenu) gs.profileMenu.destroy();
     _gameInitialized = false;
     gs = null;
+  }
+
+  // Profile lifecycle: landing vs others
+  if (e.detail.path === '/') {
+    _mountProfileForLanding();
+  } else {
+    _destroyProfile();
   }
 });
 
