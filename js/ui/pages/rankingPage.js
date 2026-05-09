@@ -1,5 +1,6 @@
 import { PageComponent } from './pageComponent.js';
-import { router } from '../routes.js';
+import { router, setPendingLevelId } from '../routes.js';
+import { LevelSelectModal } from '../levelSelectModal.js';
 
 const RANKING_KEY = 'codequest_ranking';
 
@@ -120,7 +121,15 @@ class RankingPage extends PageComponent {
 
     const playBtn = this.el.querySelector('[data-action="play"]');
     if (playBtn) {
-      const handler = () => router.navigate('/game');
+      const handler = () => {
+        if (this._levelModal) return;
+        this._levelModal = new LevelSelectModal((levelId) => {
+          this._levelModal = null;
+          setPendingLevelId(levelId);
+          router.navigate('/game');
+        });
+        this._levelModal.show();
+      };
       playBtn.addEventListener('click', handler);
       this._handlers.push({ el: playBtn, type: 'click', handler });
     }
@@ -142,6 +151,10 @@ class RankingPage extends PageComponent {
       el.removeEventListener(type, handler);
     }
     this._handlers = [];
+    if (this._levelModal) {
+      this._levelModal._destroy();
+      this._levelModal = null;
+    }
   }
 }
 

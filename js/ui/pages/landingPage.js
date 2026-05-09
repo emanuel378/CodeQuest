@@ -1,5 +1,6 @@
 import { PageComponent } from './pageComponent.js';
-import { router } from '../routes.js';
+import { router, setPendingLevelId } from '../routes.js';
+import { LevelSelectModal } from '../levelSelectModal.js';
 
 class LandingPage extends PageComponent {
   _render() {
@@ -14,7 +15,13 @@ class LandingPage extends PageComponent {
     for (const btn of playBtns) {
       const handler = (e) => {
         e.preventDefault();
-        router.navigate('/game');
+        if (this._levelModal) return;
+        this._levelModal = new LevelSelectModal((levelId) => {
+          this._levelModal = null;
+          setPendingLevelId(levelId);
+          router.navigate('/game');
+        });
+        this._levelModal.show();
       };
       btn.addEventListener('click', handler);
       this._handlers.push({ el: btn, type: 'click', handler });
@@ -36,6 +43,10 @@ class LandingPage extends PageComponent {
       el.removeEventListener(type, handler);
     }
     this._handlers = [];
+    if (this._levelModal) {
+      this._levelModal._destroy();
+      this._levelModal = null;
+    }
   }
 }
 

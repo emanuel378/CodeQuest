@@ -6,14 +6,15 @@ import { Player } from './actors/player.js';
 import { Stage } from './stage/stage.js';
 import { getLevel } from './game/levels.js';
 import { Progression } from './game/progression.js';
-import { router, ROUTE_CHANGE } from './ui/routes.js';
+import { router, ROUTE_CHANGE, consumePendingLevelId } from './ui/routes.js';
 import { GameErrorHandler } from './ui/gameErrorHandler.js';
 import { GameTutorial } from './ui/gameTutorial.js';
 
 let gs = null;
 
 function loadCurrentLevel() {
-  const levelId = gs.progression.getCurrentLevel();
+  const pendingId = consumePendingLevelId();
+  const levelId = pendingId !== null ? pendingId : gs.progression.getCurrentLevel();
   const level = getLevel(levelId);
   if (!level) return;
 
