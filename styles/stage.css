@@ -398,34 +398,6 @@
   font-size: 18px;
 }
 
-.sim-obstacle {
-  background: rgba(0, 242, 255, 0.1);
-  border: 1px solid var(--primary-container);
-}
-
-.sim-obstacle .material-symbols-outlined {
-  color: var(--primary-container);
-  font-size: 20px;
-}
-
-.sim-tree {
-  background: rgba(52, 252, 13, 0.1);
-  border-color: var(--tertiary-container);
-}
-
-.sim-tree .material-symbols-outlined {
-  color: var(--tertiary-container);
-}
-
-.sim-rock {
-  background: rgba(133, 146, 158, 0.2);
-  border-color: var(--outline);
-}
-
-.sim-rock .material-symbols-outlined {
-  color: var(--outline);
-}
-
 .sim-enemy {
   background: rgba(255, 0, 0, 0.15);
   border: 2px solid var(--error);
@@ -437,6 +409,21 @@
 .sim-enemy .material-symbols-outlined {
   color: var(--error);
   font-size: 20px;
+}
+
+.sim-enemy-sprite {
+  flex-direction: row;
+  gap: 0;
+}
+
+.sim-enemy-sprite .enemy-hp {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1px 4px;
+  border-radius: var(--rounded-sm);
 }
 
 .enemy-hp {
@@ -474,14 +461,18 @@
   50% { box-shadow: 0 0 25px rgba(0, 255, 61, 0.7); }
 }
 
+.sim-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
 .sim-robot {
   position: absolute;
   z-index: 20;
   transition: left 0.3s ease, top 0.3s ease;
-  background: var(--surface);
-  border: 2px solid var(--primary-container);
-  border-radius: var(--rounded-full);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.8);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -25,7 +25,11 @@ function _getPlayerManager() {
 
 function _mountProfileForLanding() {
   _destroyProfile();
-  _profileMenu = new ProfileMenu(_getPlayerManager(), () => {}, () => {});
+  _profileMenu = new ProfileMenu(_getPlayerManager(), () => {
+    router.navigate('/');
+  }, () => {
+    router.navigate('/');
+  });
   _profileMenu.mount();
 }
 
@@ -36,8 +40,6 @@ function _destroyProfile() {
   }
 }
 
-function loadCurrentLevel() {
-  const levelId = gs.progression.getCurrentLevel();
 function getInitialLevelId() {
   const pendingId = consumePendingLevelId();
   const levelId = pendingId !== null ? pendingId : gs.progression.getCurrentLevel();
@@ -95,37 +97,35 @@ function renderSimGrid(level) {
   if (!gs.simGrid) return;
 
   gs.simGrid.innerHTML = '';
-  gs.simGrid.style.backgroundSize = `${100 / level.gridSize}px ${100 / level.gridSize}px`;
+
+  const cellW = gs.simGrid.offsetWidth / level.gridSize;
+
+  gs.simGrid.style.backgroundSize = `${cellW}px ${cellW}px`;
   gs.simGrid.style.backgroundImage = `
     linear-gradient(rgba(0, 242, 255, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 242, 255, 0.2) 1px, transparent 1px)
   `;
-
-  const cellW = gs.simGrid.offsetWidth / level.gridSize;
   if (!cellW || cellW <= 0) return;
 
   for (const obs of (level.obstacles || [])) {
     const el = document.createElement('div');
-    el.className = `sim-entity sim-obstacle sim-${obs.type || 'rock'}`;
+    el.className = 'sim-entity sim-obstacle';
     el.dataset.x = obs.x;
     el.dataset.y = obs.y;
     el.style.left = `${obs.x * cellW}px`;
     el.style.top = `${obs.y * cellW}px`;
     el.style.width = `${cellW}px`;
     el.style.height = `${cellW}px`;
-    gs.simGrid.appendChild(el);
 
-    if (obs.type === 'tree') {
-      const icon = document.createElement('span');
-      icon.className = 'material-symbols-outlined';
-      icon.textContent = 'forest';
-      el.appendChild(icon);
-    } else if (obs.type === 'rock') {
-      const icon = document.createElement('span');
-      icon.className = 'material-symbols-outlined';
-      icon.textContent = 'boulder';
-      el.appendChild(icon);
-    }
+    const obsSprite = obs.sprite;
+
+    const img = document.createElement('img');
+    img.src = obsSprite;
+    img.alt = obs.type;
+    img.className = 'sim-sprite';
+    el.appendChild(img);
+
+    gs.simGrid.appendChild(el);
   }
 
   for (const enemy of (level.enemies || [])) {
@@ -139,10 +139,21 @@ function renderSimGrid(level) {
     el.style.width = `${cellW}px`;
     el.style.height = `${cellW}px`;
 
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-outlined';
-    icon.textContent = 'bug_report';
-    el.appendChild(icon);
+    const enemySprite = enemy.sprite || null;
+
+    if (enemySprite) {
+      const img = document.createElement('img');
+      img.src = enemySprite;
+      img.alt = 'Inimigo';
+      img.className = 'sim-sprite';
+      el.appendChild(img);
+      el.classList.add('sim-enemy-sprite');
+    } else {
+      const icon = document.createElement('span');
+      icon.className = 'material-symbols-outlined';
+      icon.textContent = 'bug_report';
+      el.appendChild(icon);
+    }
 
     const hpLabel = document.createElement('span');
     hpLabel.className = 'enemy-hp';
@@ -180,10 +191,11 @@ function renderSimGrid(level) {
     el.style.width = `${cellW}px`;
     el.style.height = `${cellW}px`;
 
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-outlined';
-    icon.textContent = 'flag';
-    el.appendChild(icon);
+    const goalImg = document.createElement('img');
+    goalImg.src = level.goal.sprite;
+    goalImg.alt = 'Objetivo';
+    goalImg.className = 'sim-sprite';
+    el.appendChild(goalImg);
 
     gs.simGrid.appendChild(el);
   }
@@ -191,11 +203,12 @@ function renderSimGrid(level) {
   const robot = document.createElement('div');
   robot.className = 'sim-robot';
   robot.style.transition = 'none';
-  const robotIcon = document.createElement('span');
-  robotIcon.className = 'material-symbols-outlined';
-  robotIcon.textContent = 'smart_toy';
-  robot.appendChild(robotIcon);
+  const robotImg = document.createElement('img');
+  robotImg.className = 'sim-sprite';
+  robotImg.alt = 'Jogador';
+  robot.appendChild(robotImg);
   gs.player.__robotEl = robot;
+  gs.player.__robotImg = robotImg;
   gs.simGrid.appendChild(robot);
 
   updateSimView();
@@ -209,12 +222,22 @@ function updateSimView() {
   if (!robot || !gs.simGrid) return;
   const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
 
-  robot.style.left = `${gs.player.x * cellSize + cellSize * 0.15}px`;
-  robot.style.top = `${gs.player.y * cellSize + cellSize * 0.15}px`;
-  robot.style.width = `${cellSize * 0.7}px`;
-  robot.style.height = `${cellSize * 0.7}px`;
+  robot.style.left = `${gs.player.x * cellSize}px`;
+  robot.style.top = `${gs.player.y * cellSize}px`;
+  robot.style.width = `${cellSize}px`;
+  robot.style.height = `${cellSize}px`;
 
-  robot.style.transform = `rotate(${gs.player.direction * 90}deg)`;
+  robot.style.transform = 'none';
+
+  if (gs.player.__robotImg) {
+    const directionSprites = [
+      'assets/sprites/player/principalcostas.png',
+      'assets/sprites/player/principaldireito.png',
+      'assets/sprites/player/principal.png',
+      'assets/sprites/player/principalesquerdo.png'
+    ];
+    gs.player.__robotImg.src = directionSprites[gs.player.direction] || directionSprites[0];
+  }
 }
 
 function syncSimEntities() {

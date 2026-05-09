@@ -1,8 +1,21 @@
 const LEVEL_META = [
   { id: 0, name: 'Tutorial', icon: 'school', desc: 'Aprenda os controles básicos movendo o herói até o objetivo.', theme: 'ocean' },
   { id: 1, name: 'Cidade da Lógica', icon: 'apartment', desc: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!', theme: 'ocean' },
-  { id: 2, name: 'Floresta dos Algoritmos', icon: 'forest', desc: 'Use repetição para navegar pela floresta e derrotar inimigos.', theme: 'forest' },
-  { id: 3, name: 'Núcleo de Logicron', icon: 'memory', desc: 'Derrote o boss final e chegue ao núcleo do Logicron!', theme: 'void' }
+  { id: 2, name: 'Nível 2', icon: 'location_city', desc: 'Navegue pelo grid e alcance o objetivo.', theme: 'ocean' },
+  { id: 3, name: 'Nível 3', icon: 'maps_home_work', desc: 'Navegue pelo grid e alcance o objetivo.', theme: 'ocean' },
+  { id: 4, name: 'Floresta dos Algoritmos', icon: 'forest', desc: 'Use repetição para navegar pela floresta e derrotar inimigos.', theme: 'forest' },
+  { id: 5, name: 'Nível 5', icon: 'park', desc: 'Navegue pelo grid e alcance o objetivo.', theme: 'forest' },
+  { id: 6, name: 'Nível 6', icon: 'nature', desc: 'Navegue pelo grid e alcance o objetivo.', theme: 'forest' },
+  { id: 7, name: 'Núcleo de Logicron', icon: 'memory', desc: 'Derrote o boss final e chegue ao núcleo do Logicron!', theme: 'void' },
+  { id: 8, name: 'Nível 8', icon: 'developer_board', desc: 'Navegue pelo grid e alcance o objetivo.', theme: 'void' },
+  { id: 9, name: 'Nível 9', icon: 'terminal', desc: 'Navegue pelo grid e alcance o objetivo.', theme: 'void' }
+];
+
+const LEVEL_ROWS = [
+  { ids: [0], single: true },
+  { ids: [1, 2, 3], single: false },
+  { ids: [4, 5, 6], single: false },
+  { ids: [7, 8, 9], single: false }
 ];
 
 const THEME_GLOW = {
@@ -21,6 +34,7 @@ class LevelSelectModal {
     this._handlers = [];
     this._closing = false;
     this._closeTimer = null;
+    this._metaMap = new Map(LEVEL_META.map(m => [m.id, m]));
   }
 
   _close(callback) {
@@ -68,6 +82,76 @@ class LevelSelectModal {
     if (this.onClosed) this.onClosed();
   }
 
+  _createCard(level) {
+    const isUnlocked = level.id <= this.currentLevel;
+    const isCompleted = this.completedLevels.includes(level.id);
+    const glow = THEME_GLOW[level.theme] || 'var(--primary-container)';
+
+    const card = document.createElement('div');
+    card.className = `lvl-card${isUnlocked ? ' lvl-card--unlocked' : ' lvl-card--locked'}${isCompleted ? ' lvl-card--completed' : ''}`;
+    card.style.setProperty('--card-glow', glow);
+    card.dataset.level = level.id;
+
+    if (!isUnlocked) {
+      card.dataset.locked = '';
+    }
+
+    const bar = document.createElement('div');
+    bar.className = 'lvl-card-bar';
+    bar.style.background = glow;
+    card.appendChild(bar);
+
+    const content = document.createElement('div');
+    content.className = 'lvl-card-content';
+
+    const iconWrapper = document.createElement('div');
+    iconWrapper.className = 'lvl-card-icon-wrapper';
+    iconWrapper.innerHTML = `<span class="material-symbols-outlined lvl-card-icon">${level.icon}</span>`;
+    content.appendChild(iconWrapper);
+
+    const num = document.createElement('span');
+    num.className = 'lvl-card-number';
+    num.textContent = `NÍVEL ${level.id}`;
+    content.appendChild(num);
+
+    const nameEl = document.createElement('h3');
+    nameEl.className = 'lvl-card-name';
+    nameEl.textContent = level.name;
+    content.appendChild(nameEl);
+
+    const desc = document.createElement('p');
+    desc.className = 'lvl-card-desc';
+    desc.textContent = level.desc;
+    content.appendChild(desc);
+
+    const status = document.createElement('span');
+    if (isCompleted) {
+      status.className = 'lvl-card-status lvl-card-status--completed';
+      status.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Concluído';
+    } else if (isUnlocked) {
+      status.className = 'lvl-card-status lvl-card-status--available';
+      status.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Jogar';
+    } else {
+      status.className = 'lvl-card-status lvl-card-status--locked';
+      status.innerHTML = '<span class="material-symbols-outlined">lock</span> Bloqueado';
+    }
+    content.appendChild(status);
+
+    card.appendChild(content);
+
+    if (isUnlocked) {
+      const cardHandler = () => {
+        this._close(() => {
+          if (this.onSelect) this.onSelect(level.id);
+        });
+      };
+      card.addEventListener('click', cardHandler);
+      this._handlers.push({ el: card, type: 'click', handler: cardHandler });
+    }
+
+    return card;
+  }
+
   _build() {
     if (this.el) this._destroy();
 
@@ -100,74 +184,18 @@ class LevelSelectModal {
     const grid = document.createElement('div');
     grid.className = 'lvl-modal-grid';
 
-    for (const level of LEVEL_META) {
-      const isUnlocked = level.id <= this.currentLevel;
-      const isCompleted = this.completedLevels.includes(level.id);
-      const glow = THEME_GLOW[level.theme] || 'var(--primary-container)';
+    for (const row of LEVEL_ROWS) {
+      const rowEl = document.createElement('div');
+      rowEl.className = `lvl-row${row.single ? ' lvl-row--single' : ''}`;
 
-      const card = document.createElement('div');
-      card.className = `lvl-card${isUnlocked ? ' lvl-card--unlocked' : ' lvl-card--locked'}${isCompleted ? ' lvl-card--completed' : ''}`;
-      card.style.setProperty('--card-glow', glow);
-      card.dataset.level = level.id;
-
-      if (!isUnlocked) {
-        card.dataset.locked = '';
+      for (const id of row.ids) {
+        const meta = this._metaMap.get(id);
+        if (meta) {
+          rowEl.appendChild(this._createCard(meta));
+        }
       }
 
-      const bar = document.createElement('div');
-      bar.className = 'lvl-card-bar';
-      bar.style.background = glow;
-      card.appendChild(bar);
-
-      const content = document.createElement('div');
-      content.className = 'lvl-card-content';
-
-      const iconWrapper = document.createElement('div');
-      iconWrapper.className = 'lvl-card-icon-wrapper';
-      iconWrapper.innerHTML = `<span class="material-symbols-outlined lvl-card-icon">${level.icon}</span>`;
-      content.appendChild(iconWrapper);
-
-      const num = document.createElement('span');
-      num.className = 'lvl-card-number';
-      num.textContent = `NÍVEL ${level.id}`;
-      content.appendChild(num);
-
-      const nameEl = document.createElement('h3');
-      nameEl.className = 'lvl-card-name';
-      nameEl.textContent = level.name;
-      content.appendChild(nameEl);
-
-      const desc = document.createElement('p');
-      desc.className = 'lvl-card-desc';
-      desc.textContent = level.desc;
-      content.appendChild(desc);
-
-      const status = document.createElement('span');
-      if (isCompleted) {
-        status.className = 'lvl-card-status lvl-card-status--completed';
-        status.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Concluído';
-      } else if (isUnlocked) {
-        status.className = 'lvl-card-status lvl-card-status--available';
-        status.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Jogar';
-      } else {
-        status.className = 'lvl-card-status lvl-card-status--locked';
-        status.innerHTML = '<span class="material-symbols-outlined">lock</span> Bloqueado';
-      }
-      content.appendChild(status);
-
-      card.appendChild(content);
-
-      if (isUnlocked) {
-        const cardHandler = () => {
-          this._close(() => {
-            if (this.onSelect) this.onSelect(level.id);
-          });
-        };
-        card.addEventListener('click', cardHandler);
-        this._handlers.push({ el: card, type: 'click', handler: cardHandler });
-      }
-
-      grid.appendChild(card);
+      grid.appendChild(rowEl);
     }
 
     modal.appendChild(grid);

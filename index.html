@@ -104,9 +104,6 @@
           <div class="lp-logo">CodeQuest</div>
           <nav class="lp-nav">
             <div class="nav-controls"></div>
-            <button class="lp-btn-primary" data-action="play">
-              Jogar agora
-            </button>
           </nav>
         </header>
 
@@ -124,20 +121,22 @@
             domine os algoritmos.
           </p>
 
-          <button class="lp-cta" data-action="play">
-            <svg
-              class="lp-cta-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round">
-              <path
-                d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Jogar agora
-          </button>
+          <div class="lp-hero-actions">
+            <button class="lp-cta" data-action="continue" disabled>
+              <svg
+                class="lp-cta-icon"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="none">
+                <polygon points="6 3 20 12 6 21 6 3" />
+              </svg>
+              Continuar
+            </button>
+            <button class="lp-cta-outline" data-action="select-level">
+              <span class="material-symbols-outlined" style="font-size:24px">grid_view</span>
+              Selecionar Nível
+            </button>
+          </div>
 
           <div class="lp-bar">
             <div class="lp-bar-segment lp-bar-cyan"></div>
@@ -157,9 +156,12 @@
         <nav class="rank-navbar">
           <div class="rank-nav-inner">
             <a class="rank-logo" data-action="home" href="#">CodeQuest</a>
-            <button class="rank-btn-play" data-action="play">
-              Jogar agora
-            </button>
+            <div class="rank-nav-right">
+              <div class="nav-controls"></div>
+              <button class="rank-btn-play" data-action="play">
+                Jogar agora
+              </button>
+            </div>
           </div>
         </nav>
 
