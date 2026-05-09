@@ -6,9 +6,11 @@ import { Player } from './actors/player.js';
 import { Stage } from './stage/stage.js';
 import { getLevel } from './game/levels.js';
 import { Progression } from './game/progression.js';
+import { PlayerManager } from './game/playerManager.js';
 import { router, ROUTE_CHANGE } from './ui/routes.js';
 import { GameErrorHandler } from './ui/gameErrorHandler.js';
 import { GameTutorial } from './ui/gameTutorial.js';
+import { ProfileMenu } from './ui/profileMenu.js';
 
 let gs = null;
 
@@ -235,7 +237,13 @@ function initGame() {
   const palette = new BlockPalette(els.palette);
   const player = new Player(5);
   const stage = new Stage(5);
-  const progression = new Progression();
+
+  const playerManager = new PlayerManager();
+  const activePlayer = playerManager.getActivePlayer();
+  const playerId = activePlayer ? activePlayer.id : 'default';
+  const playerName = activePlayer ? activePlayer.name : 'Anônimo';
+  const progression = new Progression(playerId, playerName);
+  const needsProfile = !activePlayer;
 
   const simGrid = els.simGrid;
   const statusDot = els.statusDot;
@@ -248,16 +256,46 @@ function initGame() {
 
   gs = {
     workspace, palette, player, stage, progression,
+    playerManager,
     simGrid, statusDot, statusText, indicator, errorLog, els,
     isRunning: false,
     shouldPause: false,
     shouldStop: false,
+    _needsProfile: needsProfile,
   };
+
+  const profileMenu = new ProfileMenu(playerManager, (newPlayerId) => {
+    const p = newPlayerId ? playerManager.getActivePlayer() : null;
+    gs.progression = new Progression(newPlayerId || 'default', p ? p.name : 'Jogador');
+    gs._needsProfile = false;
+    if (gs.workspace) gs.workspace.clear();
+    gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
+    loadCurrentLevel();
+  }, () => {
+    if (_currentTutorial) return;
+    _currentTutorial = new GameTutorial(onTutorialComplete);
+    setTimeout(() => {
+      if (_currentTutorial) _currentTutorial.show();
+    }, 300);
+  });
+  profileMenu.mount();
+  gs.profileMenu = profileMenu;
 
   const runWithGuard = withGuard;
 
   els.runBtn?.addEventListener('click', async () => {
     if (gs.isRunning) return;
+
+    if (gs._needsProfile) {
+      setStatus('Sem perfil', '#ef4444');
+      gs.errorLog.innerHTML = '';
+      const el = document.createElement('div');
+      el.className = 'log-entry log-error';
+      el.innerHTML = '<span>✕ Crie ou selecione um perfil antes de jogar!</span>';
+      gs.errorLog.appendChild(el);
+      gs.errorLog.style.display = 'flex';
+      return;
+    }
 
     loadCurrentLevel();
     gs.isRunning = true;
@@ -359,7 +397,7 @@ function initGame() {
 
       if (stage.checkVictory()) {
         setStatus('Vitória!', '#00FF3D');
-        progression.completeLevel(progression.getCurrentLevel(), 1000);
+        gs.progression.completeLevel(gs.progression.getCurrentLevel(), 1000);
         setTimeout(() => {
           loadCurrentLevel();
           workspace.clear();
@@ -410,91 +448,81 @@ function initGame() {
     ro.observe(els.simViewport);
   }
 
-  loadCurrentLevel();
+  if (!gs._needsProfile) loadCurrentLevel();
 }
 
 let _gameInitialized = false;
 let _currentTutorial = null;
-let _namePromptEl = null;
-
-function showNamePrompt() {
-  const savedName = localStorage.getItem('codequest_player_name');
-  if (savedName) return;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'name-prompt-overlay';
-  overlay.innerHTML = `
-    <div class="name-prompt-modal">
-      <div class="name-prompt-icon-wrapper">
-        <span class="material-symbols-outlined name-prompt-icon">badge</span>
-      </div>
-      <h2 class="name-prompt-title">IDENTIFICAÇÃO</h2>
-      <p class="name-prompt-text">Digite seu nome, programador:</p>
-      <input class="name-prompt-input" id="name-input" type="text" placeholder="Seu nome" maxlength="20" autocomplete="off">
-      <button class="name-prompt-btn" id="name-save-btn">SALVAR</button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add('active'));
-  _namePromptEl = overlay;
-
-  const input = overlay.querySelector('#name-input');
-  const btn = overlay.querySelector('#name-save-btn');
-
-  function save() {
-    const name = input.value.trim();
-    if (!name) {
-      input.focus();
-      input.style.borderColor = 'var(--error)';
-      input.style.boxShadow = '0 0 10px rgba(255, 180, 171, 0.3)';
-      return;
-    }
-    localStorage.setItem('codequest_player_name', name);
-    overlay.classList.remove('active');
-    overlay.addEventListener('transitionend', () => {
-      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-    }, { once: true });
-    _namePromptEl = null;
-  }
-
-  btn.addEventListener('click', save);
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') save();
-    input.style.borderColor = '';
-    input.style.boxShadow = '';
-  });
-  setTimeout(() => input.focus(), 400);
-}
 
 function onTutorialComplete() {
   _currentTutorial = null;
-  showNamePrompt();
+  if (gs && gs.profileMenu) {
+    const players = gs.playerManager.getPlayers();
+    if (players.length === 0) {
+      gs.profileMenu.showAddPlayer();
+    } else if (!gs.playerManager.getActivePlayer()) {
+      gs.profileMenu.showPlayerList();
+    }
+  }
 }
 
 document.addEventListener('game:ready', () => {
   initGame();
 
-  _currentTutorial = new GameTutorial(onTutorialComplete);
-  setTimeout(() => {
-    if (_currentTutorial) _currentTutorial.show();
-  }, 300);
+  const players = gs.playerManager.getPlayers();
+  const activePlayer = gs.playerManager.getActivePlayer();
+
+  if (players.length === 0) {
+    _currentTutorial = new GameTutorial(onTutorialComplete);
+    setTimeout(() => {
+      if (_currentTutorial) _currentTutorial.show();
+    }, 300);
+  } else if (!activePlayer) {
+    gs.profileMenu.showPlayerList();
+  }
 
   _gameInitialized = true;
 });
 
 document.addEventListener(ROUTE_CHANGE, (e) => {
-  if (_namePromptEl) {
-    _namePromptEl.remove();
-    _namePromptEl = null;
-  }
   if (_currentTutorial && e.detail.path !== '/game') {
     _currentTutorial.hide();
     _currentTutorial = null;
   }
-  if (e.detail.path === '/' || e.detail.path === '/levels') {
+  if (e.detail.path === '/' || e.detail.path === '/levels' || e.detail.path === '/ranking') {
+    if (gs && gs.profileMenu) gs.profileMenu.destroy();
     _gameInitialized = false;
     gs = null;
   }
 });
 
+function _migrateLegacyData() {
+  const oldRaw = localStorage.getItem('codequest_ranking');
+  if (!oldRaw) return;
+  try {
+    const parsed = JSON.parse(oldRaw);
+    if (typeof parsed !== 'object' || !parsed) return;
+    if (parsed.currentLevel === undefined && !parsed.ranking) return;
+    if (localStorage.getItem('codequest_players')) return;
+
+    const name = localStorage.getItem('codequest_player_name') || 'Jogador 1';
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+    const players = [{ id, name, createdAt: new Date().toISOString() }];
+    localStorage.setItem('codequest_players', JSON.stringify(players));
+    localStorage.setItem('codequest_active_player', id);
+
+    localStorage.setItem(`codequest_player_${id}`, JSON.stringify({
+      currentLevel: parsed.currentLevel || 0,
+      completedLevels: parsed.completedLevels || [],
+      unlockedCommands: parsed.unlockedCommands || [],
+      totalXP: parsed.totalXP || 0
+    }));
+
+    localStorage.setItem('codequest_ranking', JSON.stringify(parsed.ranking || []));
+    localStorage.removeItem('codequest_player_name');
+  } catch { }
+}
+
+_migrateLegacyData();
 router.start();

@@ -10,10 +10,10 @@ export class Stage {
 
   loadLevel(levelConfig) {
     this.gridSize = levelConfig.gridSize || 5;
-    this.obstacles = levelConfig.obstacles || [];
-    this.enemies = levelConfig.enemies || [];
-    this.items = levelConfig.items || [];
-    this.goal = levelConfig.goal || null;
+    this.obstacles = (levelConfig.obstacles || []).map(o => ({...o}));
+    this.enemies = (levelConfig.enemies || []).map(e => ({...e}));
+    this.items = (levelConfig.items || []).map(i => ({...i}));
+    this.goal = levelConfig.goal ? {...levelConfig.goal} : null;
   }
 
   setPlayer(player) {

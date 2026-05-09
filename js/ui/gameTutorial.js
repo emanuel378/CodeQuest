@@ -115,6 +115,7 @@ export class GameTutorial {
     this._el.className = 'tutorial-overlay';
     this._el.innerHTML = `
       <div class="tutorial-modal">
+        <button class="tutorial-skip-btn" id="tut-skip">Pular tutorial</button>
         <div class="tutorial-content" id="tut-content"></div>
         <div class="tutorial-footer">
           <div class="tutorial-dots" id="tut-dots"></div>
@@ -133,6 +134,8 @@ export class GameTutorial {
 
     this._prevBtn.addEventListener('click', () => this._prev());
     this._nextBtn.addEventListener('click', () => this._next());
+    this._skipBtn = this._el.querySelector('#tut-skip');
+    this._skipBtn.addEventListener('click', () => this._skip());
 
     this._renderDots();
   }
@@ -163,6 +166,12 @@ export class GameTutorial {
 
   _prev() {
     if (this._currentStep > 0) this._goTo(this._currentStep - 1);
+  }
+
+  _skip() {
+    this._stopAutoPlay();
+    this.hide();
+    if (this._onComplete) this._onComplete();
   }
 
   _goTo(index) {
