@@ -1,3 +1,5 @@
+import { audioManager } from '../audio/audioManager.js';
+
 let nextId = 1;
 
 const CAT_COLORS = {
@@ -277,6 +279,7 @@ export class BlockWorkspace {
 
     const b = this.createBlock(data.type, data.label, data.icon, data.category, data.params, mx - 110, my - 20);
     this._trySnap(b.id, mx, my);
+    audioManager.playSfx('snap');
     this.save();
     return b;
   }
@@ -323,6 +326,7 @@ export class BlockWorkspace {
     b.el.classList.add('sb-nested');
     area.appendChild(b.el);
     this._updateHeight(pd);
+    audioManager.playSfx('snap');
     return b;
   }
 
