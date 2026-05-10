@@ -63,8 +63,8 @@
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--primary-container);
-  text-shadow: 0 0 8px rgba(0, 242, 255, 0.8);
+  color: var(--color-accent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--color-accent) 80%, transparent);
 }
 
 .nav-controls {
@@ -115,7 +115,7 @@
 .star-rating {
   display: flex;
   gap: var(--sp-xs);
-  color: var(--primary-container);
+  color: var(--color-accent);
 }
 
 .btn-mute {
@@ -352,8 +352,8 @@
   line-height: 1;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--primary-container);
-  text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
+  color: var(--color-accent);
+  text-shadow: 0 0 5px color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
 .status-chip {
@@ -678,14 +678,14 @@
   flex-shrink: 0;
 }
 .profile-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 .profile-btn.active {
-  border-color: var(--primary-container);
-  color: var(--primary-container);
-  box-shadow: 0 0 12px rgba(0, 242, 255, 0.3);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
 .profile-btn-initial {
@@ -710,9 +710,9 @@
   flex-shrink: 0;
 }
 .nav-rank-btn:hover {
-  border-color: var(--secondary);
-  color: var(--secondary);
-  box-shadow: 0 0 10px rgba(235, 178, 255, 0.2);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-gold) 40%, transparent);
 }
 .nav-rank-btn .material-symbols-outlined {
   font-size: 20px;
@@ -1075,4 +1075,105 @@
 }
 .profile-list-delete .material-symbols-outlined {
   font-size: 16px;
+}
+
+.sim-attributes {
+  padding: var(--sp-sm);
+  background: color-mix(in srgb, var(--surface-container) 60%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.sim-attributes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-sm);
+  padding: 0 var(--sp-xs);
+}
+
+.sim-attributes-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+.sim-attributes-icon {
+  font-size: 14px;
+  color: var(--color-accent);
+  opacity: 0.5;
+}
+
+.sim-attributes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.sim-attr-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: color-mix(in srgb, var(--surface-container-highest) 40%, transparent);
+  padding: var(--sp-sm);
+  border-radius: var(--rounded-default);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 20%, transparent);
+  transition: border-color 0.2s;
+}
+
+.sim-attr-item:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.sim-attr-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sim-attr-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.sim-attr-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-accent);
+}
+
+.sim-attr-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--rounded-default);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sim-attr-btn:hover {
+  background: var(--color-accent);
+  color: white;
+}
+
+.sim-attr-btn .material-symbols-outlined {
+  font-size: 18px;
 }

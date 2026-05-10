@@ -54,6 +54,8 @@
   --background: #0d1515;
   --on-background: #dce4e4;
   --surface-variant: #2e3637;
+  --color-accent: #00f2ff;
+  --color-gold: #FFD700;
 
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -114,6 +116,7 @@ body {
   --surface-container-high: #1a2a1f;
   --surface-container-highest: #233d2c;
   --surface-variant: #1a2a1f;
+  --color-accent: #00FF3D;
 }
 
 .game-container.theme-void {
@@ -127,6 +130,7 @@ body {
   --surface-container-high: #1a0d26;
   --surface-container-highest: #1a0d26;
   --surface-variant: #1a0d26;
+  --color-accent: #ebb2ff;
 }
 
 ::selection {
