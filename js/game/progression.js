@@ -20,8 +20,11 @@ export class Progression {
     this.totalXP = 0;
     this.attributes = AttributeSystem.createDefaultAttributes();
     this.attributePoints = 0;
+    this.playerLevel = 1;
+    this.playerXP = 0;
     this.currentAttempts = 5;
     this._levelUpListeners = [];
+    this._playerLevelUpListeners = [];
     this._failedLevels = [];
     this._load();
     this.resetAttempts();
@@ -37,11 +40,13 @@ export class Progression {
         this.totalXP = data.totalXP || 0;
         if (data.attributes) {
           this.attributes = {
-            nucleoLogico: data.attributes.nucleoLogico || { xp: 0, level: 1 },
-            eficienciaAlgoritmo: data.attributes.eficienciaAlgoritmo || { xp: 0, level: 1 }
+            nucleoLogico: { level: (data.attributes.nucleoLogico && data.attributes.nucleoLogico.level) || 1 },
+            eficienciaAlgoritmo: { level: (data.attributes.eficienciaAlgoritmo && data.attributes.eficienciaAlgoritmo.level) || 1 }
           };
         }
         this.attributePoints = data.attributePoints || 0;
+        this.playerLevel = data.playerLevel || 1;
+        this.playerXP = data.playerXP || 0;
         this._failedLevels = data.failedLevels || [];
       }
     } catch { }
@@ -58,6 +63,8 @@ export class Progression {
         totalXP: this.totalXP,
         attributes: this.attributes,
         attributePoints: this.attributePoints,
+        playerLevel: this.playerLevel,
+        playerXP: this.playerXP,
         failedLevels: this._failedLevels
       }));
     } catch { }
@@ -94,6 +101,16 @@ export class Progression {
   _emitLevelUp(attrId, newLevel) {
     for (const cb of this._levelUpListeners) {
       cb(attrId, newLevel);
+    }
+  }
+
+  onPlayerLevelUp(callback) {
+    this._playerLevelUpListeners.push(callback);
+  }
+
+  _emitPlayerLevelUp(newLevel) {
+    for (const cb of this._playerLevelUpListeners) {
+      cb(newLevel);
     }
   }
 
@@ -140,39 +157,44 @@ export class Progression {
     if (attr.level >= def.maxLevel) return false
 
     this.attributePoints--
-    attr.xp += AttributeSystem.getPointValue()
-    const newLevel = AttributeSystem.getLevelFromXp(attrId, attr.xp)
-    if (newLevel > attr.level) {
-      attr.level = newLevel
-      this._emitLevelUp(attrId, newLevel)
+    attr.level++
+    if (attrId === 'nucleoLogico') {
+      this.resetAttempts()
     }
-    this._save()
-    return true
-  }
-
-  addAttributeXP(attrId, xpAmount) {
-    const attr = this.attributes[attrId]
-    if (!attr) return false
-    const def = AttributeSystem.getDef(attrId)
-    if (!def) return false
-    if (attr.level >= def.maxLevel) return false
-
-    attr.xp += xpAmount
-    const newLevel = AttributeSystem.getLevelFromXp(attrId, attr.xp)
-    if (newLevel > attr.level) {
-      attr.level = newLevel
-      this._emitLevelUp(attrId, newLevel)
-    }
+    this._emitLevelUp(attrId, attr.level)
     this._save()
     return true
   }
 
   getAttribute(attrId) {
-    return this.attributes[attrId] || { xp: 0, level: 1 }
+    return this.attributes[attrId] || { level: 1 }
   }
 
   getAttributePoints() {
     return this.attributePoints
+  }
+
+  getPlayerLevel() {
+    return this.playerLevel
+  }
+
+  getPlayerXP() {
+    return this.playerXP
+  }
+
+  addPlayerXP(amount) {
+    this.playerXP += amount
+    const newLevel = AttributeSystem.getPlayerLevelFromXp(this.playerXP)
+    if (newLevel > this.playerLevel) {
+      const levelsGained = newLevel - this.playerLevel
+      for (let i = 0; i < levelsGained; i++) {
+        this.attributePoints++
+      }
+      this.playerLevel = newLevel
+      this._emitPlayerLevelUp(newLevel)
+    }
+    this._save()
+    return true
   }
 
   completeLevel(id, score = 0, blocksUsed = 0, idealBlocks = 0) {
@@ -201,19 +223,7 @@ export class Progression {
     }
     this._saveGlobalRanking(ranking)
 
-    if (isNew) {
-      const pointLevels = [0, 2, 4, 6, 8]
-      if (pointLevels.includes(id)) {
-        this.attributePoints++
-      }
-    }
-
-    const remaining = this.currentAttempts
-    const nucleoXP = remaining * 10
-    this.addAttributeXP('nucleoLogico', nucleoXP)
-
-    const eficienciaXP = AttributeSystem.calculateEfficiencyXP(blocksUsed, idealBlocks)
-    this.addAttributeXP('eficienciaAlgoritmo', eficienciaXP)
+    this.addPlayerXP(score)
 
     this.unmarkLevelFailed(id)
 
@@ -247,14 +257,6 @@ export class Progression {
 
   getUnlockedCommands() {
     return [...this.unlockedCommands]
-  }
-
-  getPlayerSkin() {
-    const thresholds = [100, 80, 60, 20, 10, 0]
-    for (const t of thresholds) {
-      if (this.totalXP >= t) return `img/player_${t}xp.png`
-    }
-    return 'img/player_0xp.png'
   }
 
   getGlobalRanking() {

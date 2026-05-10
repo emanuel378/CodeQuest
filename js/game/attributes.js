@@ -5,7 +5,6 @@ const ATTRIBUTE_DEFS = {
     icon: 'memory',
     description: 'Controla quantas tentativas você tem por fase. Cada erro consome uma tentativa. Se zerar, você volta à fase anterior.',
     color: 'var(--primary-container)',
-    xpThresholds: [0, 60, 150, 300, 500],
     maxLevel: 5,
     attemptsPerLevel: [5, 6, 7, 8, 10]
   },
@@ -15,7 +14,6 @@ const ATTRIBUTE_DEFS = {
     icon: 'speed',
     description: 'Avalia quantos blocos você usou comparado ao ideal da fase. Menos blocos = rank maior = mais XP!',
     color: 'var(--tertiary-container)',
-    xpThresholds: [0, 60, 150, 300, 500],
     maxLevel: 5,
     xpMultiplierPerLevel: [1.0, 1.1, 1.2, 1.3, 1.5]
   }
@@ -28,43 +26,12 @@ const RANK_CONFIG = {
   C: { minRatio: 0, xpMultiplier: 0.5, attrXP: 0, label: 'C', color: 'var(--error)' }
 }
 
-const ATTRIBUTE_POINT_XP = 30
+const PLAYER_XP_THRESHOLDS = [0, 150, 350, 600, 900, 1250, 1700, 2200]
+const PLAYER_MAX_LEVEL = 8
 
 export class AttributeSystem {
   static getDef(attrId) {
     return ATTRIBUTE_DEFS[attrId] || null
-  }
-
-  static getXpForLevel(attrId, level) {
-    const def = ATTRIBUTE_DEFS[attrId]
-    if (!def) return Infinity
-    const idx = Math.min(level - 1, def.xpThresholds.length - 1)
-    return def.xpThresholds[idx]
-  }
-
-  static getLevelFromXp(attrId, xp) {
-    const def = ATTRIBUTE_DEFS[attrId]
-    if (!def) return 1
-    let level = 1
-    for (let i = 1; i < def.xpThresholds.length; i++) {
-      if (xp >= def.xpThresholds[i]) level = i + 1
-      else break
-    }
-    return level
-  }
-
-  static getXpProgress(attrId, xp) {
-    const def = ATTRIBUTE_DEFS[attrId]
-    if (!def) return { current: 0, needed: 1, progress: 0 }
-    const level = this.getLevelFromXp(attrId, xp)
-    if (level >= def.maxLevel) {
-      return { current: def.xpThresholds[def.maxLevel - 1], needed: def.xpThresholds[def.maxLevel - 1], progress: 1 }
-    }
-    const currentThreshold = def.xpThresholds[level - 1]
-    const nextThreshold = def.xpThresholds[level]
-    const current = xp - currentThreshold
-    const needed = nextThreshold - currentThreshold
-    return { current, needed, progress: needed > 0 ? current / needed : 1 }
   }
 
   static getAttemptsAllowed(level) {
@@ -97,18 +64,43 @@ export class AttributeSystem {
     return RANK_CONFIG[rankLabel] || RANK_CONFIG.C
   }
 
-  static getPointValue() {
-    return ATTRIBUTE_POINT_XP
-  }
-
   static getDefs() {
     return ATTRIBUTE_DEFS
   }
 
+  static getPlayerLevelFromXp(xp) {
+    let level = 1
+    for (let i = 1; i < PLAYER_XP_THRESHOLDS.length; i++) {
+      if (xp >= PLAYER_XP_THRESHOLDS[i]) level = i + 1
+      else break
+    }
+    return level
+  }
+
+  static getPlayerXpProgress(xp) {
+    const level = this.getPlayerLevelFromXp(xp)
+    if (level >= PLAYER_MAX_LEVEL) {
+      return { current: PLAYER_XP_THRESHOLDS[PLAYER_MAX_LEVEL - 1], needed: PLAYER_XP_THRESHOLDS[PLAYER_MAX_LEVEL - 1], progress: 1 }
+    }
+    const currentThreshold = PLAYER_XP_THRESHOLDS[level - 1]
+    const nextThreshold = PLAYER_XP_THRESHOLDS[level]
+    const current = xp - currentThreshold
+    const needed = nextThreshold - currentThreshold
+    return { current, needed, progress: needed > 0 ? current / needed : 1 }
+  }
+
+  static getPlayerMaxLevel() {
+    return PLAYER_MAX_LEVEL
+  }
+
+  static getPlayerXpThresholds() {
+    return PLAYER_XP_THRESHOLDS
+  }
+
   static createDefaultAttributes() {
     return {
-      nucleoLogico: { xp: 0, level: 1 },
-      eficienciaAlgoritmo: { xp: 0, level: 1 }
+      nucleoLogico: { level: 1 },
+      eficienciaAlgoritmo: { level: 1 }
     }
   }
 }

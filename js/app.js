@@ -562,8 +562,8 @@ function initGame() {
   if (attrPanel) {
     attrPanel.setProgression(progression)
     attrPanel.setupEvents()
-    progression.onLevelUp((attrId, newLevel) => {
-      if (attrPanel) attrPanel.refresh()
+    progression.onPlayerLevelUp((newLevel) => {
+      if (attrPanel) attrPanel._playPlayerLevelUp(newLevel)
     })
   }
 
@@ -604,8 +604,8 @@ function initGame() {
     if (gs.attrPanel) gs.attrPanel.setProgression(gs.progression)
     if (gs.workspace) gs.workspace.clear();
     gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
-    gs.progression.onLevelUp((attrId, newLevel) => {
-      if (gs.attrPanel) gs.attrPanel.refresh()
+    gs.progression.onPlayerLevelUp((newLevel) => {
+      if (gs.attrPanel) gs.attrPanel._playPlayerLevelUp(newLevel)
     })
     loadCurrentLevel();
   }, () => {
