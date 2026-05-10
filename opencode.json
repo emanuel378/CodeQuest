@@ -7,7 +7,7 @@
       "url": "https://stitch.googleapis.com/mcp",
       "timeout": 300000,
       "headers": {
-        
+        "X-Goog-Api-Key": "{file:./secrets/stitch-api-key}"
       }
     },
     "filesystem": {
