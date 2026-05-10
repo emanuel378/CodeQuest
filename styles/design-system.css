@@ -105,6 +105,11 @@ body {
   --surface-container-high: #232b2c;
   --surface-container-highest: #2e3637;
   --surface-variant: #2e3637;
+  --scrollbar-thumb: rgba(0, 242, 255, 0.25);
+  --scrollbar-thumb-hover: rgba(0, 242, 255, 0.45);
+  --scrollbar-thumb-border: rgba(0, 242, 255, 0.15);
+  --scrollbar-glow: rgba(0, 242, 255, 0.1);
+  --scrollbar-glow-hover: rgba(0, 242, 255, 0.2);
 }
 
 .game-container.theme-forest {
@@ -119,6 +124,11 @@ body {
   --surface-container-highest: #233d2c;
   --surface-variant: #1a2a1f;
   --color-accent: #00FF3D;
+  --scrollbar-thumb: rgba(0, 255, 61, 0.25);
+  --scrollbar-thumb-hover: rgba(0, 255, 61, 0.45);
+  --scrollbar-thumb-border: rgba(0, 255, 61, 0.15);
+  --scrollbar-glow: rgba(0, 255, 61, 0.1);
+  --scrollbar-glow-hover: rgba(0, 255, 61, 0.2);
 }
 
 .game-container.theme-void {
@@ -133,6 +143,11 @@ body {
   --surface-container-highest: #2a1a3e;
   --surface-variant: #1a0d26;
   --color-accent: #ebb2ff;
+  --scrollbar-thumb: rgba(235, 178, 255, 0.25);
+  --scrollbar-thumb-hover: rgba(235, 178, 255, 0.45);
+  --scrollbar-thumb-border: rgba(235, 178, 255, 0.15);
+  --scrollbar-glow: rgba(235, 178, 255, 0.1);
+  --scrollbar-glow-hover: rgba(235, 178, 255, 0.2);
 }
 
 ::selection {

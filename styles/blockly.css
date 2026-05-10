@@ -139,12 +139,45 @@
   inset: 0;
   padding: calc(var(--workspace-pad) / 2);
   overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  -ms-overflow-style: auto;
 }
 
 .sb-workspace-scroll::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+  height: 6px;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-track-piece {
+  background: transparent;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+  border: 1px solid var(--scrollbar-thumb-border);
+  box-shadow:
+    inset 0 0 4px var(--scrollbar-glow),
+    0 0 6px var(--scrollbar-glow);
+  min-height: 20px;
+  min-width: 20px;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  box-shadow:
+    inset 0 0 6px var(--scrollbar-glow-hover),
+    0 0 10px var(--scrollbar-glow-hover);
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .sb-canvas {
