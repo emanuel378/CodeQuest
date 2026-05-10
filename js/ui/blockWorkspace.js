@@ -261,6 +261,32 @@ export class BlockWorkspace {
     b.el.style.position = 'absolute';
   }
 
+  _applyInlineContentStyles(el, apply) {
+    const content = el?.querySelector('.sb-content');
+    if (!content) return;
+    if (apply) {
+      content.style.flexDirection = 'row';
+      content.style.alignItems = 'center';
+      content.style.gap = '8px';
+      content.style.padding = '8px 12px';
+      content.style.minWidth = '0';
+      content.style.fontSize = '12px';
+      content.style.whiteSpace = 'nowrap';
+      content.style.overflow = 'hidden';
+      content.style.textOverflow = 'ellipsis';
+    } else {
+      content.style.flexDirection = '';
+      content.style.alignItems = '';
+      content.style.gap = '';
+      content.style.padding = '';
+      content.style.minWidth = '';
+      content.style.fontSize = '';
+      content.style.whiteSpace = '';
+      content.style.overflow = '';
+      content.style.textOverflow = '';
+    }
+  }
+
   _updateHeight(b) {
     if (!b || !b.el) return;
     const r = b.el.getBoundingClientRect();
@@ -324,6 +350,7 @@ export class BlockWorkspace {
     b.el.style.left = '';
     b.el.style.top = '';
     b.el.classList.add('sb-nested');
+    this._applyInlineContentStyles(b.el, true);
     area.appendChild(b.el);
     this._updateHeight(pd);
     audioManager.playSfx('snap');
@@ -431,6 +458,7 @@ export class BlockWorkspace {
     b.el.style.left = b.x + 'px';
     b.el.style.top = b.y + 'px';
     b.el.classList.remove('sb-nested');
+    this._applyInlineContentStyles(b.el, false);
     this._canvas.appendChild(b.el);
 
     this._drag = { id, ox: (cx - cr.left) / this.zoom - b.x, oy: (cy - cr.top) / this.zoom - b.y };
@@ -564,6 +592,7 @@ export class BlockWorkspace {
         b.el.style.left = '';
         b.el.style.top = '';
         b.el.classList.add('sb-nested');
+        this._applyInlineContentStyles(b.el, true);
         area.appendChild(b.el);
       }
 
