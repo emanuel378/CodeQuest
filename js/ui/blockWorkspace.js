@@ -11,7 +11,8 @@ const CAT_COLORS = {
 };
 
 const CONTROL_TYPES = new Set(['if', 'repeat', 'while']);
-const SNAP_DISTANCE = 28;
+const SNAP_DISTANCE = 90;
+const WORKSPACE_PAD = 400;
 
 export class BlockWorkspace {
   constructor(containerEl) {
@@ -20,6 +21,9 @@ export class BlockWorkspace {
     this.blocks = new Map();
     this._drag = null;
 
+    this._ghostEl = null;
+    this._paletteGhostEl = null;
+    this._paletteDragData = null;
     this._scrollEl = document.createElement('div');
     this._scrollEl.className = 'sb-workspace-scroll';
     this.ct.appendChild(this._scrollEl);
@@ -31,6 +35,7 @@ export class BlockWorkspace {
     this._updateCanvasSize();
     this._setup();
     this._setupZoomControls();
+    this._centerScroll();
   }
 
   createBlock(type, label, icon, category, params, x, y) {
@@ -82,6 +87,8 @@ export class BlockWorkspace {
   clear() {
     for (const [, b] of this.blocks) b.el.remove();
     this.blocks.clear();
+    this._removeGhost();
+    this._removePaletteGhost();
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this._updateCanvasSize();
     localStorage.removeItem('codequest_workspace');
@@ -145,7 +152,7 @@ export class BlockWorkspace {
 
   _render(b) {
     const div = document.createElement('div');
-    div.className = `sb-block`;
+    div.className = 'sb-block';
 
     if (b.ctrl) div.classList.add('sb-control');
 
@@ -153,29 +160,27 @@ export class BlockWorkspace {
     div.style.setProperty('--cat-color', clr);
     div.style.width = b.w + 'px';
 
-    const notch = document.createElement('div');
-    notch.className = 'sb-notch';
-    div.appendChild(notch);
-
     const body = document.createElement('div');
-    body.className = 'sb-body';
-    body.style.borderLeftColor = clr;
+    body.className = 'sb-block-body';
 
-    if (b.ctrl) {
-      body.innerHTML = this._ctrlHtml(b, clr);
-    } else {
-      body.innerHTML = this._simpleHtml(b, clr);
-    }
+    const headlight = document.createElement('div');
+    headlight.className = 'sb-headlight';
+    headlight.dataset.cat = b.category;
+    const lens = document.createElement('div');
+    lens.className = 'sb-headlight-lens';
+    headlight.appendChild(lens);
+    body.appendChild(headlight);
+
+    const content = document.createElement('div');
+    content.className = 'sb-content';
+    body.appendChild(content);
 
     div.appendChild(body);
 
-    if (!b.ctrl) {
-      const bump = document.createElement('div');
-      bump.className = 'sb-bump';
-      div.appendChild(bump);
-    }
-
     if (b.ctrl) {
+      content.classList.add('sb-control-content');
+      content.innerHTML = this._ctrlHtml(b, clr);
+
       const childArea = document.createElement('div');
       childArea.className = 'sb-child-area';
       childArea.dataset.parent = b.id;
@@ -183,7 +188,7 @@ export class BlockWorkspace {
       hint.className = 'sb-child-hint';
       hint.textContent = '+';
       childArea.appendChild(hint);
-      div.appendChild(childArea);
+      content.appendChild(childArea);
 
       if (b.type === 'if') {
         const esec = document.createElement('div');
@@ -198,14 +203,12 @@ export class BlockWorkspace {
         ehint.textContent = '+';
         earea.appendChild(ehint);
         esec.appendChild(earea);
-        div.appendChild(esec);
+        content.appendChild(esec);
       }
 
-      const footer = document.createElement('div');
-      footer.className = 'sb-control-footer';
-      div.appendChild(footer);
-
       div.style.height = 'auto';
+    } else {
+      content.innerHTML = this._simpleHtml(b, clr);
     }
 
     const del = document.createElement('button');
@@ -225,7 +228,7 @@ export class BlockWorkspace {
         <span class="material-symbols-outlined">${b.icon}</span>
       </span>
       <span class="sb-label">${b.label}</span>
-      ${b.value != null ? `<input class="sb-input" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
+      ${b.value != null ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
     `;
   }
 
@@ -247,7 +250,7 @@ export class BlockWorkspace {
         </div>`;
     }
     if (b.type === 'repeat') {
-      html += `<input class="sb-input" type="text" value="${b.value || 5}" data-bid="${b.id}">`;
+      html += `<input class="sb-input sb-input-circle" type="text" value="${b.value || 5}" data-bid="${b.id}">`;
     }
     html += `</div>`;
     return html;
@@ -259,6 +262,32 @@ export class BlockWorkspace {
     b.el.style.left = b.x + 'px';
     b.el.style.top = b.y + 'px';
     b.el.style.position = 'absolute';
+  }
+
+  _applyInlineContentStyles(el, apply) {
+    const content = el?.querySelector('.sb-content');
+    if (!content) return;
+    if (apply) {
+      content.style.flexDirection = 'row';
+      content.style.alignItems = 'center';
+      content.style.gap = '8px';
+      content.style.padding = '8px 12px';
+      content.style.minWidth = '0';
+      content.style.fontSize = '12px';
+      content.style.whiteSpace = 'nowrap';
+      content.style.overflow = 'hidden';
+      content.style.textOverflow = 'ellipsis';
+    } else {
+      content.style.flexDirection = '';
+      content.style.alignItems = '';
+      content.style.gap = '';
+      content.style.padding = '';
+      content.style.minWidth = '';
+      content.style.fontSize = '';
+      content.style.whiteSpace = '';
+      content.style.overflow = '';
+      content.style.textOverflow = '';
+    }
   }
 
   _updateHeight(b) {
@@ -324,10 +353,136 @@ export class BlockWorkspace {
     b.el.style.left = '';
     b.el.style.top = '';
     b.el.classList.add('sb-nested');
+    this._applyInlineContentStyles(b.el, true);
     area.appendChild(b.el);
     this._updateHeight(pd);
     audioManager.playSfx('snap');
     return b;
+  }
+
+  _createGhost(b, x, y) {
+    this._removeGhost();
+    const ghost = this._render(b);
+    ghost.classList.add('sb-block-ghost');
+    ghost.style.left = x + 'px';
+    ghost.style.top = y + 'px';
+    ghost.style.position = 'absolute';
+    const del = ghost.querySelector('.sb-del');
+    if (del) del.remove();
+    this._canvas.appendChild(ghost);
+    this._ghostEl = ghost;
+  }
+
+  _removeGhost() {
+    if (this._ghostEl) {
+      this._ghostEl.remove();
+      this._ghostEl = null;
+    }
+  }
+
+  _createPaletteGhost(data, x, y) {
+    this._removePaletteGhost();
+    const temp = {
+      type: data.type,
+      label: data.label,
+      icon: data.icon,
+      category: data.category,
+      ctrl: CONTROL_TYPES.has(data.type),
+      w: 220,
+      h: CONTROL_TYPES.has(data.type) ? 80 : 40,
+      value: data.params?.value,
+      condition: data.params?.condition || null,
+      children: [],
+      elseChildren: []
+    };
+    const ghost = this._render(temp);
+    ghost.classList.add('sb-block-ghost');
+    ghost.style.left = x + 'px';
+    ghost.style.top = y + 'px';
+    ghost.style.position = 'absolute';
+    const del = ghost.querySelector('.sb-del');
+    if (del) del.remove();
+    this._canvas.appendChild(ghost);
+    this._paletteGhostEl = ghost;
+  }
+
+  _removePaletteGhost() {
+    if (this._paletteGhostEl) {
+      this._paletteGhostEl.remove();
+      this._paletteGhostEl = null;
+    }
+  }
+
+  _showPaletteGuide(cx, cy) {
+    this._removeGhost();
+    const crt = this._canvas.getBoundingClientRect();
+    const mx = (cx - crt.left) / this.zoom;
+    const my = (cy - crt.top) / this.zoom;
+    if (!this._paletteDragData) return;
+
+    const sn = SNAP_DISTANCE / this.zoom;
+    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+
+    let inChildArea = false;
+    let bestChain = null;
+    let bestDist = sn;
+
+    for (const [, o] of this.blocks) {
+      if (o.ctrl && o.el) {
+        const ca = o.el.querySelector('.sb-child-area');
+        if (ca) {
+          const cr = ca.getBoundingClientRect();
+          if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
+            ca.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+        const ea = o.el.querySelector('.sb-else-area');
+        if (ea) {
+          const er = ea.getBoundingClientRect();
+          if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
+            ea.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+      }
+
+      if (o.parent) continue;
+      const or = o.el.getBoundingClientRect();
+      const ox = (or.left - crt.left) / this.zoom;
+      const oy = (or.top - crt.top) / this.zoom;
+      const ddx = Math.abs(mx - (ox + o.w / 2));
+      const ddy = my - (oy + or.height / this.zoom);
+
+      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
+        bestDist = ddy;
+      }
+    }
+
+    if (bestChain) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestChain.ox;
+      const gy = bestChain.oy + bestChain.height;
+      if (!this._paletteGhostEl) {
+        this._createPaletteGhost(this._paletteDragData, gx, gy);
+      } else {
+        this._paletteGhostEl.style.left = gx + 'px';
+        this._paletteGhostEl.style.top = gy + 'px';
+      }
+    } else {
+      this._removePaletteGhost();
+    }
   }
 
   _trySnap(id, mx, my) {
@@ -411,6 +566,7 @@ export class BlockWorkspace {
     b.el.style.left = b.x + 'px';
     b.el.style.top = b.y + 'px';
     b.el.classList.remove('sb-nested');
+    this._applyInlineContentStyles(b.el, false);
     this._canvas.appendChild(b.el);
 
     this._drag = { id, ox: (cx - cr.left) / this.zoom - b.x, oy: (cy - cr.top) / this.zoom - b.y };
@@ -430,6 +586,7 @@ export class BlockWorkspace {
 
   _showSnapGuide(id, cx, cy) {
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+    this._removeGhost();
 
     const crt = this._canvas.getBoundingClientRect();
     const mx = (cx - crt.left) / this.zoom;
@@ -439,29 +596,31 @@ export class BlockWorkspace {
 
     const sn = SNAP_DISTANCE / this.zoom;
 
-    // Check if cursor is inside a control block's child/else area → nest snap
-    for (const [, o] of this.blocks) {
-      if (!o.ctrl || !o.el) continue;
-      const ca = o.el.querySelector('.sb-child-area');
-      if (ca) {
-        const cr = ca.getBoundingClientRect();
-        if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
-          ca.classList.add('sb-snap-target');
-          return;
-        }
-      }
-      const ea = o.el.querySelector('.sb-else-area');
-      if (ea) {
-        const er = ea.getBoundingClientRect();
-        if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
-          ea.classList.add('sb-snap-target');
-          return;
-        }
-      }
-    }
+    // Check for child/else area nesting AND chain snap simultaneously
+    let inChildArea = false;
+    let bestChain = null;
+    let bestDist = sn;
 
-    // Check for chain snap below a block
     for (const [, o] of this.blocks) {
+      if (o.ctrl && o.el) {
+        const ca = o.el.querySelector('.sb-child-area');
+        if (ca) {
+          const cr = ca.getBoundingClientRect();
+          if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
+            ca.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+        const ea = o.el.querySelector('.sb-else-area');
+        if (ea) {
+          const er = ea.getBoundingClientRect();
+          if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
+            ea.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+      }
+
       if (o.id === id || o.parent) continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
@@ -469,10 +628,29 @@ export class BlockWorkspace {
       const ddx = Math.abs(mx - (ox + o.w / 2));
       const ddy = my - (oy + or.height / this.zoom);
 
-      if (ddx < sn && ddy >= 0 && ddy < sn) {
-        o.el.classList.add('sb-snap-target');
-        return;
+      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
+        bestDist = ddy;
       }
+    }
+
+    // If we have a chain snap AND the cursor is in a child area of a DIFFERENT block,
+    // remove the child area highlight and show the ghost
+    if (bestChain) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestChain.ox;
+      const gy = bestChain.oy + bestChain.height;
+      this._createGhost(b, gx, gy);
     }
   }
 
@@ -491,6 +669,7 @@ export class BlockWorkspace {
         this._trySnap(b.id, mx, my);
       }
     }
+    this._removeGhost();
     this._drag = null;
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this.save();
@@ -540,6 +719,7 @@ export class BlockWorkspace {
         b.el.style.left = '';
         b.el.style.top = '';
         b.el.classList.add('sb-nested');
+        this._applyInlineContentStyles(b.el, true);
         area.appendChild(b.el);
       }
 
@@ -549,6 +729,7 @@ export class BlockWorkspace {
 
       this._updateCanvasSize();
       this.save();
+      this._centerScroll();
       return true;
     } catch { return false; }
   }
@@ -588,22 +769,19 @@ export class BlockWorkspace {
   }
 
   _updateCanvasSize() {
-    let maxX = 2000;
-    let maxY = 2000;
+    let maxX = WORKSPACE_PAD;
+    let maxY = WORKSPACE_PAD;
     for (const [, b] of this.blocks) {
       const right = b.x + (b.w || 220);
       const bottom = b.y + (b.h || 40);
       if (right > maxX) maxX = right;
       if (bottom > maxY) maxY = bottom;
     }
-    maxX += 600;
-    maxY += 600;
     if (this._scrollEl) {
-      const sr = this._scrollEl.getBoundingClientRect();
-      const ww = sr.width / this.zoom;
-      const wh = sr.height / this.zoom;
-      if (ww > maxX) maxX = ww;
-      if (wh > maxY) maxY = wh;
+      const vw = this._scrollEl.clientWidth / this.zoom;
+      const vh = this._scrollEl.clientHeight / this.zoom;
+      if (vw > maxX) maxX = vw;
+      if (vh > maxY) maxY = vh;
     }
     this._canvas.style.width = maxX + 'px';
     this._canvas.style.height = maxY + 'px';
@@ -663,6 +841,11 @@ export class BlockWorkspace {
     this.setZoom(1);
   }
 
+  _centerScroll() {
+    this._scrollEl.scrollLeft = WORKSPACE_PAD / this.zoom;
+    this._scrollEl.scrollTop = WORKSPACE_PAD / this.zoom;
+  }
+
   _setup() {
     this.ct.addEventListener('click', (e) => {
       const chip = e.target.closest('.sb-condition-chip');
@@ -709,6 +892,17 @@ export class BlockWorkspace {
       this._dragCandidate = b.id;
     });
 
+    this.ct.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.sb-block, .sb-zoom-controls, .btn-zoom')) return;
+      this._panning = {
+        startX: e.clientX,
+        startY: e.clientY,
+        scrollLeft: this._scrollEl.scrollLeft,
+        scrollTop: this._scrollEl.scrollTop
+      };
+      this.ct.classList.add('panning');
+    });
+
     document.addEventListener('mousemove', (e) => {
       if (this._drag) {
         e.preventDefault();
@@ -722,36 +916,74 @@ export class BlockWorkspace {
           this.startDrag(this._dragCandidate, e.clientX, e.clientY);
           this._dragCandidate = null;
         }
+        return;
+      }
+      if (this._panning) {
+        const dx = e.clientX - this._panning.startX;
+        const dy = e.clientY - this._panning.startY;
+        this._scrollEl.scrollLeft = this._panning.scrollLeft - dx;
+        this._scrollEl.scrollTop = this._panning.scrollTop - dy;
       }
     });
 
     document.addEventListener('mouseup', (e) => {
       this._dragCandidate = null;
+      if (this._panning) {
+        this._panning = null;
+        this.ct.classList.remove('panning');
+      }
       if (!this._drag) return;
       this.endDrag(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('dragstart', (e) => {
+      const block = e.target.closest('.sb-palette-block');
+      if (!block) return;
+      try {
+        this._paletteDragData = {
+          type: block.dataset.type,
+          label: block.dataset.label,
+          icon: block.dataset.icon,
+          category: block.dataset.category,
+          params: JSON.parse(block.dataset.params || '{}')
+        };
+      } catch {}
+    });
+
+    document.addEventListener('dragend', () => {
+      this._removePaletteGhost();
+      this._paletteDragData = null;
+    });
+
+    this.ct.addEventListener('dragenter', (e) => {
+      e.preventDefault();
     });
 
     this.ct.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
       this.ct.classList.add('drag-over');
+      if (this._paletteDragData) {
+        this._showPaletteGuide(e.clientX, e.clientY);
+      }
     });
 
     this.ct.addEventListener('dragleave', (e) => {
       if (!this.ct.contains(e.relatedTarget)) {
         this.ct.classList.remove('drag-over');
+        this._removePaletteGhost();
+        this._paletteDragData = null;
       }
     });
 
     this.ct.addEventListener('drop', (e) => {
       e.preventDefault();
       this.ct.classList.remove('drag-over');
-      const raw = e.dataTransfer.getData('application/json');
-      if (!raw) return;
-      try {
-        const data = JSON.parse(raw);
-        this.drop(data, e.clientX, e.clientY);
-      } catch { }
+      this._removePaletteGhost();
+      const data = this._paletteDragData;
+      this._paletteDragData = null;
+      if (!data) return;
+      this.drop(data, e.clientX, e.clientY);
     });
 
     this.ct.addEventListener('keydown', (e) => {

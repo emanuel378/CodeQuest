@@ -14,6 +14,7 @@ import { ProfileMenu } from './ui/profileMenu.js';
 import { audioManager } from './audio/audioManager.js';
 
 let gs = null;
+let executingBlockIds = new Set();
 
 // --- Profile compartilhado (landing + game) ---
 let _playerManager = null;
@@ -257,9 +258,9 @@ function syncSimEntities() {
   }
 }
 
-function highlightWorkspaceBlock(blockId) {
+function updateBlockHighlights() {
   for (const b of gs.workspace.blocks.values()) {
-    b.el.classList.toggle('executing', b.id === blockId);
+    b.el.classList.toggle('executing', executingBlockIds.has(b.id));
   }
 }
 
@@ -476,11 +477,13 @@ function initGame() {
     const cmdEventTarget = new EventTarget();
 
     cmdEventTarget.addEventListener('command:start', e => {
-      highlightWorkspaceBlock(e.detail.blockId);
+      executingBlockIds.add(e.detail.blockId);
+      updateBlockHighlights();
     });
 
     cmdEventTarget.addEventListener('command:end', e => {
-      highlightWorkspaceBlock(null);
+      executingBlockIds.delete(e.detail.blockId);
+      updateBlockHighlights();
     });
 
     try {
@@ -527,7 +530,8 @@ function initGame() {
       }
     }
 
-    highlightWorkspaceBlock(-1);
+    executingBlockIds.clear();
+    updateBlockHighlights();
     gs.isRunning = false;
   });
 

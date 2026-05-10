@@ -82,7 +82,6 @@
   padding: 10px 12px;
   border-radius: var(--rounded-sm);
   background: var(--surface-container-high);
-  border-left: 3px solid var(--outline);
   cursor: grab;
   font-family: var(--font-display);
   font-size: 13px;
@@ -90,6 +89,9 @@
   color: var(--on-surface);
   transition: all 0.15s;
   user-select: none;
+  box-shadow:
+    inset 1px 1px 2px rgba(255,255,255,0.06),
+    inset -1px -1px 2px rgba(0,0,0,0.4);
 }
 
 .sb-palette-block:hover {
@@ -105,32 +107,77 @@
   font-size: 18px;
 }
 
-.sb-cat-movimento { border-left-color: var(--primary-container); }
-.sb-cat-controle { border-left-color: var(--secondary-container); }
-.sb-cat-sensor { border-left-color: var(--tertiary-container); }
-.sb-cat-combate { border-left-color: var(--error); }
-.sb-cat-variavel { border-left-color: var(--secondary); }
+.sb-palette-headlight {
+  width: 6px;
+  height: 24px;
+  border-radius: 2px;
+  background: var(--cat-color, var(--outline));
+  flex-shrink: 0;
+}
+
+.sb-palette-headlight-lens {
+  display: none;
+}
 
 .sb-workspace {
   flex: 1;
   position: relative;
   background: var(--surface-dim);
   overflow: hidden;
+  cursor: all-scroll;
   background-image:
     radial-gradient(circle, var(--outline-variant) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
+.sb-workspace.panning {
+  cursor: grabbing;
+}
+
 .sb-workspace-scroll {
   position: absolute;
   inset: 0;
+  padding: calc(var(--workspace-pad) / 2);
   overflow: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  -ms-overflow-style: auto;
 }
 
 .sb-workspace-scroll::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+  height: 6px;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-track-piece {
+  background: transparent;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+  border: 1px solid var(--scrollbar-thumb-border);
+  box-shadow:
+    inset 0 0 4px var(--scrollbar-glow),
+    0 0 6px var(--scrollbar-glow);
+  min-height: 20px;
+  min-width: 20px;
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  box-shadow:
+    inset 0 0 6px var(--scrollbar-glow-hover),
+    0 0 10px var(--scrollbar-glow-hover);
+}
+
+.sb-workspace-scroll::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .sb-canvas {
@@ -147,31 +194,92 @@
   margin: 2px 0;
 }
 
-.sb-notch {
-  width: 100%;
-  height: 8px;
+.sb-block-body {
   background: var(--surface-container-high);
-  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-  margin-bottom: -1px;
+  border-radius: var(--rounded-md);
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  position: relative;
+  min-height: 36px;
+  box-shadow:
+    inset 1px 1px 2px rgba(255,255,255,0.07),
+    inset -1px -1px 2px rgba(0,0,0,0.45);
+  -webkit-mask:
+    linear-gradient(black, black),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10'%3E%3Cpath d='M5.6,0 Q4,0 4,0.4 L15.2,9.6 Q15.2,10 16,10 L24,10 Q24.8,10 24.8,9.6 L36,0.4 Q36,0 34.4,0 Z' fill='white'/%3E%3C/svg%3E") 32px 0 / 40px 10px no-repeat;
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(black, black),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10'%3E%3Cpath d='M5.6,0 Q4,0 4,0.4 L15.2,9.6 Q15.2,10 16,10 L24,10 Q24.8,10 24.8,9.6 L36,0.4 Q36,0 34.4,0 Z' fill='white'/%3E%3C/svg%3E") 32px 0 / 40px 10px no-repeat;
+  mask-composite: exclude;
 }
 
-.sb-body {
+.sb-block::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 32px;
+  width: 40px;
+  height: 12px;
   background: var(--surface-container-high);
-  border-radius: 4px;
+  clip-path: url(#block-notch);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Blocos aninhados dentro de controles: sem tab nem notch */
+.sb-child-area .sb-block::after,
+.sb-else-area .sb-block::after {
+  display: none;
+}
+
+.sb-child-area .sb-block-body,
+.sb-else-area .sb-block-body {
+  -webkit-mask: none;
+  mask: none;
+}
+
+.sb-headlight {
+  width: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-container);
+  clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%);
+  position: relative;
+}
+
+.sb-headlight-lens {
+  height: 70%;
+  width: 55%;
+  border-radius: 9999px;
+  margin-right: 4px;
+  background: var(--surface-container-highest);
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.6),
+    0 0 2px rgba(0,0,0,0.3);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.sb-block.executing > .sb-block-body > .sb-headlight > .sb-headlight-lens {
+  background: var(--primary);
+  box-shadow:
+    0 0 12px var(--cat-color),
+    0 0 25px var(--cat-color),
+    inset 0 0 8px white;
+}
+
+.sb-content {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  position: relative;
-  min-height: 36px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  min-width: 0;
 }
-
-.sb-block.sb-movimento .sb-body { border-left: 3px solid var(--primary-container); }
-.sb-block.sb-controle .sb-body { border-left: 3px solid var(--secondary-container); }
-.sb-block.sb-sensor .sb-body { border-left: 3px solid var(--tertiary-container); }
-.sb-block.sb-combate .sb-body { border-left: 3px solid var(--error); }
-.sb-block.sb-variavel .sb-body { border-left: 3px solid var(--secondary); }
 
 .sb-icon {
   display: flex;
@@ -192,27 +300,34 @@
 }
 
 .sb-input {
-  width: 28px;
-  height: 22px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(255, 255, 255, 0.9);
-  color: #001122;
-  text-align: center;
+  outline: none;
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  outline: none;
+  text-align: center;
+  color: #001122;
+  border: none;
   margin-left: auto;
 }
 
-.sb-bump {
-  width: 100%;
-  height: 8px;
-  background: var(--surface-container-high);
-  clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
-  flex-shrink: 0;
-  margin-top: -1px;
+.sb-input-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.sb-input-circle:focus {
+  background: white;
+  box-shadow: 0 0 8px var(--primary-container);
+}
+
+.sb-input-diamond {
+  width: 24px;
+  height: 24px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .sb-condition-chip {
@@ -246,6 +361,13 @@
   color: var(--tertiary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+.sb-control .sb-content {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
 }
 
 .sb-control {
@@ -319,13 +441,6 @@
   pointer-events: none;
 }
 
-.sb-control-footer {
-  height: 8px;
-  background: var(--surface-container-high);
-  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-  margin-top: -1px;
-}
-
 .sb-block.sb-snap-target {
   outline: 2px solid var(--primary-container);
   outline-offset: 3px;
@@ -349,6 +464,8 @@
   cursor: grab;
   user-select: none;
   transition: filter 0.15s;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));
+  outline: none;
 }
 
 .sb-block:hover {
@@ -356,20 +473,60 @@
 }
 
 .sb-block.selected {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .sb-block.dragging {
   opacity: 0.85;
   z-index: 100 !important;
   cursor: grabbing;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.6));
   transform: scale(1.02);
 }
 
-.sb-block.dragging .sb-body {
-  box-shadow: 0 0 20px var(--cat-color);
+.sb-block-ghost {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 50;
+  cursor: grabbing;
+  transition: none;
+  filter: drop-shadow(0 0 20px rgba(225, 253, 255, 0.3));
+}
+
+.sb-block-ghost .sb-block-body {
+  background: rgba(220, 228, 228, 0.12) !important;
+  border: 1.5px dashed var(--primary) !important;
+  backdrop-filter: blur(4px);
+}
+
+.sb-block-ghost .sb-headlight {
+  background: rgba(220, 228, 228, 0.08) !important;
+}
+
+.sb-block-ghost .sb-headlight-lens {
+  background: rgba(220, 228, 228, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.sb-block-ghost::after {
+  background: rgba(220, 228, 228, 0.08) !important;
+}
+
+.sb-block-ghost .sb-icon {
+  opacity: 0.6;
+}
+
+.sb-block-ghost .sb-label {
+  color: var(--on-surface);
+  opacity: 0.7;
+}
+
+.sb-block.dragging .sb-block-body {
+  box-shadow:
+    inset 1px 1px 2px rgba(255,255,255,0.07),
+    inset -1px -1px 2px rgba(0,0,0,0.45),
+    0 0 20px var(--cat-color);
 }
 
 .sb-del {
@@ -400,16 +557,7 @@
   color: var(--on-error);
 }
 
-.sb-block.executing {
-  outline: 2px solid var(--primary-container);
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
-  animation: sb-execute-pulse 0.4s ease-in-out infinite alternate;
-}
 
-@keyframes sb-execute-pulse {
-  from { box-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
-  to { box-shadow: 0 0 25px rgba(0, 242, 255, 0.8); }
-}
 
 .sb-zoom-controls {
   position: absolute;

@@ -112,7 +112,7 @@ export class BlockPalette {
 
     for (const blockDef of cat.blocks) {
       const el = document.createElement('div');
-      el.className = `sb-palette-block sb-cat-${catId}`;
+      el.className = 'sb-palette-block';
       el.draggable = true;
       el.dataset.type = blockDef.type;
       el.dataset.label = blockDef.label;
@@ -122,6 +122,7 @@ export class BlockPalette {
 
       const color = CATEGORY_COLORS[catId] || 'var(--on-surface-variant)';
       el.innerHTML = `
+        <div class="sb-palette-headlight" style="--cat-color:${color}"><div class="sb-palette-headlight-lens"></div></div>
         <span class="material-symbols-outlined" style="color:${color}">${blockDef.icon}</span>
         <span>${blockDef.label}</span>
       `;
