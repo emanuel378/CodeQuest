@@ -1324,6 +1324,13 @@
   cursor: not-allowed;
 }
 
+.lvl-card--failed {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: var(--error);
+  box-shadow: 0 0 8px rgba(255, 180, 171, 0.15);
+}
+
 .lvl-card--unlocked:hover {
   border-color: var(--card-glow);
   box-shadow: 0 0 15px var(--card-glow), 0 0 30px rgba(0, 0, 0, 0.3);
@@ -1429,6 +1436,12 @@
   background: rgba(132, 148, 149, 0.12);
   color: var(--outline);
   border: 1px solid var(--outline-variant);
+}
+
+.lvl-card-status--failed {
+  background: rgba(255, 180, 171, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(255, 180, 171, 0.3);
 }
 
 @media (max-width: 480px) {

@@ -101,7 +101,8 @@ class LandingPage extends PageComponent {
       () => { this._levelModal = null; },
       {
         currentLevel: progression.getCurrentLevel(),
-        completedLevels: progression.completedLevels
+        completedLevels: progression.completedLevels,
+        failedLevels: progression._failedLevels
       }
     );
     this._levelModal.show();
