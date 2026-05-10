@@ -11,7 +11,7 @@ const CAT_COLORS = {
 };
 
 const CONTROL_TYPES = new Set(['if', 'repeat', 'while']);
-const SNAP_DISTANCE = 28;
+const SNAP_DISTANCE = 90;
 
 export class BlockWorkspace {
   constructor(containerEl) {
@@ -20,6 +20,7 @@ export class BlockWorkspace {
     this.blocks = new Map();
     this._drag = null;
 
+    this._ghostEl = null;
     this._scrollEl = document.createElement('div');
     this._scrollEl.className = 'sb-workspace-scroll';
     this.ct.appendChild(this._scrollEl);
@@ -82,6 +83,7 @@ export class BlockWorkspace {
   clear() {
     for (const [, b] of this.blocks) b.el.remove();
     this.blocks.clear();
+    this._removeGhost();
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this._updateCanvasSize();
     localStorage.removeItem('codequest_workspace');
@@ -330,6 +332,26 @@ export class BlockWorkspace {
     return b;
   }
 
+  _createGhost(b, x, y) {
+    this._removeGhost();
+    const ghost = this._render(b);
+    ghost.classList.add('sb-block-ghost');
+    ghost.style.left = x + 'px';
+    ghost.style.top = y + 'px';
+    ghost.style.position = 'absolute';
+    const del = ghost.querySelector('.sb-del');
+    if (del) del.remove();
+    this._canvas.appendChild(ghost);
+    this._ghostEl = ghost;
+  }
+
+  _removeGhost() {
+    if (this._ghostEl) {
+      this._ghostEl.remove();
+      this._ghostEl = null;
+    }
+  }
+
   _trySnap(id, mx, my) {
     const b = this.blocks.get(id);
     if (!b) return false;
@@ -430,6 +452,7 @@ export class BlockWorkspace {
 
   _showSnapGuide(id, cx, cy) {
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+    this._removeGhost();
 
     const crt = this._canvas.getBoundingClientRect();
     const mx = (cx - crt.left) / this.zoom;
@@ -460,7 +483,7 @@ export class BlockWorkspace {
       }
     }
 
-    // Check for chain snap below a block
+    // Check for chain snap below a block → show ghost
     for (const [, o] of this.blocks) {
       if (o.id === id || o.parent) continue;
       const or = o.el.getBoundingClientRect();
@@ -470,7 +493,9 @@ export class BlockWorkspace {
       const ddy = my - (oy + or.height / this.zoom);
 
       if (ddx < sn && ddy >= 0 && ddy < sn) {
-        o.el.classList.add('sb-snap-target');
+        const gx = ox;
+        const gy = oy + or.height / this.zoom;
+        this._createGhost(b, gx, gy);
         return;
       }
     }
@@ -491,6 +516,7 @@ export class BlockWorkspace {
         this._trySnap(b.id, mx, my);
       }
     }
+    this._removeGhost();
     this._drag = null;
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this.save();
