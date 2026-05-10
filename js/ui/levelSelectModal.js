@@ -25,11 +25,12 @@ const THEME_GLOW = {
 };
 
 class LevelSelectModal {
-  constructor(onSelect, onClosed, { currentLevel = 0, completedLevels = [] } = {}) {
+  constructor(onSelect, onClosed, { currentLevel = 0, completedLevels = [], failedLevels = [] } = {}) {
     this.onSelect = onSelect;
     this.onClosed = onClosed;
     this.currentLevel = currentLevel;
     this.completedLevels = completedLevels;
+    this.failedLevels = failedLevels;
     this.el = null;
     this._handlers = [];
     this._closing = false;
@@ -85,14 +86,16 @@ class LevelSelectModal {
   _createCard(level) {
     const isUnlocked = level.id <= this.currentLevel;
     const isCompleted = this.completedLevels.includes(level.id);
+    const isFailed = this.failedLevels.includes(level.id);
+    const isBlocked = !isUnlocked || isFailed;
     const glow = THEME_GLOW[level.theme] || 'var(--primary-container)';
 
     const card = document.createElement('div');
-    card.className = `lvl-card${isUnlocked ? ' lvl-card--unlocked' : ' lvl-card--locked'}${isCompleted ? ' lvl-card--completed' : ''}`;
+    card.className = `lvl-card${isUnlocked && !isFailed ? ' lvl-card--unlocked' : ' lvl-card--locked'}${isCompleted ? ' lvl-card--completed' : ''}${isFailed ? ' lvl-card--failed' : ''}`;
     card.style.setProperty('--card-glow', glow);
     card.dataset.level = level.id;
 
-    if (!isUnlocked) {
+    if (isBlocked) {
       card.dataset.locked = '';
     }
 
@@ -128,6 +131,9 @@ class LevelSelectModal {
     if (isCompleted) {
       status.className = 'lvl-card-status lvl-card-status--completed';
       status.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Concluído';
+    } else if (isFailed) {
+      status.className = 'lvl-card-status lvl-card-status--failed';
+      status.innerHTML = '<span class="material-symbols-outlined">autorenew</span> Recuperação necessária';
     } else if (isUnlocked) {
       status.className = 'lvl-card-status lvl-card-status--available';
       status.innerHTML = '<span class="material-symbols-outlined">play_arrow</span> Jogar';
@@ -139,7 +145,7 @@ class LevelSelectModal {
 
     card.appendChild(content);
 
-    if (isUnlocked) {
+    if (isUnlocked && !isFailed) {
       const cardHandler = () => {
         this._close(() => {
           if (this.onSelect) this.onSelect(level.id);

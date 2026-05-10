@@ -57,9 +57,7 @@ class GamePage extends PageComponent {
       statusText: this.getRequiredElement('.status-text'),
       indicator:  this.getRequiredElement('.level-indicator'),
       simViewport: this.getRequiredElement('.sim-viewport'),
-      attrForca:  this.getRequiredElement('[data-attr="forca"] .sim-attr-value'),
-      attrEnergia:  this.getRequiredElement('[data-attr="energia"] .sim-attr-value'),
-      attrVitalidade: this.getRequiredElement('[data-attr="vitalidade"] .sim-attr-value'),
+      attrPanel: document.getElementById('attributes-panel'),
     };
   }
 }

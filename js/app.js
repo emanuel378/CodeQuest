@@ -12,6 +12,8 @@ import { GameErrorHandler } from './ui/gameErrorHandler.js';
 import { GameTutorial } from './ui/gameTutorial.js';
 import { ProfileMenu } from './ui/profileMenu.js';
 import { audioManager } from './audio/audioManager.js';
+import { AttributesPanel } from './ui/attributesPanel.js';
+import { AttributeSystem } from './game/attributes.js';
 
 let gs = null;
 let executingBlockIds = new Set();
@@ -73,6 +75,8 @@ function loadLevelById(levelId, skipMusic = false) {
   );
   gs.player.gridSize = level.gridSize;
 
+  if (gs.attrPanel) gs.attrPanel.refresh()
+
   const container = document.querySelector('.game-container');
   if (container) {
     const cls = level.theme || 'ocean';
@@ -86,15 +90,49 @@ function loadLevelById(levelId, skipMusic = false) {
   renderSimGrid(level);
   gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
   setStatus('Pronto', '#00FF3D');
+  updateHUD();
 }
 
 function loadCurrentLevel() {
+  if (gs.progression) gs.progression.resetAttempts()
   loadLevelById(getInitialLevelId());
 }
 
 function resetActiveLevel(skipMusic = false) {
   const levelId = gs.activeLevelId ?? getInitialLevelId();
   loadLevelById(levelId, skipMusic);
+}
+
+function updateHUD() {
+  if (!gs || !gs.progression) return
+  const levelId = gs.activeLevelId
+  if (levelId === null || levelId === undefined) return
+
+  const totalLevels = 10
+  const completedCount = gs.progression.completedLevels.length
+  const pct = Math.min(Math.round((completedCount / totalLevels) * 100), 100)
+
+  const fill = document.querySelector('.progress-fill')
+  const label = document.querySelector('.progress-labels span:last-child')
+  if (fill) fill.style.width = `${pct}%`
+  if (label) label.textContent = `${pct}%`
+
+  let starCount = 1
+  if (levelId >= 7) starCount = 3
+  else if (levelId >= 4) starCount = 2
+
+  const stars = document.querySelectorAll('.star-rating .material-symbols-outlined')
+  stars.forEach((star, i) => {
+    if (i < starCount) {
+      star.style.fontVariationSettings = '"FILL" 1'
+      star.style.color = ''
+      star.style.opacity = '1'
+    } else {
+      star.style.fontVariationSettings = '"FILL" 0'
+      star.style.color = 'var(--color-accent)'
+      star.style.opacity = '0.4'
+    }
+  })
 }
 
 function renderSimGrid(level) {
@@ -291,6 +329,60 @@ function showErrors(validation) {
   }
 }
 
+function countBlocksInTree(commands) {
+  let count = 0
+  for (const cmd of commands) {
+    count++
+    if (cmd.children) count += countBlocksInTree(cmd.children)
+    if (cmd.elseChildren) count += countBlocksInTree(cmd.elseChildren)
+  }
+  return count
+}
+
+function showAttemptFailModal(previousLevelId) {
+  const overlay = document.createElement('div')
+  overlay.className = 'profile-overlay'
+  overlay.innerHTML = `
+    <div class="profile-modal">
+      <div class="profile-modal-icon-wrapper" style="border-color: var(--error); box-shadow: 0 0 20px rgba(255, 180, 171, 0.2);">
+        <span class="material-symbols-outlined profile-modal-icon" style="color: var(--error);">error_outline</span>
+      </div>
+      <h2 class="profile-modal-title" style="color: var(--error);">NÚCLEO LÓGICO ESGOTADO</h2>
+      <p class="profile-modal-text">Suas tentativas acabaram! O código travou e o herói não conseguiu prosseguir.</p>
+      <p class="profile-modal-text" style="font-size: 12px; color: var(--outline);">Você será redirecionado à última fase concluída para recuperar sua estabilidade lógica.</p>
+      <div class="profile-modal-actions">
+        <button class="profile-btn-confirm" id="attempt-fail-ok" style="flex:1; width:100%;">VOLTAR</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+  requestAnimationFrame(() => overlay.classList.add('active'))
+
+  return new Promise(resolve => {
+    overlay.querySelector('#attempt-fail-ok').addEventListener('click', () => {
+      overlay.classList.remove('active')
+      overlay.addEventListener('transitionend', () => {
+        overlay.remove()
+        resolve()
+      }, { once: true })
+    })
+  })
+}
+
+async function handleAttemptFailure() {
+  const failedLevelId = gs.activeLevelId
+  const prevLevelId = gs.progression.getLastCompletedLevel()
+  await showAttemptFailModal(prevLevelId)
+  if (gs.progression) {
+    gs.progression.markLevelFailed(failedLevelId)
+    gs.progression.resetAttempts()
+  }
+  if (gs.attrPanel) gs.attrPanel.refresh()
+  loadLevelById(prevLevelId)
+  if (gs.workspace) gs.workspace.clear()
+  setStatus('Restaurado', '#00FF3D')
+}
+
 function withGuard(fn) {
   return async (...args) => {
     if (gs.shouldStop) throw new Error('Execution stopped');
@@ -329,6 +421,15 @@ function initGame() {
   const progression = new Progression(playerId, playerName);
   const needsProfile = !activePlayer;
 
+  const attrPanel = els.attrPanel ? new AttributesPanel(els.attrPanel) : null
+  if (attrPanel) {
+    attrPanel.setProgression(progression)
+    attrPanel.setupEvents()
+    progression.onLevelUp((attrId, newLevel) => {
+      if (attrPanel) attrPanel.refresh()
+    })
+  }
+
   const simGrid = els.simGrid;
   const statusDot = els.statusDot;
   const statusText = els.statusText;
@@ -340,7 +441,7 @@ function initGame() {
 
   gs = {
     workspace, palette, player, stage, progression,
-    playerManager,
+    attrPanel, playerManager,
     simGrid, statusDot, statusText, indicator, errorLog, els,
     activeLevelId: null,
     isRunning: false,
@@ -363,8 +464,12 @@ function initGame() {
     const p = newPlayerId ? playerManager.getActivePlayer() : null;
     gs.progression = new Progression(newPlayerId || 'default', p ? p.name : 'Jogador');
     gs._needsProfile = false;
+    if (gs.attrPanel) gs.attrPanel.setProgression(gs.progression)
     if (gs.workspace) gs.workspace.clear();
     gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
+    gs.progression.onLevelUp((attrId, newLevel) => {
+      if (gs.attrPanel) gs.attrPanel.refresh()
+    })
     loadCurrentLevel();
   }, () => {
     if (_currentTutorial) return;
@@ -404,12 +509,34 @@ function initGame() {
     const commands = workspace.getCommandTree();
     console.log('Commands:', JSON.stringify(commands, null, 2));
 
+    if (commands.length === 0) {
+      setStatus('Nenhum bloco', '#ebb2ff');
+      gs.errorLog.innerHTML = '';
+      gs.errorLog.style.display = 'flex';
+      const el = document.createElement('div');
+      el.className = 'log-entry log-warning';
+      el.innerHTML = '<span>⚠ Adicione blocos ao workspace antes de executar</span>';
+      gs.errorLog.appendChild(el);
+      gs.isRunning = false;
+      return;
+    }
+
     const validation = validateCommands(commands);
     showErrors(validation);
 
     if (validation.hasErrors()) {
       setStatus('Erro nos comandos', '#ef4444');
       audioManager.playSfx('error');
+
+      const remaining = gs.progression.consumeAttempt()
+      if (gs.attrPanel) gs.attrPanel.refresh()
+
+      if (remaining <= 0) {
+        gs.isRunning = false
+        await handleAttemptFailure()
+        return
+      }
+
       gs.isRunning = false;
       return;
     }
@@ -499,18 +626,58 @@ function initGame() {
       if (stage.checkVictory()) {
         setStatus('Vitória!', '#00FF3D');
         audioManager.playSfx('victory');
-        gs.progression.completeLevel(gs.progression.getCurrentLevel(), 1000);
+
+        const levelId = gs.activeLevelId
+        const level = getLevel(levelId)
+        const blocksUsed = countBlocksInTree(commands)
+        const idealBlocks = level ? level.idealBlockCount : 10
+
+        const rankConfig = AttributeSystem.calculateRank(blocksUsed, idealBlocks)
+        const effMultiplier = rankConfig.xpMultiplier
+
+        const baseXP = level ? Math.max(100, (level.id + 1) * 30 + level.complexity * 30) : 100
+        const finalScore = Math.round(baseXP * effMultiplier)
+
+        const attrMultiplier = AttributeSystem.getXpMultiplier(
+          gs.progression.getAttribute('eficienciaAlgoritmo').level
+        )
+        const boostedScore = Math.round(finalScore * attrMultiplier)
+
+        gs.progression.completeLevel(levelId, boostedScore, blocksUsed, idealBlocks)
+        if (gs.attrPanel) {
+          gs.attrPanel.setLastRank(rankConfig.label)
+          gs.attrPanel.refresh()
+        }
+
+        const lvl = getLevel(gs.activeLevelId + 1)
+        const hasNext = lvl && lvl.id <= gs.progression.getCurrentLevel()
+
+        gs.errorLog.innerHTML = ''
+        gs.errorLog.style.display = 'flex'
+        const rankEl = document.createElement('div')
+        rankEl.className = 'log-entry log-warning'
+        rankEl.innerHTML = `<span>Rank ${rankConfig.label} | ${blocksUsed} blocos (ideal: ${idealBlocks}) | +${boostedScore} XP</span>`
+        gs.errorLog.appendChild(rankEl)
+
         setTimeout(() => {
-          const nextLevel = getLevel(gs.activeLevelId + 1);
-          if (nextLevel && nextLevel.id <= gs.progression.getCurrentLevel()) {
-            loadLevelById(nextLevel.id);
+          if (gs.progression) gs.progression.resetAttempts()
+          if (gs.attrPanel) gs.attrPanel.refresh()
+          if (hasNext) {
+            loadLevelById(gs.activeLevelId + 1)
           } else {
-            resetActiveLevel();
+            resetActiveLevel()
           }
-          workspace.clear();
-        }, 1500);
+          workspace.clear()
+        }, 2000)
       } else {
         setStatus('Tente novamente', '#ef4444');
+        const remaining = gs.progression.consumeAttempt()
+        if (gs.attrPanel) gs.attrPanel.refresh()
+        if (remaining <= 0) {
+          gs.isRunning = false
+          await handleAttemptFailure()
+          return
+        }
       }
     } catch (error) {
       if (error.message === 'Execution stopped') {
@@ -525,8 +692,14 @@ function initGame() {
         errorLog.style.display = 'flex';
       } else {
         audioManager.playSfx('error');
-        console.error('Execution error:', error);
         setStatus('Erro', '#ef4444');
+        const remaining = gs.progression.consumeAttempt()
+        if (gs.attrPanel) gs.attrPanel.refresh()
+        if (remaining <= 0) {
+          gs.isRunning = false
+          await handleAttemptFailure()
+          return
+        }
       }
     }
 
