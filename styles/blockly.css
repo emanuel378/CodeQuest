@@ -231,7 +231,7 @@
   transition: box-shadow 0.3s ease, background 0.3s ease;
 }
 
-.sb-block.executing .sb-headlight-lens {
+.sb-block.executing > .sb-block-body > .sb-headlight > .sb-headlight-lens {
   background: var(--primary);
   box-shadow:
     0 0 12px var(--cat-color),

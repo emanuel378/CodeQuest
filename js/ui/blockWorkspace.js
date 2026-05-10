@@ -22,6 +22,8 @@ export class BlockWorkspace {
     this._drag = null;
 
     this._ghostEl = null;
+    this._paletteGhostEl = null;
+    this._paletteDragData = null;
     this._scrollEl = document.createElement('div');
     this._scrollEl.className = 'sb-workspace-scroll';
     this.ct.appendChild(this._scrollEl);
@@ -86,6 +88,7 @@ export class BlockWorkspace {
     for (const [, b] of this.blocks) b.el.remove();
     this.blocks.clear();
     this._removeGhost();
+    this._removePaletteGhost();
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this._updateCanvasSize();
     localStorage.removeItem('codequest_workspace');
@@ -377,6 +380,111 @@ export class BlockWorkspace {
     }
   }
 
+  _createPaletteGhost(data, x, y) {
+    this._removePaletteGhost();
+    const temp = {
+      type: data.type,
+      label: data.label,
+      icon: data.icon,
+      category: data.category,
+      ctrl: CONTROL_TYPES.has(data.type),
+      w: 220,
+      h: CONTROL_TYPES.has(data.type) ? 80 : 40,
+      value: data.params?.value,
+      condition: data.params?.condition || null,
+      children: [],
+      elseChildren: []
+    };
+    const ghost = this._render(temp);
+    ghost.classList.add('sb-block-ghost');
+    ghost.style.left = x + 'px';
+    ghost.style.top = y + 'px';
+    ghost.style.position = 'absolute';
+    const del = ghost.querySelector('.sb-del');
+    if (del) del.remove();
+    this._canvas.appendChild(ghost);
+    this._paletteGhostEl = ghost;
+  }
+
+  _removePaletteGhost() {
+    if (this._paletteGhostEl) {
+      this._paletteGhostEl.remove();
+      this._paletteGhostEl = null;
+    }
+  }
+
+  _showPaletteGuide(cx, cy) {
+    this._removeGhost();
+    const crt = this._canvas.getBoundingClientRect();
+    const mx = (cx - crt.left) / this.zoom;
+    const my = (cy - crt.top) / this.zoom;
+    if (!this._paletteDragData) return;
+
+    const sn = SNAP_DISTANCE / this.zoom;
+    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+
+    let inChildArea = false;
+    let bestChain = null;
+    let bestDist = sn;
+
+    for (const [, o] of this.blocks) {
+      if (o.ctrl && o.el) {
+        const ca = o.el.querySelector('.sb-child-area');
+        if (ca) {
+          const cr = ca.getBoundingClientRect();
+          if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
+            ca.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+        const ea = o.el.querySelector('.sb-else-area');
+        if (ea) {
+          const er = ea.getBoundingClientRect();
+          if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
+            ea.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+      }
+
+      if (o.parent) continue;
+      const or = o.el.getBoundingClientRect();
+      const ox = (or.left - crt.left) / this.zoom;
+      const oy = (or.top - crt.top) / this.zoom;
+      const ddx = Math.abs(mx - (ox + o.w / 2));
+      const ddy = my - (oy + or.height / this.zoom);
+
+      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
+        bestDist = ddy;
+      }
+    }
+
+    if (bestChain) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestChain.ox;
+      const gy = bestChain.oy + bestChain.height;
+      if (!this._paletteGhostEl) {
+        this._createPaletteGhost(this._paletteDragData, gx, gy);
+      } else {
+        this._paletteGhostEl.style.left = gx + 'px';
+        this._paletteGhostEl.style.top = gy + 'px';
+      }
+    } else {
+      this._removePaletteGhost();
+    }
+  }
+
   _trySnap(id, mx, my) {
     const b = this.blocks.get(id);
     if (!b) return false;
@@ -488,29 +596,31 @@ export class BlockWorkspace {
 
     const sn = SNAP_DISTANCE / this.zoom;
 
-    // Check if cursor is inside a control block's child/else area → nest snap
-    for (const [, o] of this.blocks) {
-      if (!o.ctrl || !o.el) continue;
-      const ca = o.el.querySelector('.sb-child-area');
-      if (ca) {
-        const cr = ca.getBoundingClientRect();
-        if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
-          ca.classList.add('sb-snap-target');
-          return;
-        }
-      }
-      const ea = o.el.querySelector('.sb-else-area');
-      if (ea) {
-        const er = ea.getBoundingClientRect();
-        if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
-          ea.classList.add('sb-snap-target');
-          return;
-        }
-      }
-    }
+    // Check for child/else area nesting AND chain snap simultaneously
+    let inChildArea = false;
+    let bestChain = null;
+    let bestDist = sn;
 
-    // Check for chain snap below a block → show ghost
     for (const [, o] of this.blocks) {
+      if (o.ctrl && o.el) {
+        const ca = o.el.querySelector('.sb-child-area');
+        if (ca) {
+          const cr = ca.getBoundingClientRect();
+          if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
+            ca.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+        const ea = o.el.querySelector('.sb-else-area');
+        if (ea) {
+          const er = ea.getBoundingClientRect();
+          if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
+            ea.classList.add('sb-snap-target');
+            inChildArea = true;
+          }
+        }
+      }
+
       if (o.id === id || o.parent) continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
@@ -518,12 +628,29 @@ export class BlockWorkspace {
       const ddx = Math.abs(mx - (ox + o.w / 2));
       const ddy = my - (oy + or.height / this.zoom);
 
-      if (ddx < sn && ddy >= 0 && ddy < sn) {
-        const gx = ox;
-        const gy = oy + or.height / this.zoom;
-        this._createGhost(b, gx, gy);
-        return;
+      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
+        bestDist = ddy;
       }
+    }
+
+    // If we have a chain snap AND the cursor is in a child area of a DIFFERENT block,
+    // remove the child area highlight and show the ghost
+    if (bestChain) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestChain.ox;
+      const gy = bestChain.oy + bestChain.height;
+      this._createGhost(b, gx, gy);
     }
   }
 
@@ -809,27 +936,54 @@ export class BlockWorkspace {
       this.endDrag(e.clientX, e.clientY);
     });
 
+    document.addEventListener('dragstart', (e) => {
+      const block = e.target.closest('.sb-palette-block');
+      if (!block) return;
+      try {
+        this._paletteDragData = {
+          type: block.dataset.type,
+          label: block.dataset.label,
+          icon: block.dataset.icon,
+          category: block.dataset.category,
+          params: JSON.parse(block.dataset.params || '{}')
+        };
+      } catch {}
+    });
+
+    document.addEventListener('dragend', () => {
+      this._removePaletteGhost();
+      this._paletteDragData = null;
+    });
+
+    this.ct.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+    });
+
     this.ct.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
       this.ct.classList.add('drag-over');
+      if (this._paletteDragData) {
+        this._showPaletteGuide(e.clientX, e.clientY);
+      }
     });
 
     this.ct.addEventListener('dragleave', (e) => {
       if (!this.ct.contains(e.relatedTarget)) {
         this.ct.classList.remove('drag-over');
+        this._removePaletteGhost();
+        this._paletteDragData = null;
       }
     });
 
     this.ct.addEventListener('drop', (e) => {
       e.preventDefault();
       this.ct.classList.remove('drag-over');
-      const raw = e.dataTransfer.getData('application/json');
-      if (!raw) return;
-      try {
-        const data = JSON.parse(raw);
-        this.drop(data, e.clientX, e.clientY);
-      } catch { }
+      this._removePaletteGhost();
+      const data = this._paletteDragData;
+      this._paletteDragData = null;
+      if (!data) return;
+      this.drop(data, e.clientX, e.clientY);
     });
 
     this.ct.addEventListener('keydown', (e) => {
