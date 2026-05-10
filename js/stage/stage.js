@@ -1,3 +1,5 @@
+import { Enemy } from '../actors/enemy.js';
+
 export class Stage {
   constructor(gridSize = 5) {
     this.gridSize = gridSize;
@@ -6,14 +8,26 @@ export class Stage {
     this.items = [];
     this.goal = null;
     this.player = null;
+    this._enemyIdCounter = 0;
   }
 
   loadLevel(levelConfig) {
     this.gridSize = levelConfig.gridSize || 5;
-    this.obstacles = (levelConfig.obstacles || []).map(o => ({...o}));
-    this.enemies = (levelConfig.enemies || []).map(e => ({...e}));
-    this.items = (levelConfig.items || []).map(i => ({...i}));
-    this.goal = levelConfig.goal ? {...levelConfig.goal} : null;
+    this.obstacles = (levelConfig.obstacles || []).map(o => ({ ...o }));
+    this.enemies = (levelConfig.enemies || []).map((e, i) => {
+      const enemy = new Enemy({
+        x: e.x,
+        y: e.y,
+        hp: e.hp || 1,
+        type: e.type ?? 0,
+        direction: e.direction ?? 2,
+        sprite: e.sprite || null
+      });
+      enemy.id = `enemy_${this._enemyIdCounter++}_${i}`;
+      return enemy;
+    });
+    this.items = (levelConfig.items || []).map(i => ({ ...i }));
+    this.goal = levelConfig.goal ? { ...levelConfig.goal } : null;
   }
 
   setPlayer(player) {
@@ -25,7 +39,7 @@ export class Stage {
   }
 
   isEnemyAt(x, y) {
-    return this.enemies.some(e => e.x === x && e.y === y);
+    return this.enemies.some(e => e.alive && e.x === x && e.y === y);
   }
 
   isItemAt(x, y) {
@@ -49,6 +63,7 @@ export class Stage {
   detectEnemyNearby(range = 3) {
     if (!this.player) return false;
     return this.enemies.some(e => {
+      if (!e.alive) return false;
       const dist = Math.abs(e.x - this.player.x) + Math.abs(e.y - this.player.y);
       return dist <= range;
     });
@@ -57,10 +72,10 @@ export class Stage {
   attackEnemy() {
     if (!this.player) return false;
     const ahead = this.player.peekForward();
-    const idx = this.enemies.findIndex(e => e.x === ahead.x && e.y === ahead.y);
+    const idx = this.enemies.findIndex(e => e.alive && e.x === ahead.x && e.y === ahead.y);
     if (idx !== -1) {
-      this.enemies[idx].hp = (this.enemies[idx].hp || 1) - 1;
-      if (this.enemies[idx].hp <= 0) {
+      const died = this.enemies[idx].takeDamage(1);
+      if (died) {
         this.enemies.splice(idx, 1);
       }
       return true;
@@ -91,11 +106,43 @@ export class Stage {
   }
 
   isEnemiesCleared() {
-    return this.enemies.length === 0;
+    return this.enemies.length === 0 || this.enemies.every(e => !e.alive);
   }
 
   checkVictory() {
     if (this.goal) return this.isGoalReached();
     return this.isEnemiesCleared();
+  }
+
+  isPlayerAlive() {
+    return this.player ? this.player.isAlive() : true;
+  }
+
+  tickEnemies() {
+    const allAttacks = [];
+
+    for (const enemy of this.enemies) {
+      if (!enemy.alive) continue;
+      const attack = enemy.tick(this);
+      if (attack) {
+        allAttacks.push(attack);
+        this._resolveAttack(attack);
+      }
+    }
+
+    return allAttacks;
+  }
+
+  _resolveAttack(attack) {
+    if (attack.damage <= 0) return null;
+    if (!this.player) return null;
+
+    for (const cell of attack.cells) {
+      if (this.player.x === cell.x && this.player.y === cell.y) {
+        this.player.takeDamage(attack.damage);
+        return attack;
+      }
+    }
+    return null;
   }
 }
