@@ -1,3 +1,5 @@
+import { audioManager } from '../audio/audioManager.js';
+
 let nextId = 1;
 
 const CAT_COLORS = {
@@ -14,9 +16,21 @@ const SNAP_DISTANCE = 28;
 export class BlockWorkspace {
   constructor(containerEl) {
     this.ct = containerEl;
+    this.zoom = 1;
     this.blocks = new Map();
     this._drag = null;
+
+    this._scrollEl = document.createElement('div');
+    this._scrollEl.className = 'sb-workspace-scroll';
+    this.ct.appendChild(this._scrollEl);
+
+    this._canvas = document.createElement('div');
+    this._canvas.className = 'sb-canvas';
+    this._scrollEl.appendChild(this._canvas);
+
+    this._updateCanvasSize();
     this._setup();
+    this._setupZoomControls();
   }
 
   createBlock(type, label, icon, category, params, x, y) {
@@ -34,9 +48,10 @@ export class BlockWorkspace {
     const el = this._render(b);
     b.el = el;
     el.dataset.bid = id;
-    this.ct.appendChild(el);
+    this._canvas.appendChild(el);
     this._pos(b);
     this.blocks.set(id, b);
+    this._updateCanvasSize();
     return b;
   }
 
@@ -60,11 +75,16 @@ export class BlockWorkspace {
     }
     b.el.remove();
     this.blocks.delete(id);
+    this._updateCanvasSize();
+    this.save();
   }
 
   clear() {
     for (const [, b] of this.blocks) b.el.remove();
     this.blocks.clear();
+    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+    this._updateCanvasSize();
+    localStorage.removeItem('codequest_workspace');
   }
 
   getAllBlocks() {
@@ -149,6 +169,12 @@ export class BlockWorkspace {
 
     div.appendChild(body);
 
+    if (!b.ctrl) {
+      const bump = document.createElement('div');
+      bump.className = 'sb-bump';
+      div.appendChild(bump);
+    }
+
     if (b.ctrl) {
       const childArea = document.createElement('div');
       childArea.className = 'sb-child-area';
@@ -200,7 +226,6 @@ export class BlockWorkspace {
       </span>
       <span class="sb-label">${b.label}</span>
       ${b.value != null ? `<input class="sb-input" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
-      <div class="sb-bump"></div>
     `;
   }
 
@@ -243,17 +268,19 @@ export class BlockWorkspace {
   }
 
   drop(data, clientX, clientY) {
-    const rect = this.ct.getBoundingClientRect();
-    const mx = clientX - rect.left;
-    const my = clientY - rect.top;
+    const { x: mx, y: my } = this._clientToCanvas(clientX, clientY);
 
     const childArea = this._findChildArea(clientX, clientY);
     if (childArea) {
-      return this._dropChild(childArea, data);
+      const b = this._dropChild(childArea, data);
+      this.save();
+      return b;
     }
 
     const b = this.createBlock(data.type, data.label, data.icon, data.category, data.params, mx - 110, my - 20);
     this._trySnap(b.id, mx, my);
+    audioManager.playSfx('snap');
+    this.save();
     return b;
   }
 
@@ -299,6 +326,7 @@ export class BlockWorkspace {
     b.el.classList.add('sb-nested');
     area.appendChild(b.el);
     this._updateHeight(pd);
+    audioManager.playSfx('snap');
     return b;
   }
 
@@ -306,37 +334,41 @@ export class BlockWorkspace {
     const b = this.blocks.get(id);
     if (!b) return false;
 
+    const sn = SNAP_DISTANCE / this.zoom;
     let best = null;
-    let bestDist = SNAP_DISTANCE;
+    let bestDist = sn;
 
     for (const [, o] of this.blocks) {
       if (o.id === id || o.parent) continue;
       const or = o.el.getBoundingClientRect();
-      const pr = this.ct.getBoundingClientRect();
-      const ox = or.left - pr.left;
-      const oy = or.top - pr.top;
+      const crt = this._canvas.getBoundingClientRect();
+      const ox = (or.left - crt.left) / this.zoom;
+      const oy = (or.top - crt.top) / this.zoom;
+      const oHeight = or.height / this.zoom;
 
       const ddx = Math.abs(mx - (ox + o.w / 2));
-      const ddy = my - (oy + o.h);
+      const ddy = my - (oy + oHeight);
 
-      if (ddx < SNAP_DISTANCE && ddy >= 0 && ddy < bestDist) {
+      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
         if (o.ctrl) {
           const ca = o.el.querySelector('.sb-child-area');
           if (ca) {
             const cr = ca.getBoundingClientRect();
-            const cdy = my - cr.top;
+            const cdy = my - (cr.top - crt.top) / this.zoom;
             if (cdy >= 0 && cdy < ca.offsetHeight) continue;
           }
         }
-        best = { target: o, dx: 0, dy: ddy };
+        best = { target: o, dy: ddy };
         bestDist = ddy;
       }
     }
 
     if (best) {
       const o = best.target;
-      b.x = o.x;
-      b.y = o.y + o.h;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      b.x = (or.left - crt.left) / this.zoom;
+      b.y = (or.top - crt.top) / this.zoom + or.height / this.zoom;
       b.prev = o.id;
       o.next = b.id;
       this._pos(b);
@@ -369,12 +401,19 @@ export class BlockWorkspace {
     b.next = null;
     b.parent = null;
 
-    const rect = this.ct.getBoundingClientRect();
-    b.el.style.position = 'absolute';
-    b.el.classList.remove('sb-nested');
-    this.ct.appendChild(b.el);
+    const cr = this._canvas.getBoundingClientRect();
 
-    this._drag = { id, ox: cx - rect.left - b.x, oy: cy - rect.top - b.y };
+    const br = b.el.getBoundingClientRect();
+    b.x = (br.left - cr.left) / this.zoom;
+    b.y = (br.top - cr.top) / this.zoom;
+
+    b.el.style.position = 'absolute';
+    b.el.style.left = b.x + 'px';
+    b.el.style.top = b.y + 'px';
+    b.el.classList.remove('sb-nested');
+    this._canvas.appendChild(b.el);
+
+    this._drag = { id, ox: (cx - cr.left) / this.zoom - b.x, oy: (cy - cr.top) / this.zoom - b.y };
     b.el.classList.add('dragging');
   }
 
@@ -382,10 +421,59 @@ export class BlockWorkspace {
     if (!this._drag) return;
     const b = this.blocks.get(this._drag.id);
     if (!b) return;
-    const rect = this.ct.getBoundingClientRect();
-    b.x = cx - rect.left - this._drag.ox;
-    b.y = cy - rect.top - this._drag.oy;
+    const cr = this._canvas.getBoundingClientRect();
+    b.x = (cx - cr.left) / this.zoom - this._drag.ox;
+    b.y = (cy - cr.top) / this.zoom - this._drag.oy;
     this._pos(b);
+    this._showSnapGuide(b.id, cx, cy);
+  }
+
+  _showSnapGuide(id, cx, cy) {
+    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+
+    const crt = this._canvas.getBoundingClientRect();
+    const mx = (cx - crt.left) / this.zoom;
+    const my = (cy - crt.top) / this.zoom;
+    const b = this.blocks.get(id);
+    if (!b) return;
+
+    const sn = SNAP_DISTANCE / this.zoom;
+
+    // Check if cursor is inside a control block's child/else area → nest snap
+    for (const [, o] of this.blocks) {
+      if (!o.ctrl || !o.el) continue;
+      const ca = o.el.querySelector('.sb-child-area');
+      if (ca) {
+        const cr = ca.getBoundingClientRect();
+        if (cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
+          ca.classList.add('sb-snap-target');
+          return;
+        }
+      }
+      const ea = o.el.querySelector('.sb-else-area');
+      if (ea) {
+        const er = ea.getBoundingClientRect();
+        if (cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom) {
+          ea.classList.add('sb-snap-target');
+          return;
+        }
+      }
+    }
+
+    // Check for chain snap below a block
+    for (const [, o] of this.blocks) {
+      if (o.id === id || o.parent) continue;
+      const or = o.el.getBoundingClientRect();
+      const ox = (or.left - crt.left) / this.zoom;
+      const oy = (or.top - crt.top) / this.zoom;
+      const ddx = Math.abs(mx - (ox + o.w / 2));
+      const ddy = my - (oy + or.height / this.zoom);
+
+      if (ddx < sn && ddy >= 0 && ddy < sn) {
+        o.el.classList.add('sb-snap-target');
+        return;
+      }
+    }
   }
 
   endDrag(cx, cy) {
@@ -399,13 +487,89 @@ export class BlockWorkspace {
         this.removeBlock(b.id);
         this._dropChild(childArea, data);
       } else {
-        const rect = this.ct.getBoundingClientRect();
-        const mx = cx - rect.left;
-        const my = cy - rect.top;
+        const { x: mx, y: my } = this._clientToCanvas(cx, cy);
         this._trySnap(b.id, mx, my);
       }
     }
     this._drag = null;
+    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+    this.save();
+  }
+
+  save() {
+    const data = [];
+    for (const [, b] of this.blocks) {
+      data.push({
+        id: b.id, type: b.type, label: b.label, icon: b.icon,
+        category: b.category, x: b.x, y: b.y,
+        value: b.value, condition: b.condition,
+        prev: b.prev, next: b.next, parent: b.parent,
+        children: b.children, elseChildren: b.elseChildren, ctrl: b.ctrl
+      });
+    }
+    localStorage.setItem('codequest_workspace', JSON.stringify({ version: 1, nextId, blocks: data }));
+  }
+
+  restore() {
+    const raw = localStorage.getItem('codequest_workspace');
+    if (!raw) return false;
+    try {
+      const saved = JSON.parse(raw);
+      if (!saved.blocks?.length) return false;
+
+      const maxNum = saved.blocks.reduce((m, bd) => {
+        const n = parseInt(bd.id?.slice(1), 10);
+        return n > m ? n : m;
+      }, 0);
+      if (maxNum + 1 > nextId) nextId = maxNum + 2;
+
+      this.clear();
+
+      for (const bd of saved.blocks) this._createFromData(bd);
+
+      for (const [, b] of this.blocks) {
+        if (!b.parent) continue;
+        const p = this.blocks.get(b.parent);
+        if (!p || !p.el) continue;
+        const isElse = p.elseChildren.includes(b.id);
+        const area = p.el.querySelector(isElse ? '.sb-else-area' : '.sb-child-area');
+        if (!area) continue;
+        const hint = area.querySelector('.sb-child-hint');
+        if (hint) hint.remove();
+        b.el.style.position = 'relative';
+        b.el.style.left = '';
+        b.el.style.top = '';
+        b.el.classList.add('sb-nested');
+        area.appendChild(b.el);
+      }
+
+      for (const [, b] of this.blocks) {
+        if (b.ctrl) this._updateHeight(b);
+      }
+
+      this._updateCanvasSize();
+      this.save();
+      return true;
+    } catch { return false; }
+  }
+
+  _createFromData(bd) {
+    const b = {
+      id: bd.id, type: bd.type, label: bd.label, icon: bd.icon,
+      category: bd.category, x: bd.x, y: bd.y,
+      w: bd.w || 220, h: bd.h || (bd.ctrl ? 80 : 40),
+      value: bd.value, condition: bd.condition,
+      prev: bd.prev, next: bd.next, parent: bd.parent,
+      children: [...(bd.children || [])],
+      elseChildren: [...(bd.elseChildren || [])],
+      ctrl: bd.ctrl
+    };
+    const el = this._render(b);
+    b.el = el;
+    el.dataset.bid = b.id;
+    this._canvas.appendChild(el);
+    this._pos(b);
+    this.blocks.set(b.id, b);
   }
 
   getBlockAt(cx, cy) {
@@ -416,6 +580,87 @@ export class BlockWorkspace {
       }
     }
     return null;
+  }
+
+  _clientToCanvas(cx, cy) {
+    const r = this._canvas.getBoundingClientRect();
+    return { x: (cx - r.left) / this.zoom, y: (cy - r.top) / this.zoom };
+  }
+
+  _updateCanvasSize() {
+    let maxX = 2000;
+    let maxY = 2000;
+    for (const [, b] of this.blocks) {
+      const right = b.x + (b.w || 220);
+      const bottom = b.y + (b.h || 40);
+      if (right > maxX) maxX = right;
+      if (bottom > maxY) maxY = bottom;
+    }
+    maxX += 600;
+    maxY += 600;
+    if (this._scrollEl) {
+      const sr = this._scrollEl.getBoundingClientRect();
+      const ww = sr.width / this.zoom;
+      const wh = sr.height / this.zoom;
+      if (ww > maxX) maxX = ww;
+      if (wh > maxY) maxY = wh;
+    }
+    this._canvas.style.width = maxX + 'px';
+    this._canvas.style.height = maxY + 'px';
+    this._canvas.style.transform = `scale(${this.zoom})`;
+  }
+
+  _updateZoomDisplay() {
+    const el = this.ct.querySelector('.sb-zoom-level');
+    if (el) el.textContent = Math.round(this.zoom * 100) + '%';
+  }
+
+  _setupZoomControls() {
+    const onZoom = (e) => {
+      const btn = e.target.closest('.btn-zoom');
+      if (!btn) return;
+      const action = btn.dataset.zoom;
+      if (action === 'in') this.zoomIn();
+      else if (action === 'out') this.zoomOut();
+      else if (action === 'fit') this.resetZoom();
+    };
+
+    this.ct.addEventListener('click', onZoom);
+
+    this.ct.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      if (e.deltaY < 0) this.zoomIn();
+      else this.zoomOut();
+    }, { passive: false });
+  }
+
+  setZoom(level) {
+    const old = this.zoom;
+    this.zoom = Math.max(0.25, Math.min(2, level));
+    const ratio = this.zoom / old;
+    this._scrollEl.scrollLeft *= ratio;
+    this._scrollEl.scrollTop *= ratio;
+    this._updateCanvasSize();
+    this._updateZoomDisplay();
+  }
+
+  zoomIn() {
+    const levels = [0.25, 0.33, 0.5, 0.67, 0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75, 2];
+    let next = this.zoom * 1.2;
+    for (const l of levels) { if (l > this.zoom + 0.01) { next = l; break; } }
+    this.setZoom(Math.min(2, next));
+  }
+
+  zoomOut() {
+    const levels = [0.25, 0.33, 0.5, 0.67, 0.75, 0.85, 1, 1.15, 1.25, 1.5, 1.75, 2];
+    let next = this.zoom / 1.2;
+    for (let i = levels.length - 1; i >= 0; i--) { if (levels[i] < this.zoom - 0.01) { next = levels[i]; break; } }
+    this.setZoom(Math.max(0.25, next));
+  }
+
+  resetZoom() {
+    this.setZoom(1);
   }
 
   _setup() {
@@ -432,6 +677,7 @@ export class BlockWorkspace {
       chip.dataset.cond = next;
       const txt = chip.querySelector('.cond-text');
       if (txt) txt.textContent = next === 'enemyDetected' ? 'Inimigo' : 'Obstáculo';
+      this.save();
     });
 
     this.ct.addEventListener('input', (e) => {
@@ -441,6 +687,7 @@ export class BlockWorkspace {
       if (!pe) return;
       const b = this.blocks.get(pe.dataset.bid);
       if (b) b.value = inp.value;
+      this.save();
     });
 
     this.ct.addEventListener('click', (e) => {
@@ -452,6 +699,7 @@ export class BlockWorkspace {
     });
 
     this.ct.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.sb-zoom-controls, .btn-zoom')) return;
       const block = e.target.closest('.sb-block');
       if (!block) return;
       if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip')) return;
