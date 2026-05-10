@@ -33,28 +33,16 @@
             <div class="progress-container">
               <div class="progress-labels">
                 <span>Integridade do Sistema</span>
-                <span>60%</span>
+                <span>0%</span>
               </div>
               <div class="progress-track">
                 <div class="progress-fill"></div>
               </div>
             </div>
             <div class="star-rating">
-              <span
-                class="material-symbols-outlined"
-                style="font-variation-settings: &quot;FILL&quot; 1"
-                >star</span
-              >
-              <span
-                class="material-symbols-outlined"
-                style="font-variation-settings: &quot;FILL&quot; 1"
-                >star</span
-              >
-              <span
-                class="material-symbols-outlined"
-                style="color: var(--color-accent); opacity: 0.4"
-                >star</span
-              >
+              <span class="material-symbols-outlined">star</span>
+              <span class="material-symbols-outlined">star</span>
+              <span class="material-symbols-outlined">star</span>
             </div>
           </div>
         </header>
@@ -84,41 +72,7 @@
                 <span class="status-text">Pronto</span>
               </span>
             </div>
-            <div class="sim-attributes">
-              <div class="sim-attributes-header">
-                <span class="sim-attributes-title">Atributos do personagem</span>
-                <span class="material-symbols-outlined sim-attributes-icon">analytics</span>
-              </div>
-              <div class="sim-attributes-grid">
-                <div class="sim-attr-item" data-attr="forca">
-                  <div class="sim-attr-info">
-                    <span class="sim-attr-label">Força</span>
-                    <span class="sim-attr-value">24</span>
-                  </div>
-                  <button class="sim-attr-btn" aria-label="Aumentar Força">
-                    <span class="material-symbols-outlined">add</span>
-                  </button>
-                </div>
-                <div class="sim-attr-item" data-attr="energia">
-                  <div class="sim-attr-info">
-                    <span class="sim-attr-label">Energia</span>
-                    <span class="sim-attr-value">85</span>
-                  </div>
-                  <button class="sim-attr-btn" aria-label="Aumentar Energia">
-                    <span class="material-symbols-outlined">add</span>
-                  </button>
-                </div>
-                <div class="sim-attr-item" data-attr="vitalidade">
-                  <div class="sim-attr-info">
-                    <span class="sim-attr-label">Vitalidade</span>
-                    <span class="sim-attr-value">100</span>
-                  </div>
-                  <button class="sim-attr-btn" aria-label="Aumentar Vitalidade">
-                    <span class="material-symbols-outlined">add</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <div class="sim-attributes" id="attributes-panel"></div>
             <div class="sim-viewport">
               <div class="sim-glow-overlay"></div>
               <div class="sim-grid"></div>
@@ -185,7 +139,9 @@
               Continuar
             </button>
             <button class="lp-cta-outline" data-action="select-level">
-              <span class="material-symbols-outlined" style="font-size:24px">grid_view</span>
+              <span class="material-symbols-outlined" style="font-size: 24px"
+                >grid_view</span
+              >
               Selecionar Nível
             </button>
           </div>
@@ -232,7 +188,7 @@
               <div class="podium-avatar">
                 <img
                   class="podium-avatar-img"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uiUBryX7X2icDkkK-mj6lz_2YyT7YrnyVGKTTXaqs8Y9dcywMKRWmYkPM8g3uvlW3-bhTgGwGkOUDqzrj7UOnodO-Rhd1BAouXBV8hXJibFLSsaBuMcIZZRniTl8PNOzvRdmXzySbLkMRrz4qFXo3H7Q8UQHTEGMnKX_WhtKhiLPcNHxRUzbNSSqEhtiv6zsbtpMI3VPowBv2E7L0tZMLh2s-wYVaf1Z9ifixcBIsIBkOY1nsZkvPumzj0"
+                  src="/assets/img/second.png"
                   alt="Silver Trophy" />
               </div>
               <span class="podium-badge">Silver</span>
@@ -247,7 +203,7 @@
               <div class="podium-avatar podium-avatar-lg">
                 <img
                   class="podium-avatar-img"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uitd8VqiysSlemF8YSsg5s728iwUliP0JnIi0wdCHXvifkZYWZgBCMiyDjotqk0m7d18ExkRE1wDrTIBpUhTJOE4uRoZFOAfmwjAF7ZJ_WQ9rwzNdNDI7xI5OsNpNmt7__aDQsngfTq2TDgtnOH6mQK3XWZsILcTOofivXA7fGl3Ev91WIBygcgc9wzdv3F25NysCMCKA9PEZvKULsqn0oytChST7er-eQpb3R7BW_RHQazJt4flvIqGg"
+                  src="/assets/img/first.png"
                   alt="Gold Trophy" />
               </div>
               <span class="podium-badge podium-badge-gold">Master</span>
@@ -260,7 +216,7 @@
               <div class="podium-avatar">
                 <img
                   class="podium-avatar-img"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uhyh1gK6ZWllwgHcWwhTVi3z4j9DorjONNLiIJOMVEk5jFJM26lk5_F4jM65DFzHbF_7BwrqVN56cl6xm8jNg10g4EvXkNoDspI5rOthALNaGFgDsW0zKch9enKhBgJea0cSGU8hx9dSv28K2lzYAdiTKfjDSlufLR0K9Wtf6TvWnoFufzkn97jPVHczYZm1n1br9ARh3KdDmMGqA4w0-Ya6WzFV39s5hfK0a_vgdtbRF-wVvIaw_KRU_Q"
+                  src="/assets/img/third.png"
                   alt="Bronze Trophy" />
               </div>
               <span class="podium-badge">Bronze</span>
@@ -295,10 +251,11 @@
       </div>
     </template>
 
-    <svg style="position:absolute;width:0;height:0" aria-hidden="true">
+    <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
       <defs>
         <clipPath id="block-notch" clipPathUnits="objectBoundingBox">
-          <path d="M 0.14,0 Q 0.10,0 0.10,0.04 L 0.38,0.96 Q 0.38,1 0.40,1 L 0.60,1 Q 0.62,1 0.62,0.96 L 0.90,0.04 Q 0.90,0 0.86,0 Z"/>
+          <path
+            d="M 0.14,0 Q 0.10,0 0.10,0.04 L 0.38,0.96 Q 0.38,1 0.40,1 L 0.60,1 Q 0.62,1 0.62,0.96 L 0.90,0.04 Q 0.90,0 0.86,0 Z" />
         </clipPath>
       </defs>
     </svg>

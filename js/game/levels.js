@@ -4,6 +4,8 @@ export const LEVELS = [
     name: 'Tutorial',
     theme: 'ocean',
     gridSize: 5,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 0, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [],
@@ -17,6 +19,8 @@ export const LEVELS = [
     name: 'Cidade da Lógica',
     theme: 'ocean',
     gridSize: 5,
+    idealBlockCount: 8,
+    complexity: 2,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: null,
     obstacles: [],
@@ -30,6 +34,8 @@ export const LEVELS = [
     name: 'Porto das Variáveis',
     theme: 'ocean',
     gridSize: 5,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 0, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [
@@ -45,6 +51,8 @@ export const LEVELS = [
     name: 'Farol do Código',
     theme: 'ocean',
     gridSize: 5,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 4, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [
@@ -61,6 +69,8 @@ export const LEVELS = [
     name: 'Floresta dos Algoritmos',
     theme: 'forest',
     gridSize: 6,
+    idealBlockCount: 10,
+    complexity: 4,
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: null,
     obstacles: [
@@ -78,6 +88,8 @@ export const LEVELS = [
     name: 'Ruínas da Recursão',
     theme: 'forest',
     gridSize: 6,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
     obstacles: [
@@ -96,6 +108,8 @@ export const LEVELS = [
     name: 'Labirinto Binário',
     theme: 'forest',
     gridSize: 6,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
     obstacles: [
@@ -118,6 +132,8 @@ export const LEVELS = [
     name: 'Núcleo de Logicron',
     theme: 'void',
     gridSize: 7,
+    idealBlockCount: 18,
+    complexity: 8,
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 0, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
@@ -138,6 +154,8 @@ export const LEVELS = [
     name: 'Abismo Infinito',
     theme: 'void',
     gridSize: 7,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 0, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
@@ -160,6 +178,8 @@ export const LEVELS = [
     name: 'Núcleo do Código',
     theme: 'void',
     gridSize: 7,
+    idealBlockCount: 6,
+    complexity: 1,
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 6, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
