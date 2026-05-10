@@ -149,7 +149,7 @@ export class BlockWorkspace {
 
   _render(b) {
     const div = document.createElement('div');
-    div.className = `sb-block`;
+    div.className = 'sb-block';
 
     if (b.ctrl) div.classList.add('sb-control');
 
@@ -157,29 +157,27 @@ export class BlockWorkspace {
     div.style.setProperty('--cat-color', clr);
     div.style.width = b.w + 'px';
 
-    const notch = document.createElement('div');
-    notch.className = 'sb-notch';
-    div.appendChild(notch);
-
     const body = document.createElement('div');
-    body.className = 'sb-body';
-    body.style.borderLeftColor = clr;
+    body.className = 'sb-block-body';
 
-    if (b.ctrl) {
-      body.innerHTML = this._ctrlHtml(b, clr);
-    } else {
-      body.innerHTML = this._simpleHtml(b, clr);
-    }
+    const headlight = document.createElement('div');
+    headlight.className = 'sb-headlight';
+    headlight.dataset.cat = b.category;
+    const lens = document.createElement('div');
+    lens.className = 'sb-headlight-lens';
+    headlight.appendChild(lens);
+    body.appendChild(headlight);
+
+    const content = document.createElement('div');
+    content.className = 'sb-content';
+    body.appendChild(content);
 
     div.appendChild(body);
 
-    if (!b.ctrl) {
-      const bump = document.createElement('div');
-      bump.className = 'sb-bump';
-      div.appendChild(bump);
-    }
-
     if (b.ctrl) {
+      content.classList.add('sb-control-content');
+      content.innerHTML = this._ctrlHtml(b, clr);
+
       const childArea = document.createElement('div');
       childArea.className = 'sb-child-area';
       childArea.dataset.parent = b.id;
@@ -187,7 +185,7 @@ export class BlockWorkspace {
       hint.className = 'sb-child-hint';
       hint.textContent = '+';
       childArea.appendChild(hint);
-      div.appendChild(childArea);
+      content.appendChild(childArea);
 
       if (b.type === 'if') {
         const esec = document.createElement('div');
@@ -202,14 +200,12 @@ export class BlockWorkspace {
         ehint.textContent = '+';
         earea.appendChild(ehint);
         esec.appendChild(earea);
-        div.appendChild(esec);
+        content.appendChild(esec);
       }
 
-      const footer = document.createElement('div');
-      footer.className = 'sb-control-footer';
-      div.appendChild(footer);
-
       div.style.height = 'auto';
+    } else {
+      content.innerHTML = this._simpleHtml(b, clr);
     }
 
     const del = document.createElement('button');
@@ -229,7 +225,7 @@ export class BlockWorkspace {
         <span class="material-symbols-outlined">${b.icon}</span>
       </span>
       <span class="sb-label">${b.label}</span>
-      ${b.value != null ? `<input class="sb-input" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
+      ${b.value != null ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
     `;
   }
 
@@ -251,7 +247,7 @@ export class BlockWorkspace {
         </div>`;
     }
     if (b.type === 'repeat') {
-      html += `<input class="sb-input" type="text" value="${b.value || 5}" data-bid="${b.id}">`;
+      html += `<input class="sb-input sb-input-circle" type="text" value="${b.value || 5}" data-bid="${b.id}">`;
     }
     html += `</div>`;
     return html;
