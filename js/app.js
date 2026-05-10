@@ -170,12 +170,15 @@ function renderSimGrid(level) {
     gs.simGrid.appendChild(el);
   }
 
-  for (const enemy of (level.enemies || [])) {
+  for (const enemy of (gs.stage.enemies || [])) {
     const el = document.createElement('div');
     el.className = 'sim-entity sim-enemy';
     el.dataset.x = enemy.x;
     el.dataset.y = enemy.y;
-    el.dataset.hp = enemy.hp || 1;
+    el.dataset.hp = enemy.hp;
+    el.dataset.type = enemy.type ?? 0;
+    el.dataset.direction = enemy.direction ?? 2;
+    el.dataset.enemyId = enemy.id;
     el.style.left = `${enemy.x * cellW}px`;
     el.style.top = `${enemy.y * cellW}px`;
     el.style.width = `${cellW}px`;
@@ -187,7 +190,8 @@ function renderSimGrid(level) {
       const img = document.createElement('img');
       img.src = enemySprite;
       img.alt = 'Inimigo';
-      img.className = 'sim-sprite';
+      img.className = 'sim-sprite enemy-sprite-img';
+      img.style.transform = `rotate(${enemy._visualRotation || 0}deg)`;
       el.appendChild(img);
       el.classList.add('sim-enemy-sprite');
     } else {
@@ -197,9 +201,13 @@ function renderSimGrid(level) {
       el.appendChild(icon);
     }
 
+    if (enemy.type === 2) {
+      el.classList.add('sim-enemy-patrol');
+    }
+
     const hpLabel = document.createElement('span');
     hpLabel.className = 'enemy-hp';
-    hpLabel.textContent = `HP:${enemy.hp || 1}`;
+    hpLabel.textContent = `HP:${enemy.hp}`;
     el.appendChild(hpLabel);
 
     gs.simGrid.appendChild(el);
@@ -280,20 +288,149 @@ function updateSimView() {
     ];
     gs.player.__robotImg.src = directionSprites[gs.player.direction] || directionSprites[0];
   }
+
+  if (gs.els.attrVitalidade) {
+    gs.els.attrVitalidade.textContent = gs.player.hp;
+  }
 }
 
 function syncSimEntities() {
+  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+
   for (const el of gs.simGrid.querySelectorAll('.sim-enemy')) {
-    const ex = parseInt(el.dataset.x);
-    const ey = parseInt(el.dataset.y);
-    const enemy = gs.stage.enemies.find(e => e.x === ex && e.y === ey);
-    if (!enemy) {
-      el.remove();
-    } else {
-      const hpEl = el.querySelector('.enemy-hp');
-      if (hpEl) hpEl.textContent = `HP:${enemy.hp}`;
+    const enemyId = el.dataset.enemyId;
+    const enemy = gs.stage.enemies.find(e => e.id === enemyId);
+
+    if (!enemy || !enemy.alive) {
+      el.classList.add('enemy-dying');
+      setTimeout(() => el.remove(), 400);
+      continue;
+    }
+
+    el.style.left = `${enemy.x * cellSize}px`;
+    el.style.top = `${enemy.y * cellSize}px`;
+    el.dataset.x = enemy.x;
+    el.dataset.y = enemy.y;
+    el.dataset.direction = enemy.direction;
+
+    const hpEl = el.querySelector('.enemy-hp');
+    if (hpEl) hpEl.textContent = `HP:${enemy.hp}`;
+
+    const img = el.querySelector('.enemy-sprite-img');
+    if (img) {
+      const enemyType = parseInt(el.dataset.type);
+      if (enemyType === 1) {
+        img.src = enemy.sprite;
+      }
+      img.style.transform = `rotate(${enemy._visualRotation || 0}deg)`;
     }
   }
+}
+
+function tickEnemiesAndSync() {
+  const attacks = gs.stage.tickEnemies();
+
+  for (const attack of attacks) {
+    if (attack.enemyId) {
+      const enemyEl = gs.simGrid.querySelector(`.sim-enemy[data-enemy-id="${attack.enemyId}"]`);
+      if (enemyEl) {
+        enemyEl.classList.add('enemy-attacking');
+        setTimeout(() => enemyEl.classList.remove('enemy-attacking'), 350);
+      }
+    }
+    if (attack.type === 'laser') {
+      setTimeout(() => flashLaserCells(attack), 200);
+    }
+    if (attack.type === 'melee') {
+      setTimeout(() => flashMeleeCell(attack), 200);
+    }
+  }
+
+  syncSimEntities();
+  updateSimView();
+
+  if (gs.els.attrVitalidade) {
+    gs.els.attrVitalidade.textContent = gs.player.hp;
+  }
+
+  const wasHit = attacks.some(a => {
+    if (a.damage <= 0) return false;
+    return a.cells.some(c => c.x === gs.player.x && c.y === gs.player.y);
+  });
+
+  if (wasHit) {
+    flashPlayerDamage();
+    audioManager.playSfx('error');
+  }
+
+  if (!gs.stage.isPlayerAlive()) {
+    gs.shouldStop = true;
+    showGameOver();
+  }
+}
+
+function flashLaserCells(attack) {
+  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+
+  for (const cell of attack.cells) {
+    const overlay = document.createElement('div');
+    overlay.className = 'laser-cell';
+    overlay.style.left = `${cell.x * cellSize}px`;
+    overlay.style.top = `${cell.y * cellSize}px`;
+    overlay.style.width = `${cellSize}px`;
+    overlay.style.height = `${cellSize}px`;
+    gs.simGrid.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 400);
+  }
+}
+
+function flashPlayerDamage() {
+  const robot = gs.player.__robotEl;
+  if (!robot) return;
+  robot.classList.add('player-damaged');
+  setTimeout(() => robot.classList.remove('player-damaged'), 400);
+}
+
+function flashMeleeCell(attack) {
+  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+
+  for (const cell of attack.cells) {
+    const overlay = document.createElement('div');
+    overlay.className = 'melee-cell';
+    overlay.style.left = `${cell.x * cellSize}px`;
+    overlay.style.top = `${cell.y * cellSize}px`;
+    overlay.style.width = `${cellSize}px`;
+    overlay.style.height = `${cellSize}px`;
+    gs.simGrid.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 350);
+  }
+}
+
+function showGameOver() {
+  gs._playerDied = true;
+  setStatus('Derrota', '#ef4444');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'game-over-overlay';
+  overlay.innerHTML = `
+    <div class="game-over-modal">
+      <span class="game-over-icon material-symbols-outlined">skull</span>
+      <h2 class="game-over-title">Game Over</h2>
+      <p class="game-over-text">O herói foi derrotado!</p>
+      <button class="game-over-btn" id="btn-restart">Tentar novamente</button>
+    </div>
+  `;
+  document.querySelector('.simulation-panel')?.appendChild(overlay);
+
+  overlay.querySelector('#btn-restart').addEventListener('click', () => {
+    overlay.remove();
+    gs._playerDied = false;
+    gs.shouldStop = false;
+    resetActiveLevel(true);
+    setStatus('Pronto', '#00FF3D');
+  });
+
+  setTimeout(() => overlay.classList.add('active'), 10);
 }
 
 function updateBlockHighlights() {
@@ -501,6 +638,7 @@ function initGame() {
     gs.isRunning = true;
     gs.shouldPause = false;
     gs.shouldStop = false;
+    gs._playerDied = false;
     setStatus('Preparando...', '#00f2ff');
     audioManager.playSfx('execute');
     await new Promise(r => setTimeout(r, 500));
@@ -553,17 +691,24 @@ function initGame() {
           if (!stage.canMoveTo(ahead.x, ahead.y)) break;
           player.moveForward(1);
           updateSimView();
+          if (gs.shouldStop) return;
         }
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       turnRight: runWithGuard(async () => {
         player.turnRight();
         updateSimView();
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       turnLeft: runWithGuard(async () => {
         player.turnLeft();
         updateSimView();
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       jump: runWithGuard(async () => {
@@ -572,32 +717,47 @@ function initGame() {
         if (stage.isInBounds(jumpPos.x, jumpPos.y) && stage.isInBounds(mid.x, mid.y)) {
           player.jump();
           updateSimView();
+          await new Promise(r => setTimeout(r, 350));
+          tickEnemiesAndSync();
         }
       }),
 
       attack: runWithGuard(async () => {
         stage.attackEnemy();
         syncSimEntities();
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       pickup: runWithGuard(async () => {
         stage.pickupItem();
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       drop: runWithGuard(async () => {
         stage.dropItem();
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       activate: runWithGuard(async () => {
-        return;
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
       }),
 
       detectObstacle: runWithGuard(async () => {
-        return stage.detectObstacleAhead();
+        const result = stage.detectObstacleAhead();
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
+        return result;
       }),
 
       detectEnemy: runWithGuard(async () => {
-        return stage.detectEnemyNearby(3);
+        const result = stage.detectEnemyNearby(3);
+        await new Promise(r => setTimeout(r, 350));
+        tickEnemiesAndSync();
+        return result;
       })
     };
 
@@ -680,7 +840,9 @@ function initGame() {
         }
       }
     } catch (error) {
-      if (error.message === 'Execution stopped') {
+      if (gs._playerDied) {
+        // game over already handled by showGameOver
+      } else if (error.message === 'Execution stopped') {
         setStatus('Interrompido', '#ebb2ff');
       } else if (error.message === 'Command limit exceeded') {
         audioManager.playSfx('error');
@@ -710,6 +872,7 @@ function initGame() {
 
   els.clearBtn?.addEventListener('click', () => {
     gs.shouldStop = true;
+    gs._playerDied = false;
     workspace.clear();
     resetActiveLevel(true);
     setStatus('Pronto', '#00FF3D');

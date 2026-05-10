@@ -24,7 +24,7 @@ export const LEVELS = [
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: null,
     obstacles: [],
-    enemies: [{ x: 4, y: 0, hp: 1, sprite: 'assets/sprites/enemies/inimigo1.png' }],
+    enemies: [{ x: 2, y: 1, hp: 1, type: 1, direction: 2 }],
     items: [],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else'],
     description: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!'
@@ -73,7 +73,7 @@ export const LEVELS = [
       { x: 3, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
       { x: 1, y: 1, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
     ],
-    enemies: [{ x: 4, y: 0, hp: 1, sprite: 'assets/sprites/enemies/inimigo1.png' }],
+    enemies: [{ x: 4, y: 0, hp: 1, type: 0, direction: 2 }],
     items: [],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Use repetição para navegar pela floresta e derrotar inimigos.'
@@ -123,8 +123,8 @@ export const LEVELS = [
       { x: 3, y: 3, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
     ],
     enemies: [
-      { x: 2, y: 1, hp: 3, sprite: 'assets/sprites/enemies/inimigo2.png' },
-      { x: 1, y: 3, hp: 2, sprite: 'assets/sprites/enemies/inimigo3.png' }
+      { x: 2, y: 1, hp: 3, type: 0, direction: 2 },
+      { x: 1, y: 3, hp: 2, type: 2, direction: 1 }
     ],
     items: [],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
