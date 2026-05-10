@@ -11,6 +11,7 @@ import { router, ROUTE_CHANGE, consumePendingLevelId } from './ui/routes.js';
 import { GameErrorHandler } from './ui/gameErrorHandler.js';
 import { GameTutorial } from './ui/gameTutorial.js';
 import { ProfileMenu } from './ui/profileMenu.js';
+import { audioManager } from './audio/audioManager.js';
 
 let gs = null;
 
@@ -50,7 +51,7 @@ function getInitialLevelId() {
   return 0;
 }
 
-function loadLevelById(levelId) {
+function loadLevelById(levelId, skipMusic = false) {
   const level = getLevel(levelId);
   if (!level) {
     if (gs.simGrid) {
@@ -77,6 +78,8 @@ function loadLevelById(levelId) {
     container.className = `game-container theme-${cls}`;
   }
 
+  if (!skipMusic) audioManager.playMusic(level.theme || 'ocean');
+
   if (gs.indicator) gs.indicator.textContent = `Nível ${level.id}: ${level.name}`;
 
   renderSimGrid(level);
@@ -88,9 +91,9 @@ function loadCurrentLevel() {
   loadLevelById(getInitialLevelId());
 }
 
-function resetActiveLevel() {
+function resetActiveLevel(skipMusic = false) {
   const levelId = gs.activeLevelId ?? getInitialLevelId();
-  loadLevelById(levelId);
+  loadLevelById(levelId, skipMusic);
 }
 
 function renderSimGrid(level) {
@@ -344,6 +347,16 @@ function initGame() {
     _needsProfile: needsProfile,
   };
 
+  const _unlockAudio = () => {
+    audioManager.unlock();
+    document.removeEventListener('click', _unlockAudio);
+    document.removeEventListener('keydown', _unlockAudio);
+    document.removeEventListener('touchstart', _unlockAudio);
+  };
+  document.addEventListener('click', _unlockAudio);
+  document.addEventListener('keydown', _unlockAudio);
+  document.addEventListener('touchstart', _unlockAudio);
+
   const profileMenu = new ProfileMenu(playerManager, (newPlayerId) => {
     const p = newPlayerId ? playerManager.getActivePlayer() : null;
     gs.progression = new Progression(newPlayerId || 'default', p ? p.name : 'Jogador');
@@ -382,6 +395,7 @@ function initGame() {
     gs.shouldPause = false;
     gs.shouldStop = false;
     setStatus('Preparando...', '#00f2ff');
+    audioManager.playSfx('execute');
     await new Promise(r => setTimeout(r, 500));
     setStatus('Validando...', '#ebb2ff');
 
@@ -393,6 +407,7 @@ function initGame() {
 
     if (validation.hasErrors()) {
       setStatus('Erro nos comandos', '#ef4444');
+      audioManager.playSfx('error');
       gs.isRunning = false;
       return;
     }
@@ -479,6 +494,7 @@ function initGame() {
 
       if (stage.checkVictory()) {
         setStatus('Vitória!', '#00FF3D');
+        audioManager.playSfx('victory');
         gs.progression.completeLevel(gs.progression.getCurrentLevel(), 1000);
         setTimeout(() => {
           const nextLevel = getLevel(gs.activeLevelId + 1);
@@ -496,6 +512,7 @@ function initGame() {
       if (error.message === 'Execution stopped') {
         setStatus('Interrompido', '#ebb2ff');
       } else if (error.message === 'Command limit exceeded') {
+        audioManager.playSfx('error');
         setStatus('Limite de comandos excedido', '#ef4444');
         const el = document.createElement('div');
         el.className = 'log-entry log-error';
@@ -503,6 +520,7 @@ function initGame() {
         errorLog.appendChild(el);
         errorLog.style.display = 'flex';
       } else {
+        audioManager.playSfx('error');
         console.error('Execution error:', error);
         setStatus('Erro', '#ef4444');
       }
@@ -515,7 +533,7 @@ function initGame() {
   els.clearBtn?.addEventListener('click', () => {
     gs.shouldStop = true;
     workspace.clear();
-    resetActiveLevel();
+    resetActiveLevel(true);
     setStatus('Pronto', '#00FF3D');
   });
 
@@ -524,6 +542,21 @@ function initGame() {
     gs.shouldPause = !gs.shouldPause;
     setStatus(gs.shouldPause ? 'Pausado' : 'Executando...', gs.shouldPause ? '#ebb2ff' : '#00f2ff');
   });
+
+  const muteBtn = document.querySelector('.btn-mute');
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      const muted = audioManager.toggleMute();
+      muteBtn.classList.toggle('muted', muted);
+      const icon = muteBtn.querySelector('.material-symbols-outlined');
+      if (icon) icon.textContent = muted ? 'volume_off' : 'volume_up';
+      if (!muted) {
+        const levelId = gs.activeLevelId ?? getInitialLevelId();
+        const level = getLevel(levelId);
+        if (level) audioManager.playMusic(level.theme || 'ocean');
+      }
+    });
+  }
 
   if (els.simViewport) {
     const ro = new ResizeObserver(() => {
@@ -577,7 +610,10 @@ document.addEventListener(ROUTE_CHANGE, (e) => {
     _currentTutorial = null;
   }
 
-  // Clean up game state when leaving game page
+  if (e.detail.path !== '/game') {
+    audioManager.fadeOut(500);
+  }
+
   if (e.detail.path !== '/game' && e.detail.path !== '/levels') {
     if (gs && gs.profileMenu) gs.profileMenu.destroy();
     _gameInitialized = false;
