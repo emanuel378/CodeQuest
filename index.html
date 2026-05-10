@@ -61,7 +61,21 @@
 
         <main class="sb-layout">
           <aside class="sb-palette" id="palette"></aside>
-          <div class="sb-workspace" id="workspace" tabindex="0"></div>
+          <div class="sb-workspace" id="workspace" tabindex="0">
+            <div class="sb-zoom-controls">
+              <button class="btn-zoom" data-zoom="out" title="Afastar">
+                <span class="material-symbols-outlined">zoom_out</span>
+              </button>
+              <span class="sb-zoom-level">100%</span>
+              <button class="btn-zoom" data-zoom="in" title="Aproximar">
+                <span class="material-symbols-outlined">zoom_in</span>
+              </button>
+              <div class="sb-zoom-divider"></div>
+              <button class="btn-zoom" data-zoom="fit" title="Redefinir zoom">
+                <span class="material-symbols-outlined">fit_screen</span>
+              </button>
+            </div>
+          </div>
           <aside class="simulation-panel">
             <div class="sim-header">
               <h3 class="sim-title">Palco de Simulação</h3>
