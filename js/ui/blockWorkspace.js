@@ -12,6 +12,7 @@ const CAT_COLORS = {
 
 const CONTROL_TYPES = new Set(['if', 'repeat', 'while']);
 const SNAP_DISTANCE = 90;
+const WORKSPACE_PAD = 400;
 
 export class BlockWorkspace {
   constructor(containerEl) {
@@ -32,6 +33,7 @@ export class BlockWorkspace {
     this._updateCanvasSize();
     this._setup();
     this._setupZoomControls();
+    this._centerScroll();
   }
 
   createBlock(type, label, icon, category, params, x, y) {
@@ -575,6 +577,7 @@ export class BlockWorkspace {
 
       this._updateCanvasSize();
       this.save();
+      this._centerScroll();
       return true;
     } catch { return false; }
   }
@@ -614,22 +617,19 @@ export class BlockWorkspace {
   }
 
   _updateCanvasSize() {
-    let maxX = 2000;
-    let maxY = 2000;
+    let maxX = WORKSPACE_PAD;
+    let maxY = WORKSPACE_PAD;
     for (const [, b] of this.blocks) {
       const right = b.x + (b.w || 220);
       const bottom = b.y + (b.h || 40);
       if (right > maxX) maxX = right;
       if (bottom > maxY) maxY = bottom;
     }
-    maxX += 600;
-    maxY += 600;
     if (this._scrollEl) {
-      const sr = this._scrollEl.getBoundingClientRect();
-      const ww = sr.width / this.zoom;
-      const wh = sr.height / this.zoom;
-      if (ww > maxX) maxX = ww;
-      if (wh > maxY) maxY = wh;
+      const vw = this._scrollEl.clientWidth / this.zoom;
+      const vh = this._scrollEl.clientHeight / this.zoom;
+      if (vw > maxX) maxX = vw;
+      if (vh > maxY) maxY = vh;
     }
     this._canvas.style.width = maxX + 'px';
     this._canvas.style.height = maxY + 'px';
@@ -689,6 +689,11 @@ export class BlockWorkspace {
     this.setZoom(1);
   }
 
+  _centerScroll() {
+    this._scrollEl.scrollLeft = WORKSPACE_PAD / this.zoom;
+    this._scrollEl.scrollTop = WORKSPACE_PAD / this.zoom;
+  }
+
   _setup() {
     this.ct.addEventListener('click', (e) => {
       const chip = e.target.closest('.sb-condition-chip');
@@ -735,6 +740,17 @@ export class BlockWorkspace {
       this._dragCandidate = b.id;
     });
 
+    this.ct.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.sb-block, .sb-zoom-controls, .btn-zoom')) return;
+      this._panning = {
+        startX: e.clientX,
+        startY: e.clientY,
+        scrollLeft: this._scrollEl.scrollLeft,
+        scrollTop: this._scrollEl.scrollTop
+      };
+      this.ct.classList.add('panning');
+    });
+
     document.addEventListener('mousemove', (e) => {
       if (this._drag) {
         e.preventDefault();
@@ -748,11 +764,22 @@ export class BlockWorkspace {
           this.startDrag(this._dragCandidate, e.clientX, e.clientY);
           this._dragCandidate = null;
         }
+        return;
+      }
+      if (this._panning) {
+        const dx = e.clientX - this._panning.startX;
+        const dy = e.clientY - this._panning.startY;
+        this._scrollEl.scrollLeft = this._panning.scrollLeft - dx;
+        this._scrollEl.scrollTop = this._panning.scrollTop - dy;
       }
     });
 
     document.addEventListener('mouseup', (e) => {
       this._dragCandidate = null;
+      if (this._panning) {
+        this._panning = null;
+        this.ct.classList.remove('panning');
+      }
       if (!this._drag) return;
       this.endDrag(e.clientX, e.clientY);
     });

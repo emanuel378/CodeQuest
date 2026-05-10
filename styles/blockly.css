@@ -116,14 +116,20 @@
   position: relative;
   background: var(--surface-dim);
   overflow: hidden;
+  cursor: all-scroll;
   background-image:
     radial-gradient(circle, var(--outline-variant) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
+.sb-workspace.panning {
+  cursor: grabbing;
+}
+
 .sb-workspace-scroll {
   position: absolute;
   inset: 0;
+  padding: calc(var(--workspace-pad) / 2);
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;

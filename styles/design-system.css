@@ -75,6 +75,8 @@
   --sp-xl: 40px;
   --sp-gutter: 20px;
   --container-max: 1440px;
+
+  --workspace-pad: 800px;
 }
 
 html {
