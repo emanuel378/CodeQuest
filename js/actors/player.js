@@ -5,6 +5,8 @@ export class Player {
     this.y = 0;
     this.direction = 0;
     this.hasItem = false;
+    this.maxHp = 5;
+    this.hp = 5;
   }
 
   reset(x = 0, y = 0, direction = 0) {
@@ -12,6 +14,19 @@ export class Player {
     this.y = y;
     this.direction = direction;
     this.hasItem = false;
+    this.hp = this.maxHp;
+  }
+
+  takeDamage(amount = 1) {
+    this.hp = Math.max(0, this.hp - amount);
+  }
+
+  isAlive() {
+    return this.hp > 0;
+  }
+
+  heal(amount = 1) {
+    this.hp = Math.min(this.maxHp, this.hp + amount);
   }
 
   moveForward(steps = 1) {
