@@ -122,9 +122,8 @@ function updateHUD() {
   if (fill) fill.style.width = `${pct}%`
   if (label) label.textContent = `${pct}%`
 
-  let starCount = 1
-  if (levelId >= 7) starCount = 3
-  else if (levelId >= 4) starCount = 2
+  const level = getLevel(levelId)
+  const starCount = level ? level.difficulty : 1
 
   const stars = document.querySelectorAll('.star-rating .material-symbols-outlined')
   stars.forEach((star, i) => {
