@@ -2151,8 +2151,8 @@
 /* ===== Tooltip ===== */
 
 .attr-tooltip {
-  position: absolute;
-  z-index: 100;
+  position: fixed;
+  z-index: 999;
   width: 220px;
   padding: var(--sp-sm) var(--sp-md);
   background: var(--surface-container);
