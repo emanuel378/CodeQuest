@@ -664,10 +664,16 @@
   z-index: 10;
   font-size: 14px;
   transition: none;
+  width: 33.33%;
+  height: 33.33%;
 }
 
-.tutorial-entity .material-symbols-outlined {
-  font-size: 18px;
+.tut-entity-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
 }
 
 .tutorial-tree {
@@ -676,21 +682,12 @@
   border-radius: var(--rounded-sm);
 }
 
-.tutorial-tree .material-symbols-outlined {
-  color: var(--tertiary-container);
-}
-
 .tutorial-enemy {
   background: rgba(255, 0, 0, 0.15);
   border: 2px solid var(--error);
   border-radius: var(--rounded-sm);
   flex-direction: column;
   gap: 1px;
-}
-
-.tutorial-enemy .material-symbols-outlined {
-  color: var(--error);
-  font-size: 18px;
 }
 
 .tutorial-enemy-hp {
@@ -716,18 +713,10 @@
   border-radius: var(--rounded-sm);
 }
 
-.tutorial-item .material-symbols-outlined {
-  color: var(--secondary-container);
-}
-
 .tutorial-obstacle {
   background: rgba(133, 146, 158, 0.2);
   border: 1px solid var(--outline);
   border-radius: var(--rounded-sm);
-}
-
-.tutorial-obstacle .material-symbols-outlined {
-  color: var(--outline);
 }
 
 .tutorial-goal {
@@ -735,10 +724,6 @@
   border: 2px dashed var(--tertiary);
   border-radius: var(--rounded-sm);
   animation: tut-goal-pulse 1.5s ease-in-out infinite;
-}
-
-.tutorial-goal .material-symbols-outlined {
-  color: var(--tertiary);
 }
 
 @keyframes tut-goal-pulse {
@@ -756,12 +741,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: left 0.5s ease, top 0.5s ease, transform 0.4s ease;
-}
-
-.tutorial-robot .material-symbols-outlined {
-  color: var(--primary-container);
-  font-size: 16px;
+  overflow: hidden;
+  transition: left 0.5s ease, top 0.5s ease;
+  width: 33.33%;
+  height: 33.33%;
 }
 
 .tutorial-robot.tutorial-scan {
@@ -1014,6 +997,116 @@
 
 .tutorial-demo-play-btn .material-symbols-outlined {
   font-size: 16px;
+}
+
+.tutorial-obj-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+}
+
+.tutorial-obj-demo-row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--sp-sm);
+  align-items: stretch;
+  width: 100%;
+  justify-content: center;
+}
+
+.tutorial-obj-demo-row .tutorial-demo-grid {
+  max-width: 180px;
+  flex-shrink: 0;
+}
+
+.tut-obj-demo-panel {
+  min-width: 140px;
+  max-width: 180px;
+  background: color-mix(in srgb, var(--surface-container) 85%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--outline-variant));
+  border-radius: var(--rounded-lg);
+  padding: var(--sp-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.tut-obj-demo-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding-bottom: var(--sp-xs);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--outline-variant));
+}
+
+.tut-obj-demo-header-icon {
+  font-size: 14px;
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-accent) 40%, transparent));
+}
+
+.tut-obj-demo-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.tut-obj-demo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tut-obj-demo-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: 2px 0;
+  transition: opacity 0.2s ease;
+}
+
+.tut-obj-demo-check {
+  font-size: 14px;
+  color: var(--outline);
+  flex-shrink: 0;
+  transition: color 0.3s ease, filter 0.3s ease;
+}
+
+.tut-obj-demo-desc {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--on-surface-variant);
+  transition: color 0.3s ease;
+}
+
+.tut-obj-demo-item.tut-obj-demo-checked .tut-obj-demo-check {
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-accent) 50%, transparent));
+}
+
+.tut-obj-demo-item.tut-obj-demo-checked .tut-obj-demo-desc {
+  color: var(--on-surface);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.tut-obj-demo-status {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--primary);
+  text-align: center;
+  min-height: 20px;
+  padding: var(--sp-xs) var(--sp-sm);
+  transition: opacity 0.3s ease;
 }
 
 .name-prompt-overlay {
@@ -1458,6 +1551,20 @@
 
   .tutorial-demo-grid {
     max-width: 200px;
+  }
+
+  .tutorial-obj-demo-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tutorial-obj-demo-row .tutorial-demo-grid {
+    max-width: 200px;
+  }
+
+  .tut-obj-demo-panel {
+    max-width: 200px;
+    min-width: 160px;
   }
 
   .tutorial-title {

@@ -7,7 +7,9 @@ const STEPS = [
   {
     title: 'Objetivo do Jogo',
     icon: 'flag',
-    text: 'Cada nível tem um objetivo específico: alcance a bandeira, derrote todos os inimigos ou colete itens. Para isso, construa uma sequência de blocos de código que programe as ações do robô. Quanto mais eficiente seu código, maior sua pontuação!'
+    text: 'Cada nível possui objetivos a serem cumpridos. Veja na prática como completá-los:',
+    hasDemo: true,
+    demoType: 'objective'
   },
   {
     title: 'Controles e Regras',
@@ -67,6 +69,13 @@ for (const cat of DEMO_CATEGORIES) {
   }
 }
 
+const DIR_SPRITES = [
+  'assets/sprites/player/principalcostas.png',
+  'assets/sprites/player/principaldireito.png',
+  'assets/sprites/player/principal.png',
+  'assets/sprites/player/principalesquerdo.png'
+];
+
 export class GameTutorial {
   constructor(onComplete) {
     this._onComplete = onComplete;
@@ -86,6 +95,7 @@ export class GameTutorial {
 
     this._gridEl = null;
     this._robotEl = null;
+    this._robotImg = null;
     this._enemyEl = null;
     this._goalEl = null;
     this._itemEl = null;
@@ -96,6 +106,10 @@ export class GameTutorial {
 
     this._demoIdx = 0;
     this._autoPlayTimer = null;
+
+    this._objDemoRunning = false;
+    this._objDemoTimer = null;
+    this._objDemoPhase = 0;
 
     this._build();
   }
@@ -138,6 +152,7 @@ export class GameTutorial {
 
   hide() {
     this._stopAutoPlay();
+    this._stopObjDemo();
     this._el.classList.remove('active');
     this._el.addEventListener('transitionend', () => {
       if (this._el.parentNode) this._el.parentNode.removeChild(this._el);
@@ -149,6 +164,7 @@ export class GameTutorial {
       this._goTo(this._currentStep + 1);
     } else {
       this._stopAutoPlay();
+      this._stopObjDemo();
       this.hide();
       if (this._onComplete) this._onComplete();
     }
@@ -160,12 +176,14 @@ export class GameTutorial {
 
   _skip() {
     this._stopAutoPlay();
+    this._stopObjDemo();
     this.hide();
     if (this._onComplete) this._onComplete();
   }
 
   _goTo(index) {
     this._stopAutoPlay();
+    this._stopObjDemo();
     this._currentStep = index;
     this._updateDots();
     this._updateNav();
@@ -180,7 +198,11 @@ export class GameTutorial {
 
     setTimeout(() => {
       if (step.hasDemo) {
-        this._renderDemoContent();
+        if (step.demoType === 'objective') {
+          this._renderObjectiveDemoContent();
+        } else {
+          this._renderDemoContent();
+        }
       } else {
         this._renderTextContent(step);
       }
@@ -192,7 +214,11 @@ export class GameTutorial {
       });
 
       if (step.hasDemo) {
-        setTimeout(() => this._startAutoPlay(), 500);
+        if (step.demoType === 'objective') {
+          setTimeout(() => this._startObjDemo(), 500);
+        } else {
+          setTimeout(() => this._startAutoPlay(), 500);
+        }
       }
     }, 250);
   }
@@ -209,6 +235,239 @@ export class GameTutorial {
     `;
   }
 
+  _renderObjectiveDemoContent() {
+    this._contentEl.innerHTML = `
+      <div class="tutorial-step tutorial-step-demo" style="overflow:hidden;width:100%;">
+        <h2 class="tutorial-title">Objetivo do Jogo</h2>
+        <p class="tutorial-text">Cada nível possui objetivos a serem cumpridos. Observe:</p>
+        <div class="tutorial-obj-demo">
+          <div class="tutorial-obj-demo-row">
+            <div class="tutorial-demo-grid" id="tut-obj-grid">
+              <div class="tutorial-grid-bg"></div>
+              <div class="tutorial-entity tutorial-enemy" data-x="1" data-y="1" id="tut-obj-enemy">
+                <img class="tut-entity-img" src="assets/sprites/enemies/laser.png">
+                <span class="tutorial-enemy-hp" id="tut-obj-enemy-hp">HP:1</span>
+              </div>
+              <div class="tutorial-entity tutorial-goal" data-x="2" data-y="1" id="tut-obj-goal">
+                <img class="tut-entity-img" src="assets/sprites/goal/portalciano.png">
+              </div>
+              <div class="tutorial-robot" id="tut-obj-robot">
+                <img class="tut-entity-img" id="tut-obj-robot-img" src="assets/sprites/player/principaldireito.png">
+              </div>
+            </div>
+            <div class="tut-obj-demo-panel" id="tut-obj-demo-panel">
+              <div class="tut-obj-demo-header">
+                <span class="material-symbols-outlined tut-obj-demo-header-icon">checklist</span>
+                <span class="tut-obj-demo-title">OBJETIVOS</span>
+              </div>
+              <div class="tut-obj-demo-list" id="tut-obj-demo-list">
+                <div class="tut-obj-demo-item" data-tut-obj-id="reach_goal">
+                  <span class="material-symbols-outlined tut-obj-demo-check">radio_button_unchecked</span>
+                  <span class="tut-obj-demo-desc">Alcance o portal de saída</span>
+                </div>
+                <div class="tut-obj-demo-item" data-tut-obj-id="defeat_enemies">
+                  <span class="material-symbols-outlined tut-obj-demo-check">radio_button_unchecked</span>
+                  <span class="tut-obj-demo-desc">Derrote os inimigos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tut-obj-demo-status" id="tut-obj-status">Preparando...</div>
+          <div class="tutorial-demo-card-row">
+            <button class="tutorial-demo-play-btn" id="tut-obj-replay" title="Repetir">
+              <span class="material-symbols-outlined">replay</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    for (const el of this._contentEl.querySelectorAll('.tutorial-entity, .tutorial-robot')) {
+      el.style.opacity = '0';
+    }
+  }
+
+  _setupObjGrid() {
+    this._gridEl = this._el.querySelector('#tut-obj-grid');
+    this._robotEl = this._el.querySelector('#tut-obj-robot');
+    this._robotImg = this._el.querySelector('#tut-obj-robot-img');
+    this._enemyEl = this._el.querySelector('#tut-obj-enemy');
+    this._enemyHpEl = this._el.querySelector('#tut-obj-enemy-hp');
+    this._goalEl = this._el.querySelector('#tut-obj-goal');
+    this._cellSize = this._gridEl ? this._gridEl.offsetWidth / 3 : 80;
+
+    const cs = this._cellSize;
+    for (const el of this._gridEl.querySelectorAll('.tutorial-entity')) {
+      const x = parseInt(el.dataset.x) || 0;
+      const y = parseInt(el.dataset.y) || 0;
+      el.style.left = `${x * cs}px`;
+      el.style.top = `${y * cs}px`;
+      el.style.width = `${cs}px`;
+      el.style.height = `${cs}px`;
+    }
+
+    this._resetObjGrid();
+
+    for (const el of this._gridEl.querySelectorAll('.tutorial-entity, .tutorial-robot')) {
+      el.style.opacity = '1';
+    }
+
+    const replayBtn = this._el.querySelector('#tut-obj-replay');
+    if (replayBtn) replayBtn.addEventListener('click', () => this._replayObjDemo());
+  }
+
+  _resetObjGrid() {
+    this._rx = 0;
+    this._ry = 1;
+    this._rdir = 1;
+
+    const cs = this._cellSize;
+    const pad = cs * 0.15;
+    const sz = cs * 0.7;
+
+    if (this._robotEl) {
+      this._robotEl.style.transition = 'none';
+      this._robotEl.style.left = `${this._rx * cs + pad}px`;
+      this._robotEl.style.top = `${this._ry * cs + pad}px`;
+      this._robotEl.style.width = `${sz}px`;
+      this._robotEl.style.height = `${sz}px`;
+      this._robotEl.style.opacity = '1';
+      this._robotEl.style.boxShadow = '';
+      this._robotEl.classList.remove('tutorial-scan');
+    }
+    if (this._robotImg) this._robotImg.src = DIR_SPRITES[this._rdir];
+
+    if (this._enemyEl) {
+      this._enemyEl.style.display = 'flex';
+      this._enemyEl.style.opacity = '1';
+      this._enemyEl.classList.remove('tutorial-enemy-attacked');
+    }
+    if (this._enemyHpEl) this._enemyHpEl.textContent = 'HP:1';
+    if (this._goalEl) this._goalEl.style.display = 'flex';
+
+    this._resetObjDemoChecks();
+  }
+
+  _resetObjDemoChecks() {
+    const list = this._el.querySelector('#tut-obj-demo-list');
+    if (!list) return;
+    const items = list.querySelectorAll('.tut-obj-demo-item');
+    for (const item of items) {
+      item.classList.remove('tut-obj-demo-checked');
+      const icon = item.querySelector('.tut-obj-demo-check');
+      if (icon) icon.textContent = 'radio_button_unchecked';
+    }
+  }
+
+  async _startObjDemo() {
+    this._objDemoRunning = true;
+    this._setupObjGrid();
+    await this._delay(500);
+
+    this._objDemoPhase = 0;
+    await this._runObjDemoPhase(0);
+  }
+
+  async _runObjDemoPhase(phase) {
+    if (!this._objDemoRunning) return;
+    this._objDemoPhase = phase;
+
+    const statusEl = this._el.querySelector('#tut-obj-status');
+    const list = this._el.querySelector('#tut-obj-demo-list');
+
+    if (!this._robotEl || !this._enemyEl) return;
+
+    switch (phase) {
+      case 0: {
+        if (statusEl) statusEl.textContent = 'Derrote o inimigo bloqueando o caminho...';
+
+        this._robotEl.classList.add('tutorial-scan');
+        await this._delay(400);
+        this._robotEl.classList.remove('tutorial-scan');
+
+        this._enemyEl.classList.add('tutorial-enemy-attacked');
+        await this._delay(350);
+        this._enemyEl.style.display = 'none';
+        if (this._enemyHpEl) this._enemyHpEl.textContent = 'HP:0';
+
+        const defeatItem = list ? list.querySelector('[data-tut-obj-id="defeat_enemies"]') : null;
+        if (defeatItem) {
+          defeatItem.classList.add('tut-obj-demo-checked');
+          const icon = defeatItem.querySelector('.tut-obj-demo-check');
+          if (icon) icon.textContent = 'check_circle';
+        }
+
+        await this._delay(1200);
+        if (this._objDemoRunning) this._runObjDemoPhase(1);
+        break;
+      }
+
+      case 1: {
+        if (statusEl) statusEl.textContent = 'Agora ande até o portal de saída...';
+
+        this._robotEl.style.transition = 'left 0.5s ease, top 0.5s ease';
+        this._rx = 1;
+        this._ry = 1;
+        this._updateObjRobotPos();
+        await this._delay(600);
+
+        if (!this._objDemoRunning) return;
+
+        this._rx = 2;
+        this._ry = 1;
+        this._updateObjRobotPos();
+        await this._delay(600);
+
+        if (!this._objDemoRunning) return;
+
+        const reachItem = list ? list.querySelector('[data-tut-obj-id="reach_goal"]') : null;
+        if (reachItem) {
+          reachItem.classList.add('tut-obj-demo-checked');
+          const icon = reachItem.querySelector('.tut-obj-demo-check');
+          if (icon) icon.textContent = 'check_circle';
+        }
+
+        await this._delay(800);
+        if (this._objDemoRunning) this._runObjDemoPhase(2);
+        break;
+      }
+
+      case 2: {
+        if (statusEl) statusEl.textContent = 'Missão cumprida! Você completou todos os objetivos!';
+        this._objDemoRunning = false;
+
+        const icon = this._el.querySelector('#tut-obj-replay .material-symbols-outlined');
+        if (icon) icon.textContent = 'replay';
+        break;
+      }
+    }
+  }
+
+  _updateObjRobotPos() {
+    if (!this._robotEl) return;
+    const cs = this._cellSize;
+    this._robotEl.style.left = `${this._rx * cs + cs * 0.15}px`;
+    this._robotEl.style.top = `${this._ry * cs + cs * 0.15}px`;
+    this._robotEl.style.width = `${cs * 0.7}px`;
+    this._robotEl.style.height = `${cs * 0.7}px`;
+  }
+
+  _replayObjDemo() {
+    if (this._objDemoRunning) return;
+    this._objDemoRunning = true;
+    this._resetObjGrid();
+    this._objDemoPhase = 0;
+    this._runObjDemoPhase(0);
+  }
+
+  _stopObjDemo() {
+    this._objDemoRunning = false;
+    if (this._objDemoTimer) {
+      clearTimeout(this._objDemoTimer);
+      this._objDemoTimer = null;
+    }
+  }
+
   _renderDemoContent() {
     this._contentEl.innerHTML = `
       <div class="tutorial-step tutorial-step-demo" style="overflow:hidden;width:100%;">
@@ -218,23 +477,23 @@ export class GameTutorial {
           <div class="tutorial-demo-grid" id="tut-grid">
             <div class="tutorial-grid-bg"></div>
             <div class="tutorial-entity tutorial-tree" data-x="1" data-y="0" id="tut-tree">
-              <span class="material-symbols-outlined">forest</span>
+              <img class="tut-entity-img" src="assets/sprites/obstacles/obstaculo3.png">
             </div>
-            <div class="tutorial-entity tutorial-enemy" data-x="2" data-y="1" id="tut-enemy">
-              <span class="material-symbols-outlined">bug_report</span>
+            <div class="tutorial-entity tutorial-enemy" data-x="1" data-y="2" id="tut-enemy">
+              <img class="tut-entity-img" src="assets/sprites/enemies/laser.png">
               <span class="tutorial-enemy-hp" id="tut-enemy-hp">HP:1</span>
             </div>
             <div class="tutorial-entity tutorial-item" data-x="1" data-y="2" id="tut-item" style="display:none">
-              <span class="material-symbols-outlined">diamond</span>
+              <img class="tut-entity-img" src="assets/sprites/items/bau.png">
             </div>
             <div class="tutorial-entity tutorial-obstacle" data-x="1" data-y="1" id="tut-obstacle" style="display:none">
-              <span class="material-symbols-outlined">boulder</span>
+              <img class="tut-entity-img" src="assets/sprites/obstacles/obstaculo1.png">
             </div>
-            <div class="tutorial-entity tutorial-goal" data-x="2" data-y="2" id="tut-goal">
-              <span class="material-symbols-outlined">flag</span>
+            <div class="tutorial-entity tutorial-goal" data-x="2" data-y="1" id="tut-goal">
+              <img class="tut-entity-img" src="assets/sprites/goal/portalciano.png">
             </div>
             <div class="tutorial-robot" id="tut-robot">
-              <span class="material-symbols-outlined">smart_toy</span>
+              <img class="tut-entity-img" id="tut-robot-img" src="assets/sprites/player/principaldireito.png">
             </div>
           </div>
           <div class="tutorial-demo-info">
@@ -260,11 +519,16 @@ export class GameTutorial {
         </div>
       </div>
     `;
+
+    for (const el of this._contentEl.querySelectorAll('.tutorial-entity, .tutorial-robot')) {
+      el.style.opacity = '0';
+    }
   }
 
   _setupGrid() {
     this._gridEl = this._el.querySelector('#tut-grid');
     this._robotEl = this._el.querySelector('#tut-robot');
+    this._robotImg = this._el.querySelector('#tut-robot-img');
     this._enemyEl = this._el.querySelector('#tut-enemy');
     this._enemyHpEl = this._el.querySelector('#tut-enemy-hp');
     this._goalEl = this._el.querySelector('#tut-goal');
@@ -293,6 +557,10 @@ export class GameTutorial {
     }
 
     this._resetGrid();
+
+    for (const el of this._gridEl.querySelectorAll('.tutorial-entity, .tutorial-robot')) {
+      el.style.opacity = '1';
+    }
   }
 
   _resetGrid() {
@@ -310,11 +578,11 @@ export class GameTutorial {
       this._robotEl.style.top = `${this._ry * cs + pad}px`;
       this._robotEl.style.width = `${sz}px`;
       this._robotEl.style.height = `${sz}px`;
-      this._robotEl.style.transform = 'rotate(90deg)';
       this._robotEl.style.opacity = '1';
       this._robotEl.style.boxShadow = '';
       this._robotEl.classList.remove('tutorial-scan', 'tutorial-activate');
     }
+    if (this._robotImg) this._robotImg.src = DIR_SPRITES[this._rdir];
 
     if (this._enemyEl) {
       this._enemyEl.style.display = 'flex';
@@ -335,7 +603,7 @@ export class GameTutorial {
     this._robotEl.style.top = `${this._ry * cs + cs * 0.15}px`;
     this._robotEl.style.width = `${cs * 0.7}px`;
     this._robotEl.style.height = `${cs * 0.7}px`;
-    this._robotEl.style.transform = `rotate(${this._rdir * 90}deg)`;
+    if (this._robotImg) this._robotImg.src = DIR_SPRITES[this._rdir];
   }
 
   _delay(ms) {
@@ -423,7 +691,7 @@ export class GameTutorial {
     const dx = [0, 1, 0, -1][this._rdir];
     const dy = [-1, 0, 1, 0][this._rdir];
 
-    this._robotEl.style.transition = 'left 0.6s ease, top 0.6s ease, transform 0.5s ease';
+    this._robotEl.style.transition = 'left 0.6s ease, top 0.6s ease';
 
     switch (type) {
       case 'move': {
@@ -449,7 +717,7 @@ export class GameTutorial {
       }
 
       case 'jump': {
-        this._robotEl.style.transition = 'top 0.3s ease, left 0.5s ease, transform 0.5s ease';
+        this._robotEl.style.transition = 'top 0.3s ease, left 0.5s ease';
         const cs = this._cellSize;
         this._robotEl.style.top = `${(this._ry - 0.5) * cs + cs * 0.15}px`;
         await this._delay(350);
@@ -511,8 +779,19 @@ export class GameTutorial {
         break;
       }
 
-
       case 'attack': {
+        if (this._robotEl) {
+          const cs = this._cellSize;
+          const pad = cs * 0.15;
+          this._robotEl.style.transition = 'left 0.5s ease, top 0.5s ease';
+          this._robotEl.style.left = `${(this._rx + 1) * cs + pad}px`;
+          await this._delay(500);
+          this._robotEl.style.transition = 'none';
+        }
+        this._rx = 1;
+        this._rdir = 2;
+        if (this._robotImg) this._robotImg.src = DIR_SPRITES[this._rdir];
+        await this._delay(300);
         if (this._enemyEl) {
           this._enemyEl.classList.add('tutorial-enemy-attacked');
           await this._delay(300);
