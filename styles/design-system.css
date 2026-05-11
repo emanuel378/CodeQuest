@@ -55,6 +55,9 @@
   --on-background: #dce4e4;
   --surface-variant: #2e3637;
   --color-accent: #00f2ff;
+  --victory-accent: #00f2ff;
+  --victory-accent-glow: rgba(0, 242, 255, 0.15);
+  --victory-accent-glow-strong: rgba(0, 242, 255, 0.4);
   --color-gold: #FFD700;
 
   --font-display: 'Space Grotesk', sans-serif;
@@ -110,6 +113,9 @@ body {
   --scrollbar-thumb-border: rgba(0, 242, 255, 0.15);
   --scrollbar-glow: rgba(0, 242, 255, 0.1);
   --scrollbar-glow-hover: rgba(0, 242, 255, 0.2);
+  --victory-accent: #00f2ff;
+  --victory-accent-glow: rgba(0, 242, 255, 0.15);
+  --victory-accent-glow-strong: rgba(0, 242, 255, 0.4);
 }
 
 .game-container.theme-forest {
@@ -123,12 +129,15 @@ body {
   --surface-container-high: #1a2a1f;
   --surface-container-highest: #233d2c;
   --surface-variant: #1a2a1f;
-  --color-accent: #00FF3D;
+  --color-accent: #00ff3d;
   --scrollbar-thumb: rgba(0, 255, 61, 0.25);
   --scrollbar-thumb-hover: rgba(0, 255, 61, 0.45);
   --scrollbar-thumb-border: rgba(0, 255, 61, 0.15);
   --scrollbar-glow: rgba(0, 255, 61, 0.1);
   --scrollbar-glow-hover: rgba(0, 255, 61, 0.2);
+  --victory-accent: #00ff3d;
+  --victory-accent-glow: rgba(0, 255, 61, 0.15);
+  --victory-accent-glow-strong: rgba(0, 255, 61, 0.4);
 }
 
 .game-container.theme-void {
@@ -148,6 +157,9 @@ body {
   --scrollbar-thumb-border: rgba(235, 178, 255, 0.15);
   --scrollbar-glow: rgba(235, 178, 255, 0.1);
   --scrollbar-glow-hover: rgba(235, 178, 255, 0.2);
+  --victory-accent: #ebb2ff;
+  --victory-accent-glow: rgba(235, 178, 255, 0.15);
+  --victory-accent-glow-strong: rgba(235, 178, 255, 0.4);
 }
 
 ::selection {

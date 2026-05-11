@@ -26,6 +26,7 @@ export class Progression {
     this._levelUpListeners = [];
     this._playerLevelUpListeners = [];
     this._failedLevels = [];
+    this.levelStats = {};
     this._load();
     this.resetAttempts();
   }
@@ -48,6 +49,7 @@ export class Progression {
         this.playerLevel = data.playerLevel || 1;
         this.playerXP = data.playerXP || 0;
         this._failedLevels = data.failedLevels || [];
+        this.levelStats = data.levelStats || {};
       }
     } catch { }
 
@@ -65,7 +67,8 @@ export class Progression {
         attributePoints: this.attributePoints,
         playerLevel: this.playerLevel,
         playerXP: this.playerXP,
-        failedLevels: this._failedLevels
+        failedLevels: this._failedLevels,
+        levelStats: this.levelStats
       }));
     } catch { }
   }
@@ -197,7 +200,7 @@ export class Progression {
     return true
   }
 
-  completeLevel(id, score = 0, blocksUsed = 0, idealBlocks = 0) {
+  completeLevel(id, score = 0, blocksUsed = 0, idealBlocks = 0, rankLabel = 'C', timeElapsed = 0) {
     const isNew = !this.completedLevels.includes(id)
     if (isNew) {
       this.completedLevels.push(id)
@@ -225,10 +228,30 @@ export class Progression {
 
     this.addPlayerXP(score)
 
+    const stars = rankLabel === 'S' ? 3 : rankLabel === 'A' ? 2 : 1
+    this.saveLevelStats(id, { stars, score, blocksUsed, idealBlocks, timeElapsed })
+
     this.unmarkLevelFailed(id)
 
     this._syncUnlocked()
     this._save()
+  }
+
+  saveLevelStats(id, { stars, score, blocksUsed, idealBlocks, timeElapsed }) {
+    if (!this.levelStats) this.levelStats = {}
+    const existing = this.levelStats[id] || {}
+    this.levelStats[id] = {
+      stars: Math.max(stars, existing.stars || 0),
+      bestScore: Math.max(score, existing.bestScore || 0),
+      bestBlocks: existing.bestBlocks ? Math.min(blocksUsed, existing.bestBlocks) : blocksUsed,
+      bestTime: existing.bestTime ? Math.min(timeElapsed, existing.bestTime) : timeElapsed,
+      blocksUsed,
+      idealBlocks
+    }
+  }
+
+  getLevelStats(id) {
+    return this.levelStats?.[id] || null
   }
 
   hasFailedLevel(levelId) {

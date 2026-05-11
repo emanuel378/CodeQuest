@@ -476,6 +476,112 @@ function countBlocksInTree(commands) {
   return count
 }
 
+function showVictoryModal({ rankConfig, blocksUsed, idealBlocks, boostedScore, baseXP, attrMultiplier, timeElapsed, hasNext, levelName = 'Fase Desconhecida' }) {
+  const overlay = document.createElement('div')
+  overlay.className = 'victory-overlay'
+
+  const stars = rankConfig.label === 'S' ? 3 : rankConfig.label === 'A' ? 2 : 1
+  const xpPercent = Math.min(100, Math.round((boostedScore / (baseXP * rankConfig.xpMultiplier * attrMultiplier)) * 100))
+
+  overlay.innerHTML = `
+    <div class="victory-modal">
+      <div class="victory-body">
+        <div class="victory-level-name">${levelName}</div>
+
+        <div class="victory-icon-wrapper">
+          <span class="material-symbols-outlined victory-icon">emoji_events</span>
+        </div>
+
+        <div class="victory-stars">
+          ${[1, 2, 3].map(i => `<span class="material-symbols-outlined star${i <= stars ? ' filled' : ''}">star</span>`).join('')}
+        </div>
+
+        <h2 class="victory-title">FASE CONCLUÍDA</h2>
+
+        <div class="victory-rank-section">
+          <div class="victory-rank-badge rank-badge-${rankConfig.label}">
+            <span class="victory-rank-letter">${rankConfig.label}</span>
+          </div>
+          <div>
+            <div class="victory-rank-label">Classificação</div>
+            <div class="victory-rank-name">${rankConfig.label === 'S' ? 'Mestre Supremo' : rankConfig.label === 'A' ? 'Expert' : rankConfig.label === 'B' ? 'Avançado' : 'Iniciante'}</div>
+          </div>
+        </div>
+
+        <div class="victory-score-breakdown">
+          <div class="breakdown-header">CÁLCULO DE XP</div>
+          <div class="breakdown-equation">
+            <span class="breakdown-base">${baseXP}</span>
+            <span class="breakdown-op">×</span>
+            <span class="breakdown-rank">${rankConfig.xpMultiplier}×</span>
+            <span class="breakdown-op">×</span>
+            <span class="breakdown-attr">${attrMultiplier}×</span>
+            <span class="breakdown-op">=</span>
+            <span class="breakdown-result">${boostedScore}</span>
+          </div>
+          <div class="breakdown-label">XP base × rank × atributos = XP total</div>
+        </div>
+
+        <div class="victory-stats">
+          <div class="stat-row">
+            <span class="stat-label"><span class="material-symbols-outlined">emoji_events</span> XP Ganho</span>
+            <span class="stat-value xp-value">+${boostedScore}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label"><span class="material-symbols-outlined">block</span> Blocos</span>
+            <span class="stat-value">${blocksUsed} <span class="stat-dim">/ ${idealBlocks}</span></span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label"><span class="material-symbols-outlined">timer</span> Tempo</span>
+            <span class="stat-value">${timeElapsed}s</span>
+          </div>
+        </div>
+
+        <div class="victory-xp-bar">
+          <div class="victory-xp-fill" id="victory-xp-fill" style="--xp-percent: ${xpPercent}%"></div>
+        </div>
+
+      </div>
+
+      <div class="victory-footer">
+        <button class="victory-btn" id="victory-retry">Repetir</button>
+        ${hasNext ? '<button class="victory-btn victory-btn-primary" id="victory-next">Próxima Fase</button>' : ''}
+      </div>
+    </div>
+  `
+  document.body.appendChild(overlay)
+
+  const container = document.querySelector('.game-container')
+  if (container) {
+    const style = getComputedStyle(container)
+    const modal = overlay.querySelector('.victory-modal')
+    if (modal) {
+      modal.style.setProperty('--victory-accent', style.getPropertyValue('--victory-accent'))
+      modal.style.setProperty('--victory-accent-glow', style.getPropertyValue('--victory-accent-glow'))
+      modal.style.setProperty('--victory-accent-glow-strong', style.getPropertyValue('--victory-accent-glow-strong'))
+    }
+  }
+
+  requestAnimationFrame(() => {
+    overlay.classList.add('active')
+    requestAnimationFrame(() => {
+      const fill = overlay.querySelector('#victory-xp-fill')
+      if (fill) fill.classList.add('animated')
+    })
+  })
+
+  return new Promise(resolve => {
+    overlay.querySelector('#victory-retry')?.addEventListener('click', () => {
+      overlay.classList.remove('active')
+      overlay.addEventListener('transitionend', () => { overlay.remove(); resolve('retry') }, { once: true })
+    })
+    overlay.querySelector('#victory-next')?.addEventListener('click', () => {
+      overlay.classList.remove('active')
+      overlay.addEventListener('transitionend', () => { overlay.remove(); resolve('next') }, { once: true })
+    })
+  })
+}
+
 function showAttemptFailModal(previousLevelId) {
   const overlay = document.createElement('div')
   overlay.className = 'profile-overlay'
@@ -639,6 +745,7 @@ function initGame() {
     gs.shouldPause = false;
     gs.shouldStop = false;
     gs._playerDied = false;
+    gs._startTime = Date.now();
     setStatus('Preparando...', '#00f2ff');
     audioManager.playSfx('execute');
     await new Promise(r => setTimeout(r, 500));
@@ -803,7 +910,9 @@ function initGame() {
         )
         const boostedScore = Math.round(finalScore * attrMultiplier)
 
-        gs.progression.completeLevel(levelId, boostedScore, blocksUsed, idealBlocks)
+        const timeElapsed = Math.floor((Date.now() - (gs._startTime || Date.now())) / 1000)
+        gs.progression.completeLevel(levelId, boostedScore, blocksUsed, idealBlocks, rankConfig.label, timeElapsed)
+
         if (gs.attrPanel) {
           gs.attrPanel.setLastRank(rankConfig.label)
           gs.attrPanel.refresh()
@@ -813,22 +922,29 @@ function initGame() {
         const hasNext = lvl && lvl.id <= gs.progression.getCurrentLevel()
 
         gs.errorLog.innerHTML = ''
-        gs.errorLog.style.display = 'flex'
-        const rankEl = document.createElement('div')
-        rankEl.className = 'log-entry log-warning'
-        rankEl.innerHTML = `<span>Rank ${rankConfig.label} | ${blocksUsed} blocos (ideal: ${idealBlocks}) | +${boostedScore} XP</span>`
-        gs.errorLog.appendChild(rankEl)
+        gs.errorLog.style.display = 'none'
 
-        setTimeout(() => {
-          if (gs.progression) gs.progression.resetAttempts()
-          if (gs.attrPanel) gs.attrPanel.refresh()
-          if (hasNext) {
-            loadLevelById(gs.activeLevelId + 1)
-          } else {
-            resetActiveLevel()
-          }
-          workspace.clear()
-        }, 2000)
+        const action = await showVictoryModal({
+          rankConfig,
+          blocksUsed,
+          idealBlocks,
+          boostedScore,
+          baseXP,
+          attrMultiplier,
+          timeElapsed,
+          hasNext,
+          levelName: level ? level.name : 'Fase Desconhecida'
+        })
+
+        if (gs.progression) gs.progression.resetAttempts()
+        if (gs.attrPanel) gs.attrPanel.refresh()
+
+        if (action === 'next' && hasNext) {
+          loadLevelById(gs.activeLevelId + 1)
+        } else {
+          resetActiveLevel()
+        }
+        workspace.clear()
       } else {
         setStatus('Tente novamente', '#ef4444');
         const remaining = gs.progression.consumeAttempt()
