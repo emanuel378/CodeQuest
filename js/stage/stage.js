@@ -137,7 +137,7 @@ export class Stage {
   }
 
   canMoveTo(x, y) {
-    return this.isInBounds(x, y) && !this.isObstacleAt(x, y);
+    return this.isInBounds(x, y) && !this.isObstacleAt(x, y) && !this.isEnemyAt(x, y);
   }
 
   detectObstacleAhead() {

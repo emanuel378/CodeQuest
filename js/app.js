@@ -882,6 +882,14 @@ function initGame() {
           if (!stage.canMoveTo(ahead.x, ahead.y)) {
             if (!stage.isInBounds(ahead.x, ahead.y)) {
               audioManager.playSfx('obstacle');
+            } else if (stage.isEnemyAt(ahead.x, ahead.y)) {
+              audioManager.playSfx('laserBlock');
+              player.takeDamage(1);
+              updateSimView();
+              if (!player.isAlive()) {
+                gs.shouldStop = true;
+                showGameOver();
+              }
             } else if (stage.isObstacleAt(ahead.x, ahead.y)) {
               const obs = stage.obstacles.find(o => o.x === ahead.x && o.y === ahead.y);
               if (obs && obs.type === 'laser') {
@@ -898,6 +906,7 @@ function initGame() {
           updateSimView();
           if (gs.shouldStop) return;
         }
+        if (gs.shouldStop) return;
         await new Promise(r => setTimeout(r, 350));
         tickEnemiesAndSync();
       }),
