@@ -307,26 +307,20 @@ export class BlockWorkspace {
   _applyInlineContentStyles(el, apply) {
     const content = el?.querySelector('.sb-content');
     if (!content) return;
-    if (apply) {
+    const isCtrl = el.classList.contains('sb-control');
+    if (apply && !isCtrl) {
+      const isDeep = el.closest('.sb-control.sb-nested');
       content.style.flexDirection = 'row';
       content.style.alignItems = 'center';
-      content.style.gap = '8px';
-      content.style.padding = '8px 12px';
-      content.style.minWidth = '0';
-      content.style.fontSize = '12px';
-      content.style.whiteSpace = 'nowrap';
-      content.style.overflow = 'hidden';
-      content.style.textOverflow = 'ellipsis';
+      content.style.gap = isDeep ? '4px' : '8px';
+      content.style.padding = isDeep ? '4px 8px' : '8px 12px';
+      content.style.fontSize = isDeep ? '11px' : '12px';
     } else {
       content.style.flexDirection = '';
       content.style.alignItems = '';
       content.style.gap = '';
       content.style.padding = '';
-      content.style.minWidth = '';
       content.style.fontSize = '';
-      content.style.whiteSpace = '';
-      content.style.overflow = '';
-      content.style.textOverflow = '';
     }
   }
 
@@ -355,6 +349,24 @@ export class BlockWorkspace {
 
   _findChildArea(cx, cy) {
     for (const [, b] of this.blocks) {
+      if (!b.ctrl || !b.parent || !b.el) continue;
+      const r = b.el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        const ca = b.el.querySelector('.sb-child-area');
+        const cr = ca ? ca.getBoundingClientRect() : null;
+        const ea = b.el.querySelector('.sb-else-area');
+        const er = ea ? ea.getBoundingClientRect() : null;
+
+        const inCa = cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+        const inEa = er && cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom;
+
+        if (inCa) return ca;
+        if (inEa) return ea;
+        if (ca) return ca;
+        if (ea) return ea;
+      }
+    }
+    for (const [, b] of this.blocks) {
       if (!b.ctrl || !b.el) continue;
       const ca = b.el.querySelector('.sb-child-area');
       if (ca) {
@@ -381,9 +393,6 @@ export class BlockWorkspace {
     const pd = this.blocks.get(pe.dataset.bid);
     if (!pd) return null;
 
-    const hint = area.querySelector('.sb-child-hint');
-    if (hint) hint.remove();
-
     const b = this.createBlock(data.type, data.label, data.icon, data.category, data.params, 0, 0);
     b.parent = pd.id;
     if (isElse) pd.elseChildren.push(b.id);
@@ -393,8 +402,8 @@ export class BlockWorkspace {
     b.el.style.left = '';
     b.el.style.top = '';
     b.el.classList.add('sb-nested');
-    this._applyInlineContentStyles(b.el, true);
     area.appendChild(b.el);
+    this._applyInlineContentStyles(b.el, true);
     this._updateHeight(pd);
     audioManager.playSfx('snap');
     return b;
@@ -462,8 +471,29 @@ export class BlockWorkspace {
     const my = (cy - crt.top) / this.zoom;
     if (!this._paletteDragData) return;
 
-    const sn = SNAP_DISTANCE / this.zoom;
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+
+    for (const [, o] of this.blocks) {
+      if (!o.ctrl || !o.parent || !o.el) continue;
+      const r = o.el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        const ca = o.el.querySelector('.sb-child-area');
+        const cr = ca ? ca.getBoundingClientRect() : null;
+        const ea = o.el.querySelector('.sb-else-area');
+        const er = ea ? ea.getBoundingClientRect() : null;
+
+        const inCa = cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+        const inEa = er && cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom;
+
+        if (inCa && ca) ca.classList.add('sb-snap-target');
+        if (inEa && ea) ea.classList.add('sb-snap-target');
+        if (!inCa && !inEa && ca) ca.classList.add('sb-snap-target');
+        this._removePaletteGhost();
+        return;
+      }
+    }
+
+    const sn = SNAP_DISTANCE / this.zoom;
 
     let inChildArea = false;
     let bestChain = null;
@@ -636,9 +666,27 @@ export class BlockWorkspace {
     const b = this.blocks.get(id);
     if (!b) return;
 
+    for (const [, o] of this.blocks) {
+      if (!o.ctrl || !o.parent || !o.el) continue;
+      const r = o.el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        const ca = o.el.querySelector('.sb-child-area');
+        const cr = ca ? ca.getBoundingClientRect() : null;
+        const ea = o.el.querySelector('.sb-else-area');
+        const er = ea ? ea.getBoundingClientRect() : null;
+
+        const inCa = cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+        const inEa = er && cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom;
+
+        if (inCa && ca) ca.classList.add('sb-snap-target');
+        if (inEa && ea) ea.classList.add('sb-snap-target');
+        if (!inCa && !inEa && ca) ca.classList.add('sb-snap-target');
+        return;
+      }
+    }
+
     const sn = SNAP_DISTANCE / this.zoom;
 
-    // Check for child/else area nesting AND chain snap simultaneously
     let inChildArea = false;
     let bestChain = null;
     let bestDist = sn;
@@ -684,8 +732,6 @@ export class BlockWorkspace {
       }
     }
 
-    // If we have a chain snap AND the cursor is in a child area of a DIFFERENT block,
-    // remove the child area highlight and show the ghost
     if (bestChain) {
       if (inChildArea) {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
@@ -704,8 +750,36 @@ export class BlockWorkspace {
       const childArea = this._findChildArea(cx, cy);
       if (childArea) {
         const data = { type: b.type, label: b.label, icon: b.icon, category: b.category, params: { value: b.value, varName: b.varName, condition: b.condition } };
+        const savedChildren = b.ctrl ? [...b.children] : [];
+        const savedElseChildren = b.ctrl ? [...b.elseChildren] : [];
+
         this.removeBlock(b.id);
-        this._dropChild(childArea, data);
+
+        const newBlock = this._dropChild(childArea, data);
+
+        if (newBlock && (savedChildren.length || savedElseChildren.length)) {
+          for (const childId of savedChildren) {
+            const child = this.blocks.get(childId);
+            if (!child || !child.el) continue;
+            child.parent = newBlock.id;
+            newBlock.children.push(childId);
+            child.el.classList.add('sb-nested');
+            this._applyInlineContentStyles(child.el, true);
+            const area = newBlock.el.querySelector('.sb-child-area');
+            if (area) area.appendChild(child.el);
+          }
+          for (const childId of savedElseChildren) {
+            const child = this.blocks.get(childId);
+            if (!child || !child.el) continue;
+            child.parent = newBlock.id;
+            newBlock.elseChildren.push(childId);
+            child.el.classList.add('sb-nested');
+            this._applyInlineContentStyles(child.el, true);
+            const area = newBlock.el.querySelector('.sb-else-area');
+            if (area) area.appendChild(child.el);
+          }
+          this._updateHeight(newBlock);
+        }
       } else {
         const { x: mx, y: my } = this._clientToCanvas(cx, cy);
         this._trySnap(b.id, mx, my);
@@ -755,14 +829,12 @@ export class BlockWorkspace {
         const isElse = p.elseChildren.includes(b.id);
         const area = p.el.querySelector(isElse ? '.sb-else-area' : '.sb-child-area');
         if (!area) continue;
-        const hint = area.querySelector('.sb-child-hint');
-        if (hint) hint.remove();
         b.el.style.position = 'relative';
         b.el.style.left = '';
         b.el.style.top = '';
         b.el.classList.add('sb-nested');
-        this._applyInlineContentStyles(b.el, true);
         area.appendChild(b.el);
+        this._applyInlineContentStyles(b.el, true);
       }
 
       for (const [, b] of this.blocks) {

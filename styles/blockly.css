@@ -192,6 +192,8 @@
 .sb-block.sb-nested {
   position: relative;
   margin: 2px 0;
+  width: auto !important;
+  min-width: auto;
 }
 
 .sb-block-body {
@@ -239,6 +241,49 @@
 .sb-else-area .sb-block-body {
   -webkit-mask: none;
   mask: none;
+}
+
+.sb-block.sb-nested.sb-control {
+  min-width: auto;
+  width: auto !important;
+}
+
+.sb-block.sb-nested.sb-control .sb-control-header {
+  padding: 3px 8px 2px;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.sb-block.sb-nested.sb-control .sb-condition-chip {
+  flex: 0 0 auto;
+  margin-left: 0;
+  padding: 1px 6px;
+}
+
+.sb-block.sb-nested.sb-control .sb-condition-chip .cond-text {
+  font-size: 9px;
+}
+
+.sb-control.sb-nested > .sb-block-body > .sb-content > .sb-child-area .sb-label,
+.sb-control.sb-nested > .sb-block-body > .sb-content > .sb-else-section .sb-else-area .sb-label {
+  display: none;
+}
+
+.sb-block.sb-nested.sb-control .sb-child-area {
+  margin: 2px 0 2px 8px;
+  padding: 2px;
+  min-height: 24px;
+  gap: 1px;
+}
+
+.sb-block.sb-nested.sb-control .sb-else-section {
+  margin: 2px 0 2px 8px;
+}
+
+.sb-block.sb-nested.sb-control .sb-else-area {
+  padding: 2px;
+  min-height: 24px;
+  gap: 1px;
 }
 
 .sb-headlight {
@@ -435,10 +480,19 @@
   align-items: center;
   justify-content: center;
   color: var(--outline-variant);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 300;
-  opacity: 0.5;
+  opacity: 0.6;
   pointer-events: none;
+  padding: 6px 0;
+  order: 9999;
+  transition: opacity 0.15s, color 0.15s, text-shadow 0.15s;
+}
+
+.sb-child-area.sb-snap-target,
+.sb-else-area.sb-snap-target {
+  border-width: 2px;
+  border-style: solid;
 }
 
 .sb-block.sb-snap-target {
@@ -447,16 +501,6 @@
   box-shadow: 0 0 30px var(--primary-container),
               0 0 60px rgba(0, 242, 255, 0.4);
   border-radius: 6px;
-}
-
-.sb-child-area.sb-snap-target,
-.sb-else-area.sb-snap-target {
-  border-color: var(--primary-container) !important;
-  border-width: 2px;
-  border-style: solid;
-  background: rgba(0, 242, 255, 0.12);
-  box-shadow: inset 0 0 25px rgba(0, 242, 255, 0.25),
-              0 0 20px rgba(0, 242, 255, 0.15);
 }
 
 .sb-block {
