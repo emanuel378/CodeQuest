@@ -530,7 +530,7 @@ function countBlocksInTree(commands) {
   return count
 }
 
-function showVictoryModal({ rankConfig, blocksUsed, idealBlocks, boostedScore, baseXP, attrMultiplier, timeElapsed, hasNext, levelName = 'Fase Desconhecida' }) {
+function showVictoryModal({ rankConfig, blocksUsed, idealBlocks, boostedScore, baseXP, attrMultiplier, timeElapsed, hasNext, levelName = 'Fase Desconhecida', unlockCategory = null }) {
   const overlay = document.createElement('div')
   overlay.className = 'victory-overlay'
 
@@ -594,6 +594,19 @@ function showVictoryModal({ rankConfig, blocksUsed, idealBlocks, boostedScore, b
         <div class="victory-xp-bar">
           <div class="victory-xp-fill" id="victory-xp-fill" style="--xp-percent: ${xpPercent}%"></div>
         </div>
+
+        ${unlockCategory ? `
+        <div class="victory-unlock-section">
+          <div class="victory-unlock-badge">NOVO</div>
+          <div class="victory-unlock-content">
+            <span class="material-symbols-outlined victory-unlock-icon">${Progression.getCategoryIcon(unlockCategory)}</span>
+            <div class="victory-unlock-text">
+              <div class="victory-unlock-label">Novo tipo de bloco desbloqueado</div>
+              <div class="victory-unlock-name">${Progression.getCategoryLabel(unlockCategory)}</div>
+            </div>
+          </div>
+        </div>
+        ` : ''}
 
       </div>
 
@@ -996,7 +1009,7 @@ function initGame() {
         const boostedScore = Math.round(finalScore * attrMultiplier)
 
         const timeElapsed = Math.floor((Date.now() - (gs._startTime || Date.now())) / 1000)
-        gs.progression.completeLevel(levelId, boostedScore, blocksUsed, idealBlocks, rankConfig.label, timeElapsed)
+        const unlockCategory = gs.progression.completeLevel(levelId, boostedScore, blocksUsed, idealBlocks, rankConfig.label, timeElapsed)
 
         if (gs.attrPanel) {
           gs.attrPanel.setLastRank(rankConfig.label)
@@ -1020,7 +1033,8 @@ function initGame() {
           attrMultiplier,
           timeElapsed,
           hasNext,
-          levelName: level ? level.name : 'Fase Desconhecida'
+          levelName: level ? level.name : 'Fase Desconhecida',
+          unlockCategory
         })
 
         if (gs.progression) gs.progression.resetAttempts()
