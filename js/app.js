@@ -859,10 +859,14 @@ function initGame() {
         for (let i = 0; i < steps; i++) {
           const ahead = player.peekForward();
           if (!stage.canMoveTo(ahead.x, ahead.y)) {
-            if (stage.isObstacleAt(ahead.x, ahead.y)) {
+            if (!stage.isInBounds(ahead.x, ahead.y)) {
+              audioManager.playSfx('obstacle');
+            } else if (stage.isObstacleAt(ahead.x, ahead.y)) {
               const obs = stage.obstacles.find(o => o.x === ahead.x && o.y === ahead.y);
               if (obs && obs.type === 'laser') {
                 audioManager.playSfx('laserBlock');
+                player.takeDamage(1);
+                updateSimView();
               } else {
                 audioManager.playSfx('obstacle');
               }
@@ -881,14 +885,12 @@ function initGame() {
         player.turnRight();
         updateSimView();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       turnLeft: runWithGuard(async () => {
         player.turnLeft();
         updateSimView();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       jump: runWithGuard(async () => {
@@ -906,7 +908,6 @@ function initGame() {
         stage.attackEnemy();
         syncSimEntities();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       set_var: runWithGuard(async (cmd) => {
@@ -917,27 +918,23 @@ function initGame() {
       change_var: runWithGuard(async (cmd) => {
         variables[cmd.varName] = Number(cmd.value) || 0;
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       activate: runWithGuard(async () => {
         stage.activate();
         syncSimObstacles();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       detectObstacle: runWithGuard(async () => {
         const result = stage.detectObstacleAhead();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
         return result;
       }),
 
       detectEnemy: runWithGuard(async () => {
         const result = stage.detectEnemyNearby(3);
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
         return result;
       })
     };
@@ -1039,7 +1036,17 @@ function initGame() {
       }
     } catch (error) {
       if (gs._playerDied) {
-        // game over already handled by showGameOver
+        const remaining = gs.progression.consumeAttempt()
+        if (gs.attrPanel) gs.attrPanel.refresh()
+        if (remaining <= 0) {
+          const overlay = document.querySelector('.game-over-overlay');
+          if (overlay) overlay.remove();
+          gs._playerDied = false;
+          gs.shouldStop = false;
+          gs.isRunning = false;
+          await handleAttemptFailure()
+          return
+        }
       } else if (error.message === 'Execution stopped') {
         setStatus('Interrompido', '#ebb2ff');
       } else if (error.message === 'Command limit exceeded') {

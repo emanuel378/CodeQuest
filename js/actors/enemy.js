@@ -123,7 +123,11 @@ export class Enemy {
       };
     }
 
-    return this._moveTowardPlayer(stage, dx, dy);
+    if (this.tickCounter % 2 === 0) {
+      return this._moveTowardPlayer(stage, dx, dy);
+    }
+
+    return null;
   }
 
   _moveTowardPlayer(stage, dx, dy) {

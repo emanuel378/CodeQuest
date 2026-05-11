@@ -255,7 +255,7 @@ export const LEVELS = [
     enemies: [
       { x: 3, y: 2, hp: 2, type: 1, direction: 0 },
       { x: 0, y: 3, hp: 1, type: 0, direction: 1 },
-      { x: 5, y: 3, hp: 2, type: 2, direction: 3 }
+      { x: 5, y: 3, hp: 1, type: 2, direction: 3 }
     ],
     items: [],
     objectives: [
