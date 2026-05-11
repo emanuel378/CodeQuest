@@ -616,10 +616,13 @@ export class BlockWorkspace {
     }
 
     const sn = SNAP_DISTANCE / this.zoom;
+    const ghostH = CONTROL_TYPES.has(this._paletteDragData.type) ? 80 : 40;
 
     let inChildArea = false;
-    let bestChain = null;
-    let bestDist = sn;
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
 
     for (const [, o] of this.blocks) {
       if (o.ctrl && o.el) {
@@ -645,10 +648,14 @@ export class BlockWorkspace {
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
-      const ddx = Math.abs(mx - (ox + or.width / this.zoom / 2));
-      const ddy = my - (oy + or.height / this.zoom);
+      const oWidth = or.width / this.zoom;
+      const oHeight = or.height / this.zoom;
 
-      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
+
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
         if (o.ctrl) {
           const ca = o.el.querySelector('.sb-child-area');
           if (ca) {
@@ -657,17 +664,45 @@ export class BlockWorkspace {
             if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
           }
         }
-        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
-        bestDist = ddy;
+        bestBelow = { target: o, ox, oy, height: oHeight };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestAbove = { target: o, ox, oy, height: oHeight };
+        bestDistAbove = ddyAbove;
       }
     }
 
-    if (bestChain) {
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    if (useAbove) {
       if (inChildArea) {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
       }
-      const gx = bestChain.ox;
-      const gy = bestChain.oy + bestChain.height;
+      const gx = bestAbove.ox;
+      const gy = bestAbove.oy - ghostH;
+      if (!this._paletteGhostEl) {
+        this._createPaletteGhost(this._paletteDragData, gx, gy);
+      } else {
+        this._paletteGhostEl.style.left = gx + 'px';
+        this._paletteGhostEl.style.top = gy + 'px';
+      }
+    } else if (bestBelow) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestBelow.ox;
+      const gy = bestBelow.oy + bestBelow.height;
       if (!this._paletteGhostEl) {
         this._createPaletteGhost(this._paletteDragData, gx, gy);
       } else {
@@ -684,8 +719,11 @@ export class BlockWorkspace {
     if (!b || b.type === 'custom_var') return false;
 
     const sn = SNAP_DISTANCE / this.zoom;
-    let best = null;
-    let bestDist = sn;
+    const bHeight = b.el ? b.el.offsetHeight / this.zoom : (b.h || 40);
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
 
     for (const [, o] of this.blocks) {
       if (o.id === id || o.parent) continue;
@@ -693,12 +731,14 @@ export class BlockWorkspace {
       const crt = this._canvas.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
+      const oWidth = or.width / this.zoom;
       const oHeight = or.height / this.zoom;
 
-      const ddx = Math.abs(mx - (ox + or.width / this.zoom / 2));
-      const ddy = my - (oy + oHeight);
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
 
-      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
         if (o.ctrl) {
           const ca = o.el.querySelector('.sb-child-area');
           if (ca) {
@@ -707,13 +747,53 @@ export class BlockWorkspace {
             if (cdy >= 0 && cdy < ca.offsetHeight) continue;
           }
         }
-        best = { target: o, dy: ddy };
-        bestDist = ddy;
+        bestBelow = { target: o };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr = ca.getBoundingClientRect();
+            const cdy = my - (cr.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
+          }
+        }
+        bestAbove = { target: o };
+        bestDistAbove = ddyAbove;
       }
     }
 
-    if (best) {
-      const o = best.target;
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    if (useAbove) {
+      const o = bestAbove.target;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      b.x = (or.left - crt.left) / this.zoom;
+      b.y = (or.top - crt.top) / this.zoom - bHeight;
+
+      const oldPrevId = o.prev;
+      b.next = o.id;
+      o.prev = b.id;
+      b.prev = null;
+
+      if (oldPrevId) {
+        const oldPrev = this.blocks.get(oldPrevId);
+        if (oldPrev) {
+          oldPrev.next = b.id;
+          b.prev = oldPrevId;
+        }
+      }
+
+      this._pos(b);
+      return true;
+    }
+
+    if (bestBelow) {
+      const o = bestBelow.target;
       const or = o.el.getBoundingClientRect();
       const crt = this._canvas.getBoundingClientRect();
       b.x = (or.left - crt.left) / this.zoom;
@@ -830,10 +910,13 @@ export class BlockWorkspace {
     }
 
     const sn = SNAP_DISTANCE / this.zoom;
+    const bHeight = b.el ? b.el.offsetHeight / this.zoom : (b.h || 40);
 
     let inChildArea = false;
-    let bestChain = null;
-    let bestDist = sn;
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
 
     for (const [, o] of this.blocks) {
       if (o.ctrl && o.el) {
@@ -859,10 +942,14 @@ export class BlockWorkspace {
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
-      const ddx = Math.abs(mx - (ox + or.width / this.zoom / 2));
-      const ddy = my - (oy + or.height / this.zoom);
+      const oWidth = or.width / this.zoom;
+      const oHeight = or.height / this.zoom;
 
-      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
+
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
         if (o.ctrl) {
           const ca = o.el.querySelector('.sb-child-area');
           if (ca) {
@@ -871,17 +958,40 @@ export class BlockWorkspace {
             if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
           }
         }
-        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
-        bestDist = ddy;
+        bestBelow = { target: o, ox, oy, height: oHeight };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestAbove = { target: o, ox, oy, height: oHeight };
+        bestDistAbove = ddyAbove;
       }
     }
 
-    if (bestChain) {
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    if (useAbove) {
       if (inChildArea) {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
       }
-      const gx = bestChain.ox;
-      const gy = bestChain.oy + bestChain.height;
+      const gx = bestAbove.ox;
+      const gy = bestAbove.oy - bHeight;
+      this._createGhost(b, gx, gy);
+    } else if (bestBelow) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestBelow.ox;
+      const gy = bestBelow.oy + bestBelow.height;
       this._createGhost(b, gx, gy);
     }
   }
