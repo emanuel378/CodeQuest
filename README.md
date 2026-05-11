@@ -14,7 +14,7 @@
 
 <br>
 
-<img src="assets/demo/gif.gif" alt="Gameplay do CodeQuest" width="1024">
+<img src="assets/demo/gif.gif" alt="Gameplay do CodeQuest" width="400">
 
 <br>
 
