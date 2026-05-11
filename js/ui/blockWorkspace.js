@@ -14,9 +14,10 @@ const SNAP_DISTANCE = 90;
 const WORKSPACE_PAD = 400;
 
 export class BlockWorkspace {
-  constructor(containerEl, palette) {
+  constructor(containerEl, palette, options = {}) {
     this.ct = containerEl;
     this.palette = palette;
+    this.onError = options.onError || null;
     this.zoom = 1;
     this.blocks = new Map();
     this._drag = null;
@@ -332,7 +333,14 @@ export class BlockWorkspace {
         </div>`;
     }
     if (b.type === 'repeat') {
-      html += `<input class="sb-input sb-input-circle" type="text" value="${b.value || 5}" data-bid="${b.id}">`;
+      if (b.varName) {
+        html += `<span class="sb-var-slot sb-var-slot-filled" data-bid="${b.id}">
+          <span class="sb-var-slot-name">${b.varName}</span>
+          <button class="sb-var-slot-clear" data-bid="${b.id}">&times;</button>
+        </span>`;
+      } else {
+        html += `<span class="sb-var-slot" data-bid="${b.id}"><span class="sb-var-slot-placeholder">var</span></span>`;
+      }
     }
     html += `</div>`;
     return html;
@@ -351,12 +359,12 @@ export class BlockWorkspace {
     if (!content) return;
     const isCtrl = el.classList.contains('sb-control');
     if (apply && !isCtrl) {
-      const isDeep = el.closest('.sb-control.sb-nested');
+      const isNested = el.classList.contains('sb-nested');
       content.style.flexDirection = 'row';
       content.style.alignItems = 'center';
-      content.style.gap = isDeep ? '4px' : '8px';
-      content.style.padding = isDeep ? '4px 8px' : '8px 12px';
-      content.style.fontSize = isDeep ? '11px' : '12px';
+      content.style.gap = isNested ? '4px' : '8px';
+      content.style.padding = isNested ? '4px 6px' : '8px 12px';
+      content.style.fontSize = isNested ? '11px' : '12px';
     } else {
       content.style.flexDirection = '';
       content.style.alignItems = '';
@@ -373,6 +381,21 @@ export class BlockWorkspace {
   }
 
   drop(data, clientX, clientY) {
+    if (data.type === 'custom_var') {
+      const varName = data.params?.varName;
+      if (varName && this._isVariableDefined(varName)) {
+        const slotResult = this._findVarSlot(clientX, clientY);
+        if (slotResult) {
+          this._dockVariableToRepeat(slotResult.repeatBlock, slotResult.slotEl, varName);
+          audioManager.playSfx('snap');
+          return slotResult.repeatBlock;
+        }
+      } else if (varName && !this._isVariableDefined(varName)) {
+        audioManager.playSfx('error');
+        if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+      }
+    }
+
     const { x: mx, y: my } = this._clientToCanvas(clientX, clientY);
 
     const childArea = this._findChildArea(clientX, clientY);
@@ -506,6 +529,37 @@ export class BlockWorkspace {
     }
   }
 
+  _isVariableDefined(varName) {
+    for (const [, b] of this.blocks) {
+      if (b.type === 'set_var' && b.varName === varName) return true;
+    }
+    return false;
+  }
+
+  _findVarSlot(cx, cy) {
+    for (const [, b] of this.blocks) {
+      if (b.type === 'repeat' && !b.varName && b.el) {
+        const slot = b.el.querySelector('.sb-var-slot:not(.sb-var-slot-filled)');
+        if (slot) {
+          const r = slot.getBoundingClientRect();
+          if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+            return { repeatBlock: b, slotEl: slot };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  _dockVariableToRepeat(repeatBlock, slotEl, varName) {
+    repeatBlock.varName = varName;
+    slotEl.outerHTML = `<span class="sb-var-slot sb-var-slot-filled" data-bid="${repeatBlock.id}">
+      <span class="sb-var-slot-name">${varName}</span>
+      <button class="sb-var-slot-clear" data-bid="${repeatBlock.id}">&times;</button>
+    </span>`;
+    this.save();
+  }
+
   _showPaletteGuide(cx, cy) {
     this._removeGhost();
     const crt = this._canvas.getBoundingClientRect();
@@ -532,6 +586,32 @@ export class BlockWorkspace {
         if (!inCa && !inEa && ca) ca.classList.add('sb-snap-target');
         this._removePaletteGhost();
         return;
+      }
+    }
+
+    if (this._paletteDragData.type === 'custom_var') {
+      const varName = this._paletteDragData.params?.varName;
+      if (varName) {
+        for (const [, ob] of this.blocks) {
+          if (ob.type === 'repeat' && !ob.varName && ob.el) {
+            const slot = ob.el.querySelector('.sb-var-slot:not(.sb-var-slot-filled)');
+            if (slot) {
+              const sr = slot.getBoundingClientRect();
+              if (cx >= sr.left && cx <= sr.right && cy >= sr.top && cy <= sr.bottom) {
+                if (this._isVariableDefined(varName)) {
+                  slot.classList.add('sb-snap-target');
+                  this._removePaletteGhost();
+                } else {
+                  slot.classList.add('sb-var-slot-reject');
+                  setTimeout(() => slot.classList.remove('sb-var-slot-reject'), 300);
+                  audioManager.playSfx('error');
+                  if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+                }
+                return;
+              }
+            }
+          }
+        }
       }
     }
 
@@ -727,6 +807,28 @@ export class BlockWorkspace {
       }
     }
 
+    if (b.type === 'custom_var') {
+      for (const [, ob] of this.blocks) {
+        if (ob.type === 'repeat' && !ob.varName && ob.el) {
+          const slot = ob.el.querySelector('.sb-var-slot:not(.sb-var-slot-filled)');
+          if (slot) {
+            const sr = slot.getBoundingClientRect();
+            if (cx >= sr.left && cx <= sr.right && cy >= sr.top && cy <= sr.bottom) {
+              if (this._isVariableDefined(b.varName)) {
+                slot.classList.add('sb-snap-target');
+              } else {
+                slot.classList.add('sb-var-slot-reject');
+                setTimeout(() => slot.classList.remove('sb-var-slot-reject'), 300);
+                audioManager.playSfx('error');
+                if (this.onError) this.onError(`A variável "${b.varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+              }
+              return;
+            }
+          }
+        }
+      }
+    }
+
     const sn = SNAP_DISTANCE / this.zoom;
 
     let inChildArea = false;
@@ -789,6 +891,27 @@ export class BlockWorkspace {
     const b = this.blocks.get(this._drag.id);
     if (b) {
       b.el.classList.remove('dragging');
+
+      if (b.type === 'custom_var') {
+        const varName = b.varName;
+        if (varName && this._isVariableDefined(varName)) {
+          const slotResult = this._findVarSlot(cx, cy);
+          if (slotResult) {
+            this.removeBlock(b.id);
+            this._dockVariableToRepeat(slotResult.repeatBlock, slotResult.slotEl, varName);
+            audioManager.playSfx('snap');
+            this._removeGhost();
+            this._drag = null;
+            this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+            this.save();
+            return;
+          }
+        } else if (varName && !this._isVariableDefined(varName)) {
+          audioManager.playSfx('error');
+          if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+        }
+      }
+
       const childArea = this._findChildArea(cx, cy);
       if (childArea) {
         const data = { type: b.type, label: b.label, icon: b.icon, category: b.category, params: { value: b.value, varName: b.varName, condition: b.condition } };
@@ -1057,9 +1180,28 @@ export class BlockWorkspace {
     });
 
     this.ct.addEventListener('click', (e) => {
+      const clearBtn = e.target.closest('.sb-var-slot-clear');
+      if (clearBtn) {
+        const bid = clearBtn.dataset.bid;
+        const b = this.blocks.get(bid);
+        if (b && b.type === 'repeat') {
+          b.varName = null;
+          const slot = clearBtn.closest('.sb-var-slot');
+          if (slot) {
+            const parent = slot.parentNode;
+            const newSlot = document.createElement('span');
+            newSlot.className = 'sb-var-slot';
+            newSlot.dataset.bid = bid;
+            newSlot.innerHTML = '<span class="sb-var-slot-placeholder">var</span>';
+            parent.replaceChild(newSlot, slot);
+          }
+          this.save();
+        }
+        return;
+      }
       this.ct.querySelectorAll('.sb-block.selected').forEach(el => el.classList.remove('selected'));
       const block = e.target.closest('.sb-block');
-      if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq')) {
+      if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq, .sb-var-slot-clear')) {
         block.classList.add('selected');
       }
     });
@@ -1068,7 +1210,7 @@ export class BlockWorkspace {
       if (e.target.closest('.sb-zoom-controls, .btn-zoom')) return;
       const block = e.target.closest('.sb-block');
       if (!block) return;
-      if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq')) return;
+      if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq, .sb-var-slot-clear')) return;
       const b = this.blocks.get(block.dataset.bid);
       if (!b) return;
       this._dragStartPos = { x: e.clientX, y: e.clientY };

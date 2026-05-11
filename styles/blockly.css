@@ -849,3 +849,79 @@
 .sb-block-setvar .sb-content {
   gap: 4px;
 }
+
+.sb-var-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 48px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px dashed var(--outline);
+  border-radius: var(--rounded-sm);
+  background: var(--surface-container-low);
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.sb-var-slot.sb-snap-target {
+  border-color: var(--secondary);
+  border-style: solid;
+  background: var(--surface-container);
+  box-shadow: 0 0 8px var(--secondary-container);
+}
+
+.sb-var-slot.sb-var-slot-reject {
+  border-color: var(--error);
+  border-style: solid;
+  background: rgba(147, 0, 10, 0.2);
+  box-shadow: 0 0 8px var(--error-container);
+}
+
+.sb-var-slot-placeholder {
+  font-family: var(--font-mono, 'Space Grotesk');
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  font-style: italic;
+  text-transform: lowercase;
+}
+
+.sb-var-slot-filled {
+  border-style: solid;
+  border-color: var(--secondary);
+  background: var(--surface-container);
+}
+
+.sb-var-slot-name {
+  font-family: var(--font-display, 'Space Grotesk');
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--secondary);
+  letter-spacing: 0.02em;
+}
+
+.sb-var-slot-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--on-surface-variant);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.sb-var-slot-clear:hover {
+  color: var(--error);
+  background: rgba(147, 0, 10, 0.25);
+}

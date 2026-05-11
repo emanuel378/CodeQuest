@@ -705,6 +705,20 @@ function initGame() {
     _needsProfile: needsProfile,
   };
 
+  workspace.onError = (msg) => {
+    const el = document.createElement('div');
+    el.className = 'log-entry log-error';
+    el.textContent = '✕ ' + msg;
+    gs.errorLog.innerHTML = '';
+    gs.errorLog.appendChild(el);
+    gs.errorLog.style.display = 'flex';
+    setTimeout(() => {
+      if (gs.errorLog.children.length === 1 && gs.errorLog.children[0] === el) {
+        gs.errorLog.style.display = 'none';
+      }
+    }, 5000);
+  };
+
   const _unlockAudio = () => {
     audioManager.unlock();
     document.removeEventListener('click', _unlockAudio);
@@ -892,7 +906,8 @@ function initGame() {
         handlers,
         delayMs: 500,
         eventTarget: cmdEventTarget,
-        validation: runtimeValidation
+        validation: runtimeValidation,
+        variables
       });
 
       await new Promise(r => setTimeout(r, 200));

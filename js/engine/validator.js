@@ -6,7 +6,7 @@ const VALID_COMMANDS = new Set([
 
 const CONTROL_COMMANDS = new Set(['if', 'repeat', 'while']);
 
-const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'repeat', 'set_var', 'change_var']);
+const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'set_var', 'change_var']);
 
 const VALID_CONDITIONS = new Set(['obstacleDetected', 'enemyDetected']);
 
@@ -60,11 +60,28 @@ export function validateCommands(commands) {
     return result;
   }
 
+  result._cmdIndexMap = new Map();
+  _buildIndexMap(commands, result._cmdIndexMap);
+
   for (let i = 0; i < commands.length; i++) {
     validateNode(commands[i], result, 0, `#${i + 1}`);
   }
 
   return result;
+}
+
+function _buildIndexMap(commands, map, startIndex = 0) {
+  let idx = startIndex;
+  for (const cmd of commands) {
+    map.set(cmd, idx++);
+    if (cmd.children && cmd.children.length > 0) {
+      idx = _buildIndexMap(cmd.children, map, idx);
+    }
+    if (cmd.elseChildren && cmd.elseChildren.length > 0) {
+      idx = _buildIndexMap(cmd.elseChildren, map, idx);
+    }
+  }
+  return idx;
 }
 
 function validateNode(node, result, depth, path) {
@@ -157,9 +174,14 @@ function validateIf(node, result, depth, path) {
 
 function validateRepeat(node, result, depth, path) {
   const hasValue = node.value !== undefined && node.value !== null;
+  const hasVar = node.varName && node.varName.trim() !== '';
 
-  if (!hasValue) {
-    result.addError(`${path} (Repetir): Número de repetições obrigatório. Preencha o círculo branco no bloco.`);
+  if (!hasValue && !hasVar) {
+    result.addError(`${path} (Repetir): Número de repetições obrigatório. Encaixe uma variável no bloco Repetir.`);
+  } else if (hasVar) {
+    if (!_isVariableDefinedBefore(node, result)) {
+      result.addError(`${path} (Repetir): Variável "${node.varName}" não foi definida antes do bloco Repetir. Adicione um bloco "Definir ${node.varName}" antes.`);
+    }
   } else {
     const count = Number(node.value);
     if (isNaN(count) || count < 1) {
@@ -176,6 +198,17 @@ function validateRepeat(node, result, depth, path) {
       validateNode(node.children[i], result, depth + 1, `${path} (Repetir) > #${i + 1}`);
     }
   }
+}
+
+function _isVariableDefinedBefore(repeatNode, result) {
+  const cmdIndex = result._cmdIndexMap?.get(repeatNode);
+  if (cmdIndex === undefined) return true;
+  for (const [node, idx] of result._cmdIndexMap) {
+    if (idx >= cmdIndex) continue;
+    if (node.type === 'set_var' && node.varName === repeatNode.varName) return true;
+    if (node.type === 'change_var' && node.varName === repeatNode.varName) return true;
+  }
+  return false;
 }
 
 function validateWhile(node, result, depth, path) {
