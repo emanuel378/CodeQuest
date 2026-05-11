@@ -67,6 +67,10 @@ function loadLevelById(levelId, skipMusic = false) {
   }
 
   gs.activeLevelId = level.id;
+  if (_errorFadeTimeout) { clearTimeout(_errorFadeTimeout); _errorFadeTimeout = null; }
+  gs.errorLog.innerHTML = '';
+  gs.errorLog.style.display = 'none';
+  gs.errorLog.classList.remove('fade-out');
   gs.stage.loadLevel(level);
   gs.stage.setPlayer(gs.player);
   gs.player.reset(
@@ -456,21 +460,48 @@ function setStatus(text, color = 'var(--on-surface-variant)') {
   }
 }
 
+function showErrorLog() {
+  if (_errorFadeTimeout) {
+    clearTimeout(_errorFadeTimeout);
+    _errorFadeTimeout = null;
+  }
+  gs.errorLog.classList.remove('fade-out');
+  gs.errorLog.style.display = 'flex';
+}
+
+function scheduleErrorFadeOut(delay = 5000) {
+  if (_errorFadeTimeout) clearTimeout(_errorFadeTimeout);
+  _errorFadeTimeout = setTimeout(() => {
+    _errorFadeTimeout = null;
+    if (gs.errorLog.style.display === 'none') return;
+    gs.errorLog.classList.add('fade-out');
+    gs.errorLog.addEventListener('animationend', () => {
+      gs.errorLog.style.display = 'none';
+      gs.errorLog.classList.remove('fade-out');
+    }, { once: true });
+  }, delay);
+}
+
+function createLogEntry(type, message) {
+  const el = document.createElement('div');
+  el.className = `log-${type}`;
+  el.textContent = type === 'error' ? '✕ ' : '⚠ ';
+  const span = document.createElement('span');
+  span.textContent = message;
+  el.appendChild(span);
+  return el;
+}
+
 function showErrors(validation) {
   gs.errorLog.innerHTML = '';
   if (!validation || (!validation.hasErrors() && !validation.hasWarnings())) {
     gs.errorLog.style.display = 'none';
     return;
   }
-  gs.errorLog.style.display = 'flex';
+  showErrorLog();
 
   for (const msg of validation.getAllMessages()) {
-    const el = document.createElement('div');
-    el.className = `log-entry log-${msg.type}`;
-    el.textContent = msg.type === 'error' ? '✕ ' : '⚠ ';
-    const span = document.createElement('span');
-    span.textContent = msg.message;
-    el.appendChild(span);
+    const el = createLogEntry(msg.type, msg.message);
     gs.errorLog.appendChild(el);
   }
 }
@@ -689,7 +720,7 @@ function initGame() {
 
   const errorLog = document.createElement('div');
   errorLog.className = 'error-log';
-  document.querySelector('.simulation-panel')?.appendChild(errorLog);
+  els.workspace.appendChild(errorLog);
 
   const objectivesPanel = new ObjectivesPanel();
   objectivesPanel.mount(els.workspace);
@@ -706,17 +737,11 @@ function initGame() {
   };
 
   workspace.onError = (msg) => {
-    const el = document.createElement('div');
-    el.className = 'log-entry log-error';
-    el.textContent = '✕ ' + msg;
     gs.errorLog.innerHTML = '';
+    const el = createLogEntry('error', msg);
     gs.errorLog.appendChild(el);
-    gs.errorLog.style.display = 'flex';
-    setTimeout(() => {
-      if (gs.errorLog.children.length === 1 && gs.errorLog.children[0] === el) {
-        gs.errorLog.style.display = 'none';
-      }
-    }, 5000);
+    showErrorLog();
+    scheduleErrorFadeOut();
   };
 
   const _unlockAudio = () => {
@@ -758,11 +783,9 @@ function initGame() {
     if (gs._needsProfile) {
       setStatus('Sem perfil', '#ef4444');
       gs.errorLog.innerHTML = '';
-      const el = document.createElement('div');
-      el.className = 'log-entry log-error';
-      el.innerHTML = '<span>✕ Crie ou selecione um perfil antes de jogar!</span>';
+      const el = createLogEntry('error', 'Crie ou selecione um perfil antes de jogar!');
       gs.errorLog.appendChild(el);
-      gs.errorLog.style.display = 'flex';
+      showErrorLog();
       return;
     }
 
@@ -783,11 +806,10 @@ function initGame() {
     if (commands.length === 0) {
       setStatus('Nenhum bloco', '#ebb2ff');
       gs.errorLog.innerHTML = '';
-      gs.errorLog.style.display = 'flex';
-      const el = document.createElement('div');
-      el.className = 'log-entry log-warning';
-      el.innerHTML = '<span>⚠ Adicione blocos ao workspace antes de executar</span>';
+      const el = createLogEntry('warning', 'Adicione blocos ao workspace antes de executar');
       gs.errorLog.appendChild(el);
+      showErrorLog();
+      scheduleErrorFadeOut();
       gs.isRunning = false;
       return;
     }
@@ -948,8 +970,10 @@ function initGame() {
         const lvl = getLevel(gs.activeLevelId + 1)
         const hasNext = lvl && lvl.id <= gs.progression.getCurrentLevel()
 
+        if (_errorFadeTimeout) { clearTimeout(_errorFadeTimeout); _errorFadeTimeout = null; }
         gs.errorLog.innerHTML = ''
         gs.errorLog.style.display = 'none'
+        gs.errorLog.classList.remove('fade-out')
 
         const action = await showVictoryModal({
           rankConfig,
@@ -990,11 +1014,11 @@ function initGame() {
       } else if (error.message === 'Command limit exceeded') {
         audioManager.playSfx('error');
         setStatus('Limite de comandos excedido', '#ef4444');
-        const el = document.createElement('div');
-        el.className = 'log-entry log-error';
-        el.innerHTML = '<span>✕ Limite de ' + MAX_TOTAL_COMMANDS + ' comandos excedido. Possível loop infinito.</span>';
-        errorLog.appendChild(el);
-        errorLog.style.display = 'flex';
+        gs.errorLog.innerHTML = '';
+        const el = createLogEntry('error', 'Limite de ' + MAX_TOTAL_COMMANDS + ' comandos excedido. Possível loop infinito.');
+        gs.errorLog.appendChild(el);
+        showErrorLog();
+        scheduleErrorFadeOut();
       } else {
         audioManager.playSfx('error');
         setStatus('Erro', '#ef4444');
@@ -1058,6 +1082,7 @@ function initGame() {
 
 let _gameInitialized = false;
 let _currentTutorial = null;
+let _errorFadeTimeout = null;
 
 function onTutorialComplete() {
   _currentTutorial = null;
