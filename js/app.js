@@ -335,6 +335,20 @@ function syncSimEntities() {
   }
 }
 
+function syncSimObstacles() {
+  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+
+  for (const el of gs.simGrid.querySelectorAll('.sim-obstacle')) {
+    const x = parseInt(el.dataset.x);
+    const y = parseInt(el.dataset.y);
+    if (gs.stage.isObstacleRemoved(x, y)) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = '';
+    }
+  }
+}
+
 function tickEnemiesAndSync() {
   const attacks = gs.stage.tickEnemies();
 
@@ -372,7 +386,7 @@ function tickEnemiesAndSync() {
 
   if (wasHit) {
     flashPlayerDamage();
-    audioManager.playSfx('error');
+    audioManager.playSfx('takedmg');
   }
 
   if (!gs.stage.isPlayerAlive()) {
@@ -844,7 +858,21 @@ function initGame() {
         const steps = Math.max(1, cmd.value || 1);
         for (let i = 0; i < steps; i++) {
           const ahead = player.peekForward();
-          if (!stage.canMoveTo(ahead.x, ahead.y)) break;
+          if (!stage.canMoveTo(ahead.x, ahead.y)) {
+            if (!stage.isInBounds(ahead.x, ahead.y)) {
+              audioManager.playSfx('obstacle');
+            } else if (stage.isObstacleAt(ahead.x, ahead.y)) {
+              const obs = stage.obstacles.find(o => o.x === ahead.x && o.y === ahead.y);
+              if (obs && obs.type === 'laser') {
+                audioManager.playSfx('laserBlock');
+                player.takeDamage(1);
+                updateSimView();
+              } else {
+                audioManager.playSfx('obstacle');
+              }
+            }
+            break;
+          }
           player.moveForward(1);
           updateSimView();
           if (gs.shouldStop) return;
@@ -857,14 +885,12 @@ function initGame() {
         player.turnRight();
         updateSimView();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       turnLeft: runWithGuard(async () => {
         player.turnLeft();
         updateSimView();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       jump: runWithGuard(async () => {
@@ -882,7 +908,6 @@ function initGame() {
         stage.attackEnemy();
         syncSimEntities();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       set_var: runWithGuard(async (cmd) => {
@@ -895,17 +920,21 @@ function initGame() {
         await new Promise(r => setTimeout(r, 350));
       }),
 
+      activate: runWithGuard(async () => {
+        stage.activate();
+        syncSimObstacles();
+        await new Promise(r => setTimeout(r, 350));
+      }),
+
       detectObstacle: runWithGuard(async () => {
         const result = stage.detectObstacleAhead();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
         return result;
       }),
 
       detectEnemy: runWithGuard(async () => {
-        const result = stage.detectEnemyNearby(3);
+        const result = stage.detectEnemyNearby();
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
         return result;
       })
     };
@@ -1007,7 +1036,17 @@ function initGame() {
       }
     } catch (error) {
       if (gs._playerDied) {
-        // game over already handled by showGameOver
+        const remaining = gs.progression.consumeAttempt()
+        if (gs.attrPanel) gs.attrPanel.refresh()
+        if (remaining <= 0) {
+          const overlay = document.querySelector('.game-over-overlay');
+          if (overlay) overlay.remove();
+          gs._playerDied = false;
+          gs.shouldStop = false;
+          gs.isRunning = false;
+          await handleAttemptFailure()
+          return
+        }
       } else if (error.message === 'Execution stopped') {
         setStatus('Interrompido', '#ebb2ff');
       } else if (error.message === 'Command limit exceeded') {
@@ -1101,7 +1140,7 @@ document.addEventListener('game:ready', () => {
   const players = gs.playerManager.getPlayers();
   const activePlayer = gs.playerManager.getActivePlayer();
 
-  if (players.length === 0) {
+  if (players.length === 0 || (activePlayer && gs.progression.completedLevels.length === 0)) {
     _currentTutorial = new GameTutorial(onTutorialComplete);
     setTimeout(() => {
       if (_currentTutorial) _currentTutorial.show();

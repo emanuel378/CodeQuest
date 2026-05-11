@@ -33,6 +33,15 @@ export class AudioManager {
         new Audio('assets/sounds/SFX/Erro de lógica/erro_1.mp3'),
         new Audio('assets/sounds/SFX/Erro de lógica/erro_2.mp3')
       ],
+      obstacle: new Audio('assets/sounds/SFX/Obstaculos/obstaculo.mp3'),
+      laserBlock: [
+        new Audio('assets/sounds/SFX/Obstaculos/chock_1.mp3'),
+        new Audio('assets/sounds/SFX/Obstaculos/chock_2.mp3')
+      ],
+      takedmg: [
+        new Audio('assets/sounds/SFX/Tomando Dano/takedmg_1.mp3'),
+        new Audio('assets/sounds/SFX/Tomando Dano/takedmg_2.mp3')
+      ],
       execute: new Audio('assets/sounds/SFX/Execução de Código (executar)/exec.mp3'),
       victory: new Audio('assets/sounds/SFX/Vitória/vitoria.mp3')
     };

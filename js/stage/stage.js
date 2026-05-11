@@ -11,11 +11,17 @@ export class Stage {
     this._enemyIdCounter = 0;
     this.objectives = [];
     this._objectiveStates = {};
+    this._toggledObstacles = new Set();
+    this._originalSwitchable = [];
   }
 
   loadLevel(levelConfig) {
     this.gridSize = levelConfig.gridSize || 5;
     this.obstacles = (levelConfig.obstacles || []).map(o => ({ ...o }));
+    this._originalSwitchable = this.obstacles
+      .filter(o => o.switchable)
+      .map(o => ({ x: o.x, y: o.y, type: o.type, sprite: o.sprite }));
+    this._toggledObstacles = new Set();
     this.enemies = (levelConfig.enemies || []).map((e, i) => {
       const enemy = new Enemy({
         x: e.x,
@@ -74,17 +80,48 @@ export class Stage {
       case 'reach_goal': return this.isGoalReached();
       case 'defeat_enemies': return this.isEnemiesCleared();
       case 'collect_item': return this.player ? this.player.hasItem : false;
+      case 'require_item': return this.player ? (this.isGoalReached() && this.player.hasItem) : false;
       case 'survive': return false;
       default: return false;
     }
   }
 
-  setPlayer(player) {
-    this.player = player;
+  activate() {
+    let toggled = false;
+    for (const obs of this.obstacles) {
+      if (obs.switchable) {
+        const key = `${obs.x},${obs.y}`;
+        if (this._toggledObstacles.has(key)) {
+          this._toggledObstacles.delete(key);
+        } else {
+          this._toggledObstacles.add(key);
+        }
+        toggled = true;
+      }
+    }
+    return toggled;
+  }
+
+  isObstacleRemoved(x, y) {
+    return this._toggledObstacles.has(`${x},${y}`);
   }
 
   isObstacleAt(x, y) {
-    return this.obstacles.some(o => o.x === x && o.y === y);
+    const obs = this.obstacles.find(o => o.x === x && o.y === y);
+    if (!obs) return false;
+    if (obs.switchable && this._toggledObstacles.has(`${x},${y}`)) return false;
+    return true;
+  }
+
+  getActiveObstacles() {
+    return this.obstacles.filter(obs => {
+      if (obs.switchable && this._toggledObstacles.has(`${obs.x},${obs.y}`)) return false;
+      return true;
+    });
+  }
+
+  setPlayer(player) {
+    this.player = player;
   }
 
   isEnemyAt(x, y) {
@@ -109,13 +146,10 @@ export class Stage {
     return this.isObstacleAt(ahead.x, ahead.y) || !this.isInBounds(ahead.x, ahead.y);
   }
 
-  detectEnemyNearby(range = 3) {
+  detectEnemyNearby() {
     if (!this.player) return false;
-    return this.enemies.some(e => {
-      if (!e.alive) return false;
-      const dist = Math.abs(e.x - this.player.x) + Math.abs(e.y - this.player.y);
-      return dist <= range;
-    });
+    const ahead = this.player.peekForward();
+    return this.isEnemyAt(ahead.x, ahead.y);
   }
 
   attackEnemy() {
@@ -143,7 +177,13 @@ export class Stage {
   }
 
   checkVictory() {
-    if (this.goal) return this.isGoalReached();
+    if (this.goal) {
+      const hasRequireItem = this.objectives.some(o => o.id === 'require_item');
+      if (hasRequireItem) {
+        return this.isGoalReached() && this.player && this.player.hasItem;
+      }
+      return this.isGoalReached();
+    }
     return this.isEnemiesCleared();
   }
 

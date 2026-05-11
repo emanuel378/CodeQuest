@@ -765,6 +765,20 @@
   50% { box-shadow: 0 0 30px var(--primary-container), 0 0 60px rgba(0, 242, 255, 0.4); }
 }
 
+.tutorial-robot.tutorial-damaged {
+  animation: tut-damage-shake 0.5s ease-in-out;
+  box-shadow: 0 0 20px rgba(255, 180, 171, 0.8), 0 0 30px var(--error);
+  border-color: var(--error);
+}
+
+@keyframes tut-damage-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
 .tutorial-demo-info {
   display: flex;
   justify-content: space-between;

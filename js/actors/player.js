@@ -5,8 +5,8 @@ export class Player {
     this.y = 0;
     this.direction = 0;
     this.hasItem = false;
-    this.maxHp = 5;
-    this.hp = 5;
+    this.maxHp = 1;
+    this.hp = 1;
   }
 
   reset(x = 0, y = 0, direction = 0) {
