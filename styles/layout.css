@@ -1,0 +1,1228 @@
+/* ══════════════════════════════════════════════════════════
+   layout.css — Responsive Design System
+   Mobile First — Media Queries Organizadas
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Breakpoints (mobile first) ──
+   Base: 0-575px  (mobile portrait)
+   sm:   ≥576px   (mobile landscape / small tablet)
+   md:   ≥768px   (tablet portrait)
+   lg:   ≥1024px  (tablet landscape / small desktop)
+   xl:   ≥1280px  (large desktop)
+   ──────────────────────────────────── */
+
+/* ============================================
+   UTILITÁRIOS RESPONSIVOS
+   ============================================ */
+
+.hide-mobile {
+  display: none !important;
+}
+
+@media (min-width: 576px) {
+  .hide-mobile {
+    display: revert !important;
+  }
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .hide-sm {
+    display: revert !important;
+  }
+  .hide-md {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-md {
+    display: revert !important;
+  }
+  .hide-lg {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .hide-lg {
+    display: revert !important;
+  }
+}
+
+/* ============================================
+   LAYOUT GLOBAL — Body / Root
+   ============================================ */
+
+html {
+  font-size: 16px;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   BASE: 0-575px (mobile portrait)
+   ============================================ */
+
+/* ── Navbar ── */
+@media (max-width: 575px) {
+  .top-navbar {
+    padding: var(--sp-sm) var(--sp-md);
+    height: 56px;
+  }
+
+  .nav-logo {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .nav-brand {
+    position: static;
+    left: auto;
+    transform: none;
+    flex: 1;
+    text-align: center;
+    max-width: 50vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-title {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-controls {
+    gap: var(--sp-sm);
+  }
+
+  .star-rating {
+    display: none !important;
+  }
+
+  .progress-container {
+    display: none !important;
+  }
+
+  .btn-mute {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+  .btn-mute .material-symbols-outlined {
+    font-size: 20px;
+  }
+
+  .profile-btn,
+  .nav-rank-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sb-layout {
+    flex-direction: column;
+    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
+    margin-top: 56px;
+  }
+
+  .sb-palette {
+    width: 100%;
+    max-height: none;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: none;
+    border-bottom: 1px solid var(--outline-variant);
+    flex: 0 1 auto;
+    min-height: 44px;
+  }
+
+  .sb-palette-header {
+    display: none;
+  }
+
+  .sb-category-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 2px;
+    padding: 2px 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .sb-category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sb-cat-tab {
+    padding: 3px 5px;
+    font-size: 9px;
+    gap: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sb-cat-tab .material-symbols-outlined {
+    font-size: 12px;
+  }
+
+  .sb-palette-content {
+    flex-direction: column;
+    overflow: hidden;
+    gap: 0;
+    padding: 0;
+  }
+
+  .sb-category-panel {
+    gap: 2px;
+  }
+
+  .sb-palette-block {
+    flex-shrink: 0;
+    min-width: 56px;
+    padding: 2px 4px;
+    font-size: 8px;
+    gap: 2px;
+    border-radius: var(--rounded-sm);
+  }
+  .sb-palette-block .material-symbols-outlined {
+    font-size: 12px;
+  }
+  .sb-palette-block .sb-palette-label {
+    font-size: 8px;
+    letter-spacing: 0.03em;
+  }
+
+  .sb-workspace {
+    flex: 1;
+    min-height: 80px;
+  }
+
+  .sb-workspace-scroll {
+    padding: 60px;
+  }
+
+  :root {
+    --workspace-pad: 300px;
+  }
+
+  .sb-zoom-controls {
+    bottom: 4px;
+    left: 4px;
+    gap: 2px;
+  }
+
+  .btn-zoom {
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+  }
+  .btn-zoom .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .sb-zoom-level {
+    min-width: 28px;
+    font-size: 10px;
+  }
+
+  .simulation-panel {
+    width: 100%;
+    max-height: none;
+    flex: 0 1 auto;
+    border-left: none;
+    border-top: 1px solid var(--outline-variant);
+  }
+
+  .sim-header {
+    padding: 4px var(--sp-sm);
+  }
+  .sim-title {
+    font-size: 11px;
+  }
+  .status-chip {
+    padding: 1px 6px;
+  }
+  .status-text {
+    font-size: 9px;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .sim-attributes {
+    display: none !important;
+  }
+
+  .sim-viewport {
+    padding: var(--sp-xs);
+    min-height: 168px;
+  }
+
+  .sim-grid {
+    max-width: 160px;
+    max-height: 160px;
+    background-size: 24px 24px;
+  }
+
+  .sim-controls {
+    padding: 6px var(--sp-sm);
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .btn-executar,
+  .btn-pausar,
+  .btn-limpar {
+    font-size: 8px;
+    padding: 4px 2px;
+    gap: 1px;
+  }
+  .btn-executar .material-symbols-outlined,
+  .btn-pausar .material-symbols-outlined,
+  .btn-limpar .material-symbols-outlined {
+    font-size: 14px;
+  }
+
+  .sim-entity {
+    font-size: 16px;
+  }
+}
+
+/* ── Landing Page (mobile) ── */
+@media (max-width: 575px) {
+  .lp-header {
+    padding: var(--sp-md) var(--sp-md);
+  }
+
+  .lp-hero {
+    padding: var(--sp-lg) var(--sp-md);
+  }
+
+  .lp-title {
+    font-size: clamp(28px, 12vw, 48px);
+  }
+
+  .lp-description {
+    max-width: 90vw;
+    font-size: 15px;
+  }
+
+  .lp-hero-actions {
+    flex-direction: column;
+    gap: var(--sp-sm);
+    width: 100%;
+    max-width: 280px;
+  }
+  .lp-hero-actions button {
+    width: 100%;
+  }
+
+  .lp-bar {
+    margin-top: 40px;
+    max-width: 240px;
+  }
+
+  .lp-footer {
+    padding: var(--sp-md);
+  }
+  .lp-footer-text {
+    font-size: 12px;
+  }
+}
+
+/* ── Ranking Page (mobile) ── */
+@media (max-width: 575px) {
+  .rank-content {
+    padding: var(--sp-md);
+    gap: var(--sp-md);
+  }
+
+  .rank-nav-inner {
+    padding: var(--sp-sm) var(--sp-md);
+    height: auto;
+    min-height: 56px;
+  }
+
+  .rank-header {
+    gap: var(--sp-xs);
+  }
+
+  .rank-title {
+    font-size: 22px;
+  }
+  .rank-subtitle {
+    font-size: 12px;
+  }
+
+  .rank-podium {
+    gap: var(--sp-sm);
+  }
+
+  .podium-item {
+    padding: var(--sp-sm);
+    gap: var(--sp-xs);
+  }
+
+  .podium-avatar {
+    width: 48px;
+    height: 48px;
+  }
+  .podium-avatar-lg {
+    width: 60px;
+    height: 60px;
+  }
+  .podium-trophy {
+    font-size: 28px !important;
+    margin-bottom: var(--sp-xs);
+  }
+
+  .podium-label {
+    font-size: 20px;
+  }
+  .podium-name {
+    font-size: 11px;
+    margin-top: var(--sp-xs);
+  }
+  .podium-score {
+    font-size: 11px;
+  }
+  .podium-badge {
+    font-size: 10px;
+  }
+
+  .rank-btn-play {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .rank-list-header,
+  .rank-row {
+    grid-template-columns: 28px 1fr auto;
+    gap: var(--sp-xs);
+    padding: var(--sp-xs) var(--sp-sm);
+  }
+
+  .rank-col-rank {
+    font-size: 10px;
+  }
+  .rank-avatar-icon {
+    font-size: 16px !important;
+  }
+  .rank-cell-player {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .rank-cell-score {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .rank-row-rank {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .rank-row-name {
+    font-size: 12px;
+  }
+  .rank-row-score {
+    font-size: 11px;
+  }
+
+  .rank-list-panel {
+    min-width: 0;
+  }
+}
+
+/* ── Level Select Modal (mobile) ── */
+@media (max-width: 575px) {
+  .lvl-modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
+  }
+
+  .lvl-modal-header {
+    padding: var(--sp-md);
+  }
+  .lvl-modal-title {
+    font-size: 20px;
+  }
+  .lvl-modal-subtitle {
+    font-size: 13px;
+  }
+
+  .lvl-modal-grid {
+    padding: var(--sp-sm);
+  }
+
+  .lvl-row {
+    grid-template-columns: 1fr;
+    gap: var(--sp-sm);
+  }
+
+  .lvl-card {
+    padding: var(--sp-md);
+  }
+  .lvl-card-name {
+    font-size: 14px;
+  }
+  .lvl-card-difficulty {
+    font-size: 10px;
+  }
+}
+
+/* ── Victory / Game Over / Profile / Name Modals (mobile) ── */
+@media (max-width: 575px) {
+  .victory-modal {
+    width: 94%;
+    max-width: 360px;
+    padding: 0;
+  }
+  .victory-body {
+    padding: var(--sp-md) var(--sp-sm) var(--sp-sm);
+    gap: var(--sp-sm);
+  }
+  .victory-icon {
+    font-size: 36px !important;
+  }
+  .victory-level-name {
+    font-size: 20px;
+  }
+  .victory-rank-display {
+    font-size: 28px;
+  }
+  .victory-stars .material-symbols-outlined {
+    font-size: 28px;
+  }
+  .victory-xp-earned {
+    font-size: 14px;
+  }
+
+  .game-over-modal {
+    width: 90%;
+    max-width: 320px;
+    padding: var(--sp-lg) var(--sp-md);
+  }
+  .game-over-icon {
+    font-size: 36px !important;
+  }
+  .game-over-title {
+    font-size: 22px;
+  }
+
+  .profile-modal {
+    width: 94%;
+    max-width: 340px;
+    padding: var(--sp-lg) var(--sp-md);
+  }
+  .profile-modal-lg {
+    max-height: 85vh;
+  }
+
+  .name-prompt-modal {
+    width: 94%;
+    max-width: 340px;
+    padding: var(--sp-lg) var(--sp-md);
+  }
+  .name-prompt-title {
+    font-size: 20px;
+  }
+
+  .attr-tooltip {
+    width: 180px;
+    font-size: 11px;
+    padding: var(--sp-xs) var(--sp-sm);
+  }
+}
+
+/* ── Objectives Panel (mobile) ── */
+@media (max-width: 575px) {
+  .objectives-panel {
+    max-width: min(180px, calc(100vw - 24px));
+    min-width: 100px;
+    padding: var(--sp-sm);
+    gap: var(--sp-xs);
+  }
+  .objectives-panel.collapsed {
+    opacity: 0.8;
+    max-width: min(90px, calc(100vw - 16px));
+    min-width: 80px;
+    padding: 3px 6px;
+  }
+  .objectives-panel.collapsed .objectives-header-icon {
+    font-size: 11px;
+  }
+  .objectives-panel.collapsed .objectives-counter {
+    font-size: 7px;
+    padding: 0 3px;
+  }
+  .objectives-panel.collapsed .objectives-toggle-icon {
+    font-size: 12px;
+  }
+  .objectives-panel.collapsed .objectives-title {
+    font-size: 7px;
+    letter-spacing: 0.08em;
+  }
+  .objectives-title {
+    font-size: 9px;
+  }
+  .objectives-counter {
+    font-size: 8px;
+    padding: 0 4px;
+  }
+  .objective-item {
+    font-size: 10px;
+    gap: var(--sp-xs);
+    padding: 2px 0;
+  }
+  .objective-item .material-symbols-outlined {
+    font-size: 14px;
+  }
+  .objectives-header-icon {
+    font-size: 14px;
+  }
+}
+
+/* ── Error Log (mobile) ── */
+@media (max-width: 575px) {
+  .error-log {
+    min-width: 200px;
+    max-width: 90vw;
+    top: 4px;
+  }
+  .error-log > div {
+    font-size: 11px;
+    padding: var(--sp-xs) var(--sp-sm);
+  }
+  .log-error::before {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* ── Profile Dropdown (mobile) ── */
+@media (max-width: 575px) {
+  .profile-dropdown {
+    position: fixed;
+    top: 56px;
+    right: var(--sp-sm);
+    left: var(--sp-sm);
+    min-width: 0;
+    width: auto;
+  }
+}
+
+/* ── Blocks / Workspace General (mobile) ── */
+@media (max-width: 575px) {
+  .sb-block {
+    font-size: 11px;
+  }
+  .sb-content {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .sb-control {
+    min-width: 130px;
+  }
+  .sb-child-area {
+    margin: 2px 0 2px 14px;
+  }
+  .sb-else-section {
+    margin: 2px 0 2px 14px;
+  }
+  .sb-input-circle {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    font-size: 10px;
+  }
+  .sb-input-diamond {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    font-size: 10px;
+  }
+  .sb-label {
+    font-size: 10px;
+  }
+  .sb-block-text {
+    font-size: 10px;
+  }
+  .sb-headlight {
+    width: 24px;
+    min-width: 24px;
+  }
+  .sb-else-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+  .sb-del {
+    width: 18px;
+    height: 18px;
+    top: -6px;
+    right: -6px;
+  }
+  .sb-del .material-symbols-outlined {
+    font-size: 12px;
+  }
+}
+
+/* ── Tutorial (mobile) ── */
+@media (max-width: 575px) {
+  .tutorial-overlay {
+    align-items: flex-end;
+  }
+  .tutorial-modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: var(--rounded-lg) var(--rounded-lg) 0 0;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  .tutorial-content {
+    padding: var(--sp-md);
+  }
+  .tutorial-title {
+    font-size: 18px;
+  }
+  .tutorial-text {
+    font-size: 13px;
+  }
+  .tutorial-step-demo {
+    gap: var(--sp-sm);
+  }
+  .tutorial-demo {
+    gap: var(--sp-sm);
+  }
+  .tutorial-demo-grid {
+    max-width: 180px;
+  }
+  .tutorial-demo-info {
+    font-size: 11px;
+  }
+  .tutorial-demo-block-card {
+    padding: var(--sp-sm);
+    gap: var(--sp-xs);
+  }
+  .tutorial-demo-block-icon {
+    font-size: 22px;
+  }
+  .tutorial-demo-block-label {
+    font-size: 11px;
+  }
+  .tutorial-demo-desc {
+    font-size: 12px;
+  }
+  .tutorial-demo-card-row {
+    gap: var(--sp-sm);
+  }
+  .tutorial-demo-arrow {
+    width: 36px;
+    height: 36px;
+  }
+  .tutorial-demo-play-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .tutorial-btn {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+  .tutorial-obj-demo-panel {
+    padding: var(--sp-sm);
+  }
+  .tut-obj-demo-title {
+    font-size: 11px;
+  }
+  .tut-obj-demo-item {
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   sm: ≥576px (mobile landscape / small tablet)
+   ============================================ */
+
+@media (min-width: 576px) and (max-width: 767px) {
+  .top-navbar {
+    height: 60px;
+  }
+
+  .sb-layout {
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+    margin-top: 60px;
+  }
+
+  .sb-palette {
+    width: 100%;
+    max-height: none;
+    flex-direction: column;
+    border-right: none;
+    border-bottom: 1px solid var(--outline-variant);
+    flex: 0 1 auto;
+    min-height: 44px;
+  }
+  .sb-palette-header {
+    display: none;
+  }
+  .sb-palette-content {
+    flex-direction: column;
+    overflow: hidden;
+    gap: 0;
+    padding: 0;
+  }
+  .sb-palette-block {
+    flex-shrink: 0;
+    min-width: 64px;
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+  .sb-category-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 3px;
+    padding: 4px 6px;
+    flex-shrink: 0;
+  }
+  .sb-cat-tab {
+    padding: 4px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .sim-viewport {
+    min-height: 208px;
+  }
+
+  .simulation-panel {
+    width: 100%;
+    max-height: none;
+    flex: 0 1 auto;
+    border-left: none;
+    border-top: 1px solid var(--outline-variant);
+  }
+
+  .sim-controls {
+    flex-shrink: 0;
+  }
+
+  .sim-grid {
+    max-width: 200px;
+    max-height: 200px;
+  }
+
+  .sim-attributes {
+    display: none !important;
+  }
+
+  .nav-brand {
+    max-width: 35vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .star-rating {
+    display: none !important;
+  }
+
+  .lp-title {
+    font-size: clamp(36px, 10vw, 56px);
+  }
+
+  .lp-hero {
+    padding: var(--sp-lg) var(--sp-md);
+  }
+
+  .lvl-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .rank-content {
+    padding: var(--sp-lg);
+  }
+}
+
+@media (min-width: 576px) {
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   md: ≥768px (tablet portrait)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* ── Navbar ── */
+  .top-navbar {
+    padding: var(--sp-md) var(--sp-lg);
+  }
+
+  .nav-brand {
+    max-width: 30vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .app-title {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .progress-container {
+    width: 140px;
+  }
+
+  /* ── Game Layout ── */
+  .sb-palette {
+    width: 180px;
+  }
+
+  .simulation-panel {
+    width: 320px;
+  }
+
+  .sim-grid {
+    max-width: 240px;
+    max-height: 240px;
+  }
+
+  .sim-attributes {
+    padding: var(--sp-xs);
+  }
+
+  .objectives-title {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Landing ── */
+  .lp-title {
+    font-size: clamp(44px, 8vw, 64px);
+  }
+
+  .lp-description {
+    max-width: 480px;
+  }
+
+  .lp-hero-actions {
+    gap: var(--sp-md);
+  }
+
+  .lp-bar {
+    margin-top: 60px;
+  }
+
+  /* ── Ranking ── */
+  .rank-podium {
+    gap: var(--sp-lg);
+  }
+  .podium-item {
+    padding: var(--sp-md);
+  }
+  .podium-avatar-lg {
+    width: 96px;
+    height: 96px;
+  }
+
+  /* ── Level Select ── */
+  .lvl-modal {
+    max-width: 640px;
+  }
+  .lvl-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ── Tutorial ── */
+  .tutorial-demo-grid {
+    max-width: 200px;
+  }
+}
+
+/* ============================================
+   lg: ≥1024px (tablet landscape / small desktop)
+   ============================================ */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .sb-palette {
+    width: 240px;
+  }
+
+  .simulation-panel {
+    width: 400px;
+  }
+
+  .sim-grid {
+    max-width: 300px;
+    max-height: 300px;
+  }
+
+  .nav-brand {
+    max-width: 25vw;
+  }
+
+  .progress-container {
+    width: 160px;
+  }
+
+  .lvl-modal {
+    max-width: 720px;
+  }
+  .lvl-row {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-lg {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   xl: ≥1280px (large desktop)
+   ============================================ */
+
+@media (min-width: 1280px) {
+  /* manter layout original sem constraints de largura máxima */
+}
+
+/* ============================================
+   SEGURANÇA — Overflow horizontal
+   ============================================ */
+
+@media (max-width: 575px) {
+  .game-container {
+    overflow-x: hidden;
+  }
+
+  .sim-viewport {
+    overflow: hidden;
+  }
+
+  .sb-workspace {
+    overflow: hidden;
+  }
+
+  .sb-layout {
+    overflow: hidden;
+  }
+}
+
+/* ============================================
+   TELAS MUITO CURTAS (mobile landscape / compacto)
+   ============================================ */
+
+@media (max-height: 700px) and (max-width: 575px) {
+  .sim-header {
+    padding: 2px var(--sp-sm);
+  }
+  .sim-title {
+    font-size: 10px;
+  }
+  .sim-viewport {
+    padding: 2px;
+  }
+  .sim-grid {
+    max-width: 100px;
+    background-size: 20px 20px;
+  }
+  .sim-controls {
+    padding: 4px var(--sp-xs);
+    gap: 2px;
+  }
+  .btn-executar,
+  .btn-pausar,
+  .btn-limpar {
+    font-size: 7px;
+    padding: 3px 2px;
+    min-height: 32px;
+  }
+  .btn-executar .material-symbols-outlined,
+  .btn-pausar .material-symbols-outlined,
+  .btn-limpar .material-symbols-outlined {
+    font-size: 12px;
+  }
+
+  .sb-palette {
+    max-height: 100px;
+    flex: none;
+  }
+  .sb-palette-content {
+    overflow-y: auto;
+  }
+  .sb-category-panel.active {
+    max-height: 60px;
+  }
+
+  .objectives-panel {
+    display: none;
+  }
+}
+
+/* ============================================
+   RANKING EXTRA-COMPACTO (telas < 400px)
+   ============================================ */
+
+@media (max-width: 400px) {
+  .rank-content {
+    padding: var(--sp-sm);
+    gap: var(--sp-sm);
+  }
+  .rank-header {
+    gap: 2px;
+  }
+  .rank-title {
+    font-size: 18px;
+  }
+  .rank-subtitle {
+    display: none;
+  }
+  .rank-podium {
+    gap: var(--sp-xs);
+  }
+  .podium-item {
+    padding: var(--sp-xs);
+    gap: 2px;
+  }
+  .podium-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .podium-avatar-lg {
+    width: 52px;
+    height: 52px;
+  }
+  .podium-label {
+    font-size: 16px;
+  }
+  .podium-name {
+    font-size: 10px;
+  }
+  .podium-score {
+    font-size: 10px;
+  }
+  .podium-trophy {
+    font-size: 24px !important;
+  }
+  .podium-badge {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+  .rank-btn-play {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .rank-list-header {
+    display: none;
+  }
+  .rank-row {
+    grid-template-columns: 24px 1fr auto;
+    gap: var(--sp-xs);
+    padding: 6px var(--sp-sm);
+  }
+  .rank-cell-rank {
+    font-size: 10px;
+  }
+  .rank-cell-score {
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   AJUSTES PARA TABLETS EM PAISAGEM
+   ============================================ */
+
+@media (min-height: 500px) and (max-height: 800px) and (min-width: 768px) {
+  .sim-viewport {
+    padding: var(--sp-sm);
+  }
+  .sim-grid {
+    max-width: 220px;
+    max-height: 220px;
+  }
+  .sim-header {
+    padding: var(--sp-xs) var(--sp-sm);
+  }
+  .sim-attributes {
+    padding: var(--sp-xs);
+  }
+  .sim-attributes-header {
+    margin-bottom: var(--sp-xs);
+  }
+  .sim-attributes-title {
+    font-size: 10px;
+  }
+  .sim-attr-item {
+    padding: var(--sp-xs) var(--sp-sm);
+  }
+}
+
+/* ============================================
+   TOQUE — Melhorias de usabilidade mobile
+   ============================================ */
+
+@media (pointer: coarse) {
+  .btn-zoom,
+  .sb-cat-tab,
+  .sb-palette-block,
+  .tutorial-btn,
+  .lvl-card,
+  .lvl-modal-close,
+  .profile-btn,
+  .nav-rank-btn,
+  .btn-executar,
+  .btn-pausar,
+  .btn-limpar {
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sb-cat-tab,
+  .sb-palette-block,
+  .btn-zoom {
+    min-height: 36px;
+  }
+}
+
+/* ============================================
+   PRINT — Estilo para impressão
+   ============================================ */
+
+@media print {
+  .top-navbar,
+  .sb-palette,
+  .simulation-panel,
+  .sb-zoom-controls,
+  .sim-controls {
+    display: none !important;
+  }
+  .sb-workspace {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .sb-layout {
+    height: auto !important;
+    margin-top: 0 !important;
+    overflow: visible !important;
+  }
+}
