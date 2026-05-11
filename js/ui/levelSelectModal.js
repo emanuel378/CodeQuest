@@ -1,23 +1,23 @@
 const LEVEL_META = [
-  { id: 0, name: 'Tutorial', icon: 'school', desc: 'Aprenda os controles básicos movendo o herói até o objetivo.', theme: 'ocean' },
+  { id: 0, name: 'Primeiros Passos', icon: 'school', desc: 'Use mover e pular para alcançar o portal.', theme: 'ocean' },
 
-  { id: 1, name: 'Cidade da Lógica', icon: 'apartment', desc: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!', theme: 'ocean' },
+  { id: 1, name: 'Cidade da Lógica', icon: 'apartment', desc: 'Use Se/Senão para decidir entre atacar ou avançar.', theme: 'ocean' },
 
-  { id: 2, name: 'Porto das Variáveis', icon: 'anchor', desc: 'Desvie da torre giratória e atravesse o porto.', theme: 'ocean' },
+  { id: 2, name: 'Porto das Variáveis', icon: 'anchor', desc: 'Use Repetir para contornar obstáculos em padrão.', theme: 'ocean' },
 
-  { id: 3, name: 'Farol do Código', icon: 'light', desc: 'Use as rochas como cobertura contra o feixe do laser.', theme: 'ocean' },
+  { id: 3, name: 'Farol do Código', icon: 'light', desc: 'Use Enquanto para atacar até o inimigo cair.', theme: 'ocean' },
 
-  { id: 4, name: 'Floresta dos Algoritmos', icon: 'forest', desc: 'Use repetição para navegar pela floresta e derrotar inimigos.', theme: 'forest' },
+  { id: 4, name: 'Floresta dos Algoritmos', icon: 'forest', desc: 'Combine Se dentro de Enquanto para decisões complexas.', theme: 'forest' },
 
-  { id: 5, name: 'Ruínas da Recursão', icon: 'castle', desc: 'Um perseguidor patrulha as ruínas. Movimente-se rápido ou enfrente-o.', theme: 'forest' },
+  { id: 5, name: 'Labirinto Binário', icon: 'account_tree', desc: 'Caminhos bifurcados com múltiplas condições e inimigos.', theme: 'forest' },
 
-  { id: 6, name: 'Labirinto Binário', icon: 'account_tree', desc: 'Laser e torre protegem o labirinto. Planeje sua rota com cuidado.', theme: 'forest' },
+  { id: 6, name: 'Ruínas da Coleção', icon: 'castle', desc: 'Colete o cristal antes de chegar ao portal.', theme: 'forest' },
 
-  { id: 7, name: 'Núcleo de Logicron', icon: 'memory', desc: 'Derrote o boss final e chegue ao núcleo do Logicron!', theme: 'void' },
+  { id: 7, name: 'Núcleo de Logicron', icon: 'memory', desc: 'O boss final. Combine todos os conceitos para vencer!', theme: 'void' },
 
-  { id: 8, name: 'Abismo Infinito', icon: 'deployed_code', desc: 'Perseguidor e laser no abismo. A rota mais curta pode ser a mais perigosa.', theme: 'void' },
-  
-  { id: 9, name: 'Núcleo do Código', icon: 'hub', desc: 'Todos os inimigos reunidos. Use todas as habilidades para vencer.', theme: 'void' }
+  { id: 8, name: 'Câmara dos Interruptores', icon: 'deployed_code', desc: 'Use Ativar para alternar barreiras e abrir caminho.', theme: 'void' },
+
+  { id: 9, name: 'Convergência Final', icon: 'hub', desc: 'O desafio supremo: cristal, inimigos e interruptores.', theme: 'void' }
 ];
 
 const LEVEL_ROWS = [

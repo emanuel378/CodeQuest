@@ -3,10 +3,10 @@ import { AttributeSystem } from './attributes.js';
 const GLOBAL_RANKING_KEY = 'codequest_ranking';
 
 const LEVEL_UNLOCKS = {
-  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-  1: [],
-  2: [],
-  3: []
+  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy'],
+  1: ['if', 'else'],
+  2: ['repeat'],
+  3: ['while']
 };
 
 export class Progression {

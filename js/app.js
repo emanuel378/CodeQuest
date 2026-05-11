@@ -331,6 +331,20 @@ function syncSimEntities() {
   }
 }
 
+function syncSimObstacles() {
+  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+
+  for (const el of gs.simGrid.querySelectorAll('.sim-obstacle')) {
+    const x = parseInt(el.dataset.x);
+    const y = parseInt(el.dataset.y);
+    if (gs.stage.isObstacleRemoved(x, y)) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = '';
+    }
+  }
+}
+
 function tickEnemiesAndSync() {
   const attacks = gs.stage.tickEnemies();
 
@@ -871,6 +885,8 @@ function initGame() {
       }),
 
       activate: runWithGuard(async () => {
+        stage.activate();
+        syncSimObstacles();
         await new Promise(r => setTimeout(r, 350));
         tickEnemiesAndSync();
       }),
