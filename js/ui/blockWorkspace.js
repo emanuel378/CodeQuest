@@ -406,7 +406,7 @@ export class BlockWorkspace {
     }
 
     const b = this.createBlock(data.type, data.label, data.icon, data.category, data.params, mx - 110, my - 20);
-    this._trySnap(b.id, mx, my);
+    this._trySnap(b.id, mx, my, [b.id]);
     audioManager.playSfx('snap');
     this.save();
     return b;
@@ -427,8 +427,6 @@ export class BlockWorkspace {
 
         if (inCa) return ca;
         if (inEa) return ea;
-        if (ca) return ca;
-        if (ea) return ea;
       }
     }
     for (const [, b] of this.blocks) {
@@ -474,20 +472,218 @@ export class BlockWorkspace {
     return b;
   }
 
-  _createGhost(b, x, y) {
+  _dropChainInChild(area, chainIds) {
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (block && block.el && block.el.contains(area)) {
+        return;
+      }
+    }
+
+    const isElse = area.classList.contains('sb-else-area');
+    const pe = area.closest('.sb-block');
+    if (!pe) return;
+    const pd = this.blocks.get(pe.dataset.bid);
+    if (!pd) return;
+
+    let prevBlockId = null;
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (!block) continue;
+
+      block.parent = pd.id;
+      block.prev = prevBlockId;
+      if (prevBlockId) {
+        const prevB = this.blocks.get(prevBlockId);
+        if (prevB) prevB.next = block.id;
+      }
+
+      block.el.style.position = 'relative';
+      block.el.style.left = '';
+      block.el.style.top = '';
+      block.el.classList.add('sb-nested');
+      this._applyInlineContentStyles(block.el, true);
+      area.appendChild(block.el);
+
+      if (!prevBlockId) {
+        if (isElse) pd.elseChildren.push(block.id);
+        else pd.children.push(block.id);
+      }
+
+      prevBlockId = block.id;
+    }
+
+    this._updateHeight(pd);
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (block && block.ctrl) this._updateHeight(block);
+    }
+    audioManager.playSfx('snap');
+  }
+
+  _trySnap(id, mx, my, chainIds) {
+    const b = this.blocks.get(id);
+    if (!b || b.type === 'custom_var') return false;
+
+    chainIds = chainIds || [id];
+    const chainSet = new Set(chainIds);
+    const sn = SNAP_DISTANCE / this.zoom;
+    const chainH = chainIds.length > 1 ? this._getChainHeight(chainIds) : (b.el ? b.el.offsetHeight / this.zoom : (b.h || 40));
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
+
+    for (const [, o] of this.blocks) {
+      if (chainSet.has(o.id) || o.parent) continue;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      const ox = (or.left - crt.left) / this.zoom;
+      const oy = (or.top - crt.top) / this.zoom;
+      const oWidth = or.width / this.zoom;
+      const oHeight = or.height / this.zoom;
+
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
+
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr = ca.getBoundingClientRect();
+            const cdy = my - (cr.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
+          }
+        }
+        bestBelow = { target: o };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr = ca.getBoundingClientRect();
+            const cdy = my - (cr.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
+          }
+        }
+        bestAbove = { target: o };
+        bestDistAbove = ddyAbove;
+      }
+    }
+
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    const repositionChain = () => {
+      if (this._drag && this._drag.offsets) {
+        for (const off of this._drag.offsets) {
+          if (off.id === b.id) continue;
+          const block = this.blocks.get(off.id);
+          if (!block) continue;
+          block.x = b.x + off.dx;
+          block.y = b.y + off.dy;
+          this._pos(block);
+        }
+      } else {
+        for (const cid of chainIds) {
+          if (cid === b.id) continue;
+          const block = this.blocks.get(cid);
+          if (block) this._pos(block);
+        }
+      }
+    };
+
+    if (useAbove) {
+      const o = bestAbove.target;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      b.x = (or.left - crt.left) / this.zoom;
+      b.y = (or.top - crt.top) / this.zoom - chainH;
+
+      const oldPrevId = o.prev;
+      const lastId = chainIds[chainIds.length - 1];
+
+      if (lastId !== id) {
+        const lastBlock = this.blocks.get(lastId);
+        if (lastBlock) lastBlock.next = o.id;
+      } else {
+        b.next = o.id;
+      }
+      o.prev = lastId;
+      b.prev = null;
+
+      if (oldPrevId) {
+        const oldPrev = this.blocks.get(oldPrevId);
+        if (oldPrev) {
+          oldPrev.next = b.id;
+          b.prev = oldPrevId;
+        }
+      }
+
+      this._pos(b);
+      repositionChain();
+      return true;
+    }
+
+    if (bestBelow) {
+      const o = bestBelow.target;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      b.x = (or.left - crt.left) / this.zoom;
+      b.y = (or.top - crt.top) / this.zoom + or.height / this.zoom;
+      b.prev = o.id;
+      o.next = b.id;
+      this._pos(b);
+      repositionChain();
+      return true;
+    }
+
+    return false;
+  }
+
+  _createGhost(b, x, y, chainIds) {
     this._removeGhost();
-    const ghost = this._render(b);
-    ghost.classList.add('sb-block-ghost');
-    ghost.style.left = x + 'px';
-    ghost.style.top = y + 'px';
-    ghost.style.position = 'absolute';
-    const del = ghost.querySelector('.sb-del');
-    if (del) del.remove();
-    this._canvas.appendChild(ghost);
-    this._ghostEl = ghost;
+    if (chainIds && chainIds.length > 1) {
+      const firstB = this.blocks.get(chainIds[0]);
+      if (!firstB) return;
+      const els = [];
+      for (const cid of chainIds) {
+        const block = this.blocks.get(cid);
+        if (!block) continue;
+        const ghost = this._render(block);
+        ghost.classList.add('sb-block-ghost');
+        const dx = block.x - firstB.x;
+        const dy = block.y - firstB.y;
+        ghost.style.left = (x + dx) + 'px';
+        ghost.style.top = (y + dy) + 'px';
+        ghost.style.position = 'absolute';
+        const del = ghost.querySelector('.sb-del');
+        if (del) del.remove();
+        this._canvas.appendChild(ghost);
+        els.push(ghost);
+      }
+      this._ghostEls = els;
+    } else {
+      const ghost = this._render(b);
+      ghost.classList.add('sb-block-ghost');
+      ghost.style.left = x + 'px';
+      ghost.style.top = y + 'px';
+      ghost.style.position = 'absolute';
+      const del = ghost.querySelector('.sb-del');
+      if (del) del.remove();
+      this._canvas.appendChild(ghost);
+      this._ghostEl = ghost;
+    }
   }
 
   _removeGhost() {
+    if (this._ghostEls) {
+      for (const el of this._ghostEls) el.remove();
+      this._ghostEls = null;
+    }
     if (this._ghostEl) {
       this._ghostEl.remove();
       this._ghostEl = null;
@@ -583,9 +779,6 @@ export class BlockWorkspace {
 
         if (inCa && ca) ca.classList.add('sb-snap-target');
         if (inEa && ea) ea.classList.add('sb-snap-target');
-        if (!inCa && !inEa && ca) ca.classList.add('sb-snap-target');
-        this._removePaletteGhost();
-        return;
       }
     }
 
@@ -714,102 +907,30 @@ export class BlockWorkspace {
     }
   }
 
-  _trySnap(id, mx, my) {
-    const b = this.blocks.get(id);
-    if (!b || b.type === 'custom_var') return false;
-
-    const sn = SNAP_DISTANCE / this.zoom;
-    const bHeight = b.el ? b.el.offsetHeight / this.zoom : (b.h || 40);
-    let bestBelow = null;
-    let bestDistBelow = sn;
-    let bestAbove = null;
-    let bestDistAbove = sn;
-
-    for (const [, o] of this.blocks) {
-      if (o.id === id || o.parent) continue;
-      const or = o.el.getBoundingClientRect();
-      const crt = this._canvas.getBoundingClientRect();
-      const ox = (or.left - crt.left) / this.zoom;
-      const oy = (or.top - crt.top) / this.zoom;
-      const oWidth = or.width / this.zoom;
-      const oHeight = or.height / this.zoom;
-
-      const ddx = Math.abs(mx - (ox + oWidth / 2));
-      if (ddx >= sn) continue;
-
-      const ddy = my - (oy + oHeight);
-      if (ddy >= 0 && ddy < bestDistBelow) {
-        if (o.ctrl) {
-          const ca = o.el.querySelector('.sb-child-area');
-          if (ca) {
-            const cr = ca.getBoundingClientRect();
-            const cdy = my - (cr.top - crt.top) / this.zoom;
-            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
-          }
-        }
-        bestBelow = { target: o };
-        bestDistBelow = ddy;
-      }
-
-      const ddyAbove = oy - my;
-      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
-        if (o.ctrl) {
-          const ca = o.el.querySelector('.sb-child-area');
-          if (ca) {
-            const cr = ca.getBoundingClientRect();
-            const cdy = my - (cr.top - crt.top) / this.zoom;
-            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
-          }
-        }
-        bestAbove = { target: o };
-        bestDistAbove = ddyAbove;
-      }
+  _getChain(id) {
+    const ids = [];
+    let cur = this.blocks.get(id);
+    while (cur) {
+      ids.push(cur.id);
+      cur = cur.next ? this.blocks.get(cur.next) : null;
     }
+    return ids;
+  }
 
-    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
-
-    if (useAbove) {
-      const o = bestAbove.target;
-      const or = o.el.getBoundingClientRect();
-      const crt = this._canvas.getBoundingClientRect();
-      b.x = (or.left - crt.left) / this.zoom;
-      b.y = (or.top - crt.top) / this.zoom - bHeight;
-
-      const oldPrevId = o.prev;
-      b.next = o.id;
-      o.prev = b.id;
-      b.prev = null;
-
-      if (oldPrevId) {
-        const oldPrev = this.blocks.get(oldPrevId);
-        if (oldPrev) {
-          oldPrev.next = b.id;
-          b.prev = oldPrevId;
-        }
-      }
-
-      this._pos(b);
-      return true;
+  _getChainHeight(chainIds) {
+    let h = 0;
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (block) h += block.el ? block.el.offsetHeight / this.zoom : (block.h || 40);
     }
-
-    if (bestBelow) {
-      const o = bestBelow.target;
-      const or = o.el.getBoundingClientRect();
-      const crt = this._canvas.getBoundingClientRect();
-      b.x = (or.left - crt.left) / this.zoom;
-      b.y = (or.top - crt.top) / this.zoom + or.height / this.zoom;
-      b.prev = o.id;
-      o.next = b.id;
-      this._pos(b);
-      return true;
-    }
-
-    return false;
+    return h;
   }
 
   startDrag(id, cx, cy) {
     const b = this.blocks.get(id);
     if (!b) return;
+
+    const chainIds = this._getChain(id);
 
     if (b.parent) {
       const p = this.blocks.get(b.parent);
@@ -818,32 +939,49 @@ export class BlockWorkspace {
         p.elseChildren = p.elseChildren.filter(c => c !== id);
       }
     }
+
     if (b.prev) {
       const p = this.blocks.get(b.prev);
-      if (p) p.next = b.next;
-    }
-    if (b.next) {
-      const n = this.blocks.get(b.next);
-      if (n) n.prev = b.prev;
+      if (p) p.next = null;
     }
     b.prev = null;
-    b.next = null;
     b.parent = null;
 
     const cr = this._canvas.getBoundingClientRect();
-
     const br = b.el.getBoundingClientRect();
-    b.x = (br.left - cr.left) / this.zoom;
-    b.y = (br.top - cr.top) / this.zoom;
 
-    b.el.style.position = 'absolute';
-    b.el.style.left = b.x + 'px';
-    b.el.style.top = b.y + 'px';
-    b.el.classList.remove('sb-nested');
-    this._applyInlineContentStyles(b.el, false);
-    this._canvas.appendChild(b.el);
+    const baseX = (br.left - cr.left) / this.zoom;
+    const baseY = (br.top - cr.top) / this.zoom;
 
-    this._drag = { id, ox: (cx - cr.left) / this.zoom - b.x, oy: (cy - cr.top) / this.zoom - b.y };
+    const offsets = [];
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (!block) continue;
+      const blockRect = block.el.getBoundingClientRect();
+      offsets.push({
+        id: cid,
+        dx: (blockRect.left - cr.left) / this.zoom - baseX,
+        dy: (blockRect.top - cr.top) / this.zoom - baseY
+      });
+      block.el.style.position = 'absolute';
+      block.el.style.left = block.x + 'px';
+      block.el.style.top = block.y + 'px';
+      block.el.classList.remove('sb-nested');
+      block.el.style.minWidth = '';
+      block.el.style.width = block.w + 'px';
+      this._applyInlineContentStyles(block.el, false);
+      this._canvas.appendChild(block.el);
+    }
+
+    b.x = baseX;
+    b.y = baseY;
+    this._pos(b);
+
+    this._drag = {
+      id, chainIds, offsets,
+      ox: (cx - cr.left) / this.zoom - b.x,
+      oy: (cy - cr.top) / this.zoom - b.y
+    };
     b.el.classList.add('dragging');
   }
 
@@ -852,13 +990,28 @@ export class BlockWorkspace {
     const b = this.blocks.get(this._drag.id);
     if (!b) return;
     const cr = this._canvas.getBoundingClientRect();
-    b.x = (cx - cr.left) / this.zoom - this._drag.ox;
-    b.y = (cy - cr.top) / this.zoom - this._drag.oy;
+    const newX = (cx - cr.left) / this.zoom - this._drag.ox;
+    const newY = (cy - cr.top) / this.zoom - this._drag.oy;
+    const dx = newX - b.x;
+    const dy = newY - b.y;
+
+    b.x = newX;
+    b.y = newY;
     this._pos(b);
-    this._showSnapGuide(b.id, cx, cy);
+
+    for (const cid of this._drag.chainIds) {
+      if (cid === this._drag.id) continue;
+      const block = this.blocks.get(cid);
+      if (!block) continue;
+      block.x += dx;
+      block.y += dy;
+      this._pos(block);
+    }
+
+    this._showSnapGuide(b.id, cx, cy, this._drag.chainIds);
   }
 
-  _showSnapGuide(id, cx, cy) {
+  _showSnapGuide(id, cx, cy, chainIds) {
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this._removeGhost();
 
@@ -867,6 +1020,9 @@ export class BlockWorkspace {
     const my = (cy - crt.top) / this.zoom;
     const b = this.blocks.get(id);
     if (!b) return;
+
+    chainIds = chainIds || (this._drag ? this._drag.chainIds : null) || [id];
+    const chainSet = new Set(chainIds);
 
     for (const [, o] of this.blocks) {
       if (!o.ctrl || !o.parent || !o.el) continue;
@@ -882,8 +1038,6 @@ export class BlockWorkspace {
 
         if (inCa && ca) ca.classList.add('sb-snap-target');
         if (inEa && ea) ea.classList.add('sb-snap-target');
-        if (!inCa && !inEa && ca) ca.classList.add('sb-snap-target');
-        return;
       }
     }
 
@@ -910,7 +1064,7 @@ export class BlockWorkspace {
     }
 
     const sn = SNAP_DISTANCE / this.zoom;
-    const bHeight = b.el ? b.el.offsetHeight / this.zoom : (b.h || 40);
+    const chainH = chainIds.length > 1 ? this._getChainHeight(chainIds) : (b.el ? b.el.offsetHeight / this.zoom : (b.h || 40));
 
     let inChildArea = false;
     let bestBelow = null;
@@ -938,7 +1092,7 @@ export class BlockWorkspace {
         }
       }
 
-      if (o.id === id || o.parent || o.type === 'custom_var') continue;
+      if (chainSet.has(o.id) || o.parent || o.type === 'custom_var') continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
@@ -984,86 +1138,66 @@ export class BlockWorkspace {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
       }
       const gx = bestAbove.ox;
-      const gy = bestAbove.oy - bHeight;
-      this._createGhost(b, gx, gy);
+      const gy = bestAbove.oy - chainH;
+      this._createGhost(b, gx, gy, chainIds);
     } else if (bestBelow) {
       if (inChildArea) {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
       }
       const gx = bestBelow.ox;
       const gy = bestBelow.oy + bestBelow.height;
-      this._createGhost(b, gx, gy);
+      this._createGhost(b, gx, gy, chainIds);
     }
   }
 
   endDrag(cx, cy) {
     if (!this._drag) return;
     const b = this.blocks.get(this._drag.id);
-    if (b) {
-      b.el.classList.remove('dragging');
+    try {
+      if (b) {
+        b.el.classList.remove('dragging');
+        const chainIds = this._drag.chainIds || [b.id];
 
-      if (b.type === 'custom_var') {
-        const varName = b.varName;
-        if (varName && this._isVariableDefined(varName)) {
-          const slotResult = this._findVarSlot(cx, cy);
-          if (slotResult) {
-            this.removeBlock(b.id);
-            this._dockVariableToRepeat(slotResult.repeatBlock, slotResult.slotEl, varName);
-            audioManager.playSfx('snap');
-            this._removeGhost();
-            this._drag = null;
-            this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
-            this.save();
-            return;
+        if (b.type === 'custom_var') {
+          const varName = b.varName;
+          if (varName && this._isVariableDefined(varName)) {
+            const slotResult = this._findVarSlot(cx, cy);
+            if (slotResult) {
+              for (const cid of chainIds) this.removeBlock(cid);
+              this._dockVariableToRepeat(slotResult.repeatBlock, slotResult.slotEl, varName);
+              audioManager.playSfx('snap');
+              return;
+            }
+          } else if (varName && !this._isVariableDefined(varName)) {
+            audioManager.playSfx('error');
+            if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
           }
-        } else if (varName && !this._isVariableDefined(varName)) {
-          audioManager.playSfx('error');
-          if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+        }
+
+        const childArea = this._findChildArea(cx, cy);
+        if (childArea) {
+          const pe = childArea.closest('.sb-block');
+          const isCycle = chainIds.some(cid => {
+            const cb = this.blocks.get(cid);
+            return cb && cb.el && (cb.el.contains(pe) || cb.el.contains(childArea));
+          });
+          if (!isCycle) {
+            this._dropChainInChild(childArea, chainIds);
+          } else {
+            const { x: mx, y: my } = this._clientToCanvas(cx, cy);
+            this._trySnap(b.id, mx, my, chainIds);
+          }
+        } else {
+          const { x: mx, y: my } = this._clientToCanvas(cx, cy);
+          this._trySnap(b.id, mx, my, chainIds);
         }
       }
-
-      const childArea = this._findChildArea(cx, cy);
-      if (childArea) {
-        const data = { type: b.type, label: b.label, icon: b.icon, category: b.category, params: { value: b.value, varName: b.varName, condition: b.condition } };
-        const savedChildren = b.ctrl ? [...b.children] : [];
-        const savedElseChildren = b.ctrl ? [...b.elseChildren] : [];
-
-        this.removeBlock(b.id);
-
-        const newBlock = this._dropChild(childArea, data);
-
-        if (newBlock && (savedChildren.length || savedElseChildren.length)) {
-          for (const childId of savedChildren) {
-            const child = this.blocks.get(childId);
-            if (!child || !child.el) continue;
-            child.parent = newBlock.id;
-            newBlock.children.push(childId);
-            child.el.classList.add('sb-nested');
-            this._applyInlineContentStyles(child.el, true);
-            const area = newBlock.el.querySelector('.sb-child-area');
-            if (area) area.appendChild(child.el);
-          }
-          for (const childId of savedElseChildren) {
-            const child = this.blocks.get(childId);
-            if (!child || !child.el) continue;
-            child.parent = newBlock.id;
-            newBlock.elseChildren.push(childId);
-            child.el.classList.add('sb-nested');
-            this._applyInlineContentStyles(child.el, true);
-            const area = newBlock.el.querySelector('.sb-else-area');
-            if (area) area.appendChild(child.el);
-          }
-          this._updateHeight(newBlock);
-        }
-      } else {
-        const { x: mx, y: my } = this._clientToCanvas(cx, cy);
-        this._trySnap(b.id, mx, my);
-      }
+    } finally {
+      this._removeGhost();
+      this._drag = null;
+      this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      this.save();
     }
-    this._removeGhost();
-    this._drag = null;
-    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
-    this.save();
   }
 
   save() {
