@@ -5,7 +5,7 @@
 - Para arquitetura detalhada, veja `ARCHITECTURE.md`
 - `DESIGN.md` define o design system — use os tokens exatos, cores, tipografia e especificações de componentes para todo trabalho de UI.
 - Protótipo visual no Google Stitch: [https://stitch.withgoogle.com/projects/5884929533116366884]
-- `GAME.md` define o desenvolvimento do jogo e regras: sistema de progressão, catálogo de blocos, progressão de níveis.
+- `GAME.md` (índice) e `docs/game/*` definem o desenvolvimento do jogo e regras — **acessíveis apenas via Skills** (nunca lidos diretamente)
 
 ## Instruções Carregadas Automaticamente
 
@@ -13,24 +13,26 @@ Os seguintes arquivos são injetados no contexto em toda sessão via `opencode.j
 - `ARCHITECTURE.md` – arquitetura, fluxo de dados, invariantes, mapa de arquivos
 - `DESIGN.md` – use *apenas* tokens YAML do frontmatter para UI; em conflitos entre YAML e prosa, prefira o YAML
 
-Demais documentos (ex: `GAME.md`) são carregados sob demanda via Skills.
+Demais documentos (`GAME.md` e `docs/game/*`) são carregados exclusivamente via Skills — nunca lidos diretamente.
 
 ## Skills Disponíveis (`.opencode/skills/`)
 
 As Skills abaixo são atalhos inteligentes carregados sob demanda. Em caso de conflito, **AGENTS.md sempre vence**.
 
-| Skill | Nome | Quando Usar |
-| ------ | ------ | ------------- |
-| Conformidade Arquitetural | `architecture-compliance` | Ao trabalhar em `engine/`, `ui/` ou `app.js` |
-| Design System | `design-system` | Ao trabalhar em `styles/` ou componentes UI |
-| Lógica de Jogo | `game-logic` | Ao trabalhar em `game/`, níveis ou progressão |
-| Estilo de Código | `code-style` | Ao criar ou editar arquivos JavaScript |
-| Catálogo de Blocos | `block-catalog` | Ao adicionar novos blocos ao catálogo |
+| Skill | Nome | Quando Usar | Documentos que carrega |
+| ------ | ------ | ------------- | ------------- |
+| Conformidade Arquitetural | `architecture-compliance` | Ao trabalhar em `engine/`, `ui/` ou `app.js` | ARCHITECTURE.md |
+| Design System | `design-system` | Ao trabalhar em `styles/` ou componentes UI | DESIGN.md |
+| Lógica de Jogo | `game-logic` | Ao trabalhar em `game/`, níveis ou progressão | GAME.md + docs/game/* |
+| Estilo de Código | `code-style` | Ao criar ou editar arquivos JavaScript | — |
+| Catálogo de Blocos | `block-catalog` | Ao adicionar novos blocos ao catálogo | GAME.md + docs/game/BLOCKS.md |
 
 ### Instrução para Agentes
 
-- Skills são carregadas automaticamente conforme a tarefa (via ferramenta `skill`)
-- Cada Skill referencia seu documento fonte (`ARCHITECTURE.md`, `DESIGN.md`, `GAME.md`) como verdade
+- Skills são a **única forma** de acessar `GAME.md` e `docs/game/*` — **nunca leia estes arquivos diretamente**
+- **Você DEVE** carregar a Skill correspondente sempre que a tarefa se enquadrar na descrição da coluna "Quando Usar". Falhar em carregar a Skill resultará em documentação ausente e regras de jogo sendo ignoradas.
+- Skills carregadas injetam os documentos relevantes no contexto automaticamente (via ferramenta `skill`)
+- Cada Skill referencia seu documento fonte como verdade
 - Skills são complementares, nunca substituem os documentos originais
 
 ## Arquitetura
@@ -54,7 +56,7 @@ Para mapa completo de arquivos e fluxo de dados, veja `ARCHITECTURE.md`.
 
 - Mensagens de commit: padrão conventional commits (`feat:`, `fix:`, `docs:`, `chore:`)
 - Nunca comite arquivos temporários, `.env` ou pastas de dependências
-- Mudanças em `DESIGN.md`/`GAME.md` devem ter prefixo `docs:` e resumo das alterações de regras
+- Mudanças em `DESIGN.md`/`GAME.md` ou arquivos em `docs/game/` devem ter prefixo `docs:` e resumo das alterações de regras
 - PRs devem listar qual regra de AGENTS.md foi seguida para cada arquivo alterado
 
 ## Regras de Escalonamento
@@ -85,6 +87,6 @@ Tarefa só está completa se:
 - [ ] Nenhum arquivo de `engine/` tem referências ao DOM
 - [ ] Nenhum arquivo de `ui/` tem lógica de jogo
 - [ ] CSS usa *apenas* variáveis do frontmatter de `DESIGN.md` (sem cores/espaçamentos hardcoded)
-- [ ] Novos blocos de jogo seguem exatamente o formato do catálogo em `GAME.md`
+- [ ] Novos blocos de jogo seguem exatamente o formato em `docs/game/BLOCKS.md`
 - [ ] Código segue convenções de nomenclatura (arquivos camelCase, classes PascalCase)
 - [ ] Skill correspondente foi carregada e seguida (quando aplicável)
