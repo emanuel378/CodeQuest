@@ -69,7 +69,7 @@ export class AttributesPanel {
     const tooltip = document.createElement('div')
     tooltip.className = 'attr-tooltip'
     tooltip.style.display = 'none'
-    this._el.appendChild(tooltip)
+    document.body.appendChild(tooltip)
     this._tooltipEl = tooltip
   }
 
@@ -235,9 +235,8 @@ export class AttributesPanel {
     tip.style.display = 'block'
 
     const rect = btnEl.getBoundingClientRect()
-    const panelRect = this._el.getBoundingClientRect()
-    tip.style.left = `${rect.left - panelRect.left + rect.width / 2}px`
-    tip.style.top = `${rect.bottom - panelRect.top + 4}px`
+    tip.style.left = `${rect.left + rect.width / 2}px`
+    tip.style.top = `${rect.bottom + 4}px`
   }
 
   _hideTooltip() {
