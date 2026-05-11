@@ -477,7 +477,7 @@ export class GameTutorial {
           <div class="tutorial-demo-grid" id="tut-grid">
             <div class="tutorial-grid-bg"></div>
             <div class="tutorial-entity tutorial-tree" data-x="1" data-y="0" id="tut-tree">
-              <img class="tut-entity-img" src="assets/sprites/obstacles/obstaculo3.png">
+              <img class="tut-entity-img" src="assets/sprites/obstacles/barril.png">
             </div>
             <div class="tutorial-entity tutorial-enemy" data-x="1" data-y="2" id="tut-enemy">
               <img class="tut-entity-img" src="assets/sprites/enemies/laser.png">
@@ -487,7 +487,7 @@ export class GameTutorial {
               <img class="tut-entity-img" src="assets/sprites/items/bau.png">
             </div>
             <div class="tutorial-entity tutorial-obstacle" data-x="1" data-y="1" id="tut-obstacle" style="display:none">
-              <img class="tut-entity-img" src="assets/sprites/obstacles/obstaculo1.png">
+              <img class="tut-entity-img" src="assets/sprites/obstacles/barreira.png">
             </div>
             <div class="tutorial-entity tutorial-goal" data-x="2" data-y="1" id="tut-goal">
               <img class="tut-entity-img" src="assets/sprites/goal/portalciano.png">
@@ -580,7 +580,7 @@ export class GameTutorial {
       this._robotEl.style.height = `${sz}px`;
       this._robotEl.style.opacity = '1';
       this._robotEl.style.boxShadow = '';
-      this._robotEl.classList.remove('tutorial-scan', 'tutorial-activate');
+      this._robotEl.classList.remove('tutorial-scan', 'tutorial-activate', 'tutorial-damaged');
     }
     if (this._robotImg) this._robotImg.src = DIR_SPRITES[this._rdir];
 
@@ -591,7 +591,11 @@ export class GameTutorial {
     }
     if (this._enemyHpEl) this._enemyHpEl.textContent = 'HP:1';
     if (this._itemEl) this._itemEl.style.display = 'none';
-    if (this._obstacleEl) this._obstacleEl.style.display = 'none';
+    if (this._obstacleEl) {
+      this._obstacleEl.style.display = 'none';
+      const img = this._obstacleEl.querySelector('img');
+      if (img) img.src = 'assets/sprites/obstacles/barreira.png';
+    }
     if (this._treeEl) this._treeEl.style.display = 'flex';
     if (this._goalEl) this._goalEl.style.display = 'flex';
   }
@@ -717,14 +721,44 @@ export class GameTutorial {
       }
 
       case 'jump': {
-        this._robotEl.style.transition = 'top 0.3s ease, left 0.5s ease';
         const cs = this._cellSize;
+
+        if (this._obstacleEl) {
+          const img = this._obstacleEl.querySelector('img');
+          if (img) img.src = 'assets/sprites/obstacles/laser.png';
+          this._obstacleEl.style.display = 'flex';
+          this._obstacleEl.style.opacity = '1';
+          await this._delay(450);
+        }
+
+        this._robotEl.style.transition = 'left 0.4s ease, top 0.4s ease';
+        this._rx = 1;
+        this._ry = 1;
+        this._updateRobotPos();
+        await this._delay(400);
+
+        this._robotEl.classList.add('tutorial-damaged');
+        await this._delay(500);
+        this._robotEl.classList.remove('tutorial-damaged');
+
+        this._robotEl.style.transition = 'none';
+        this._rx = 0;
+        this._ry = 1;
+        this._updateRobotPos();
+        await this._delay(250);
+
+        this._robotEl.style.transition = 'top 0.3s ease, left 0.5s ease';
         this._robotEl.style.top = `${(this._ry - 0.5) * cs + cs * 0.15}px`;
         await this._delay(350);
+
         this._rx = Math.max(0, Math.min(2, this._rx + dx * 2));
         this._ry = Math.max(0, Math.min(2, this._ry + dy * 2));
         this._updateRobotPos();
         await this._delay(600);
+
+        if (this._obstacleEl) {
+          this._obstacleEl.style.display = 'none';
+        }
         break;
       }
 

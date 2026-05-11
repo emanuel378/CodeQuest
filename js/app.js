@@ -1140,7 +1140,7 @@ document.addEventListener('game:ready', () => {
   const players = gs.playerManager.getPlayers();
   const activePlayer = gs.playerManager.getActivePlayer();
 
-  if (players.length === 0) {
+  if (players.length === 0 || (activePlayer && gs.progression.completedLevels.length === 0)) {
     _currentTutorial = new GameTutorial(onTutorialComplete);
     setTimeout(() => {
       if (_currentTutorial) _currentTutorial.show();
