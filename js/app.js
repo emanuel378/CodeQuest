@@ -712,6 +712,7 @@ function initGame() {
   const stage = new Stage(5);
 
   const playerManager = _getPlayerManager();
+  playerManager.refresh();
   const activePlayer = playerManager.getActivePlayer();
   const playerId = activePlayer ? activePlayer.id : 'default';
   const playerName = activePlayer ? activePlayer.name : 'Anônimo';
@@ -785,6 +786,8 @@ function initGame() {
     setTimeout(() => {
       if (_currentTutorial) _currentTutorial.show();
     }, 300);
+  }, () => {
+    router.navigate('/');
   });
   profileMenu.mount();
   gs.profileMenu = profileMenu;

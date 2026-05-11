@@ -2,10 +2,11 @@ import { PlayerManager } from '../game/playerManager.js';
 import { router } from './routes.js';
 
 export class ProfileMenu {
-  constructor(playerManager, onSwitch, onPlayerAdded) {
+  constructor(playerManager, onSwitch, onPlayerAdded, onPlayerDeleted) {
     this._pm = playerManager;
     this._onSwitch = onSwitch;
     this._onPlayerAdded = onPlayerAdded;
+    this._onPlayerDeleted = onPlayerDeleted;
     this._el = null;
     this._overlay = null;
     this._dropdown = null;
@@ -313,8 +314,7 @@ export class ProfileMenu {
       this._closeOverlay();
       this._updateIcon();
       if (wasActive || oldActiveId === player.id) {
-        const active = this._pm.getActivePlayer();
-        if (this._onSwitch) this._onSwitch(active ? active.id : null);
+        if (this._onPlayerDeleted) this._onPlayerDeleted();
       } else {
         this._showPlayerList();
       }
