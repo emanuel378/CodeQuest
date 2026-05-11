@@ -786,6 +786,8 @@ function initGame() {
     setTimeout(() => {
       if (_currentTutorial) _currentTutorial.show();
     }, 300);
+  }, () => {
+    router.navigate('/');
   });
   profileMenu.mount();
   gs.profileMenu = profileMenu;

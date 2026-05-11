@@ -47,7 +47,7 @@ export class PlayerManager {
     localStorage.removeItem(`codequest_player_${id}`);
     this._removeRankingEntries(id);
     if (this.activePlayerId === id) {
-      this.activePlayerId = this.players.length > 0 ? this.players[0].id : null;
+    this.activePlayerId = this.players.length > 0 ? this.players[this.players.length - 1].id : null;
     }
     this._save();
     this._saveActive();
