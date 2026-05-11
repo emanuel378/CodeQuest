@@ -14,9 +14,7 @@
 
 <br>
 
-![Banner do jogo — em falta — substitua por um GIF do gameplay](assets/img/first.png)
-
-_🎥 **Dica:** Grave um GIF do gameplay com [ScreenToGif](https://www.screentogif.com/) e coloque em `assets/demo/gameplay-overview.gif` para substituir esta imagem estática._
+<img src="assets/demo/gif.gif" alt="Gameplay do CodeQuest" width="400">
 
 <br>
 
@@ -48,7 +46,7 @@ CodeQuest é um **RPG educativo de programação** que ensina lógica computacio
 |----------------|-----------|
 | 🧩 **Programação Visual** | Arraste e encaixe blocos para criar programas — sem digitar código |
 | 🤖 **9 Tipos de Bloco** | Movimento, Controle (`if`/`repeat`/`while`), Combate e Variáveis |
-| 🎮 **10+ Níveis Progressivos** | Grid 5×5 com dificuldade crescente, inimigos e obstáculos variados |
+| 🎮 **9 Níveis Progressivos** | Grid variável (5×5 a 7×7), dificuldade crescente com inimigos e obstáculos |
 | 👾 **3 Tipos de Inimigo** | LaserBot, Torre (Turret) e Patrulha (Patrol) — cada um com comportamento único |
 | 📊 **Sistema de Atributos** | Núcleo Lógico (tentativas extras) e Eficiência de Algoritmo (multiplicador de XP) |
 | 🏆 **Ranking S/A/B/C** | Pontuação baseada em eficiência de blocos, com XP e estrelas |
@@ -65,19 +63,19 @@ CodeQuest é um **RPG educativo de programação** que ensina lógica computacio
   <table>
     <tr>
       <td align="center">
-        <img src="assets/img/second.png" alt="Tela do jogo — grid + workspace" width="300">
+        <img src="assets/demo/gamepage.png" alt="Tela do jogo — grid + workspace" width="300">
         <br>
         <em>Grid de simulação + workspace de blocos</em>
       </td>
       <td align="center">
-        <img src="assets/img/third.png" alt="Tela de ranking" width="300">
+        <img src="assets/demo/rankpage.png" alt="Tela de ranking" width="300">
         <br>
         <em>Pódio e ranking de pontuações</em>
       </td>
     </tr>
     <tr>
       <td align="center" colspan="2">
-        <img src="assets/img/first.png" alt="Demonstração do jogo" width="400">
+        <img src="assets/demo/landingpage.png" alt="Tela inicial do CodeQuest" width="400">
         <br>
         <em>Tela inicial / demonstração geral</em>
       </td>
@@ -85,21 +83,20 @@ CodeQuest é um **RPG educativo de programação** que ensina lógica computacio
   </table>
 </div>
 
-> 📹 **Para GIFs animados**, sugere-se criar com [ScreenToGif](https://www.screentogif.com/) (Windows) ou [OBS Studio](https://obsproject.com/) e salvar em `assets/demo/`:
-> - `gameplay-overview.gif` — visão geral do jogo em ação
-> - `block-snapping.gif` — arrastando e encaixando blocos
-> - `victory-demo.gif` — execução de comandos + vitória
-
 ---
 
 ## ⚡ Como Jogar
 
+🌐 **Jogar online:** [emanuel378.github.io/CodeQuest](https://emanuel378.github.io/CodeQuest/)
+
+Ou rode localmente:
+
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/codequest.git
+git clone https://github.com/emanuel378/CodeQuest.git
 
 # Navegue até a pasta
-cd codequest
+cd CodeQuest
 
 # Abra no navegador (sem build necessário!)
 start index.html
@@ -238,7 +235,7 @@ codequest/
 ## 🎯 Roadmap
 
 - [x] Motor de blocos com drag & drop nativo
-- [x] 10+ níveis com progressão
+- [x] 9 níveis com grid variável e progressão
 - [x] Sistema de atributos e ranking
 - [x] Tutorial interativo
 - [x] Múltiplos perfis de jogador
