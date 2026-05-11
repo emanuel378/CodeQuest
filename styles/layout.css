@@ -557,7 +557,7 @@ body {
   .objectives-panel.collapsed {
     opacity: 0.8;
     max-width: min(90px, calc(100vw - 16px));
-    min-width: 60px;
+    min-width: 80px;
     padding: 3px 6px;
   }
   .objectives-panel.collapsed .objectives-header-icon {
@@ -906,6 +906,11 @@ body {
 
   .sim-attributes {
     padding: var(--sp-xs);
+  }
+
+  .objectives-title {
+    font-size: 10px;
+    letter-spacing: 0.08em;
   }
 
   /* ── Landing ── */

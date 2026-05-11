@@ -60,7 +60,7 @@ export class ObjectivesPanel {
     document.addEventListener('mouseup', this._boundOnEnd);
     document.addEventListener('touchmove', this._boundOnMove, { passive: false });
     document.addEventListener('touchend', this._boundOnEnd);
-    e.preventDefault();
+    if (e.type === 'mousedown') e.preventDefault();
   }
 
   _onDrag(e) {
@@ -155,15 +155,9 @@ export class ObjectivesPanel {
   }
 
   _setDefaultPosition() {
-    const viewport = document.querySelector('.sim-viewport');
-    if (viewport) {
-      const rect = viewport.getBoundingClientRect();
-      this.el.style.top = Math.max(4, rect.top - 4) + 'px';
-      this.el.style.right = '4px';
-    } else {
-      this.el.style.top = '62px';
-      this.el.style.right = '4px';
-    }
+    if (!this._isMobile) return;
+    this.el.style.top = '62px';
+    this.el.style.right = '4px';
     this.el.style.left = 'auto';
     this.el.style.bottom = 'auto';
   }
