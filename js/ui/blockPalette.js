@@ -210,9 +210,44 @@ export class BlockPalette {
   }
 
   _setupDrag() {
+    let _tooltipEl = null;
+
+    const _removeTooltip = () => {
+      if (_tooltipEl) {
+        _tooltipEl.remove();
+        _tooltipEl = null;
+      }
+    };
+
+    const _showLockedInfo = (block, phase) => {
+      _removeTooltip();
+      const tooltip = document.createElement('div');
+      tooltip.className = 'sb-locked-tooltip';
+      tooltip.textContent = `Desbloqueado na Fase ${phase}`;
+      document.body.appendChild(tooltip);
+      _tooltipEl = tooltip;
+
+      const updatePos = (e) => {
+        const rect = tooltip.getBoundingClientRect();
+        let left = e.clientX - rect.width / 2;
+        let top = e.clientY - rect.height - 10;
+        if (left < 4) left = 4;
+        if (left + rect.width > window.innerWidth - 4) left = window.innerWidth - rect.width - 4;
+        if (top < 4) top = e.clientY + 12;
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      };
+      updatePos({ clientX: 0, clientY: 0 });
+      tooltip._updatePos = updatePos;
+    };
+
     this._content.addEventListener('dragstart', (e) => {
       const block = e.target.closest('.sb-palette-block');
       if (!block) return;
+      if (block.classList.contains('sb-block-locked')) {
+        e.preventDefault();
+        return;
+      }
 
       e.dataTransfer.setData('application/json', JSON.stringify({
         type: block.dataset.type,
@@ -223,16 +258,54 @@ export class BlockPalette {
       }));
       e.dataTransfer.effectAllowed = 'copy';
     });
+
+    this._content.addEventListener('click', (e) => {
+      const block = e.target.closest('.sb-block-locked');
+      if (!block) return;
+      _removeTooltip();
+      const catId = block.dataset.category;
+      let phase = 1;
+      if (catId === 'combate') phase = 1;
+      else if (catId === 'controle') phase = 5;
+      _showLockedInfo(block, phase);
+      setTimeout(_removeTooltip, 2200);
+    });
+
+    this._content.addEventListener('mousemove', (e) => {
+      if (_tooltipEl && _tooltipEl._updatePos) {
+        _tooltipEl._updatePos(e);
+      }
+    });
+
+    this._content.addEventListener('mouseleave', _removeTooltip);
   }
 
   getVariables() {
     return [...this._variables];
   }
 
-  filterByUnlocked(unlockedCommands) {
+  applyUnlockState(unlockedCommands) {
     this._content.querySelectorAll('.sb-palette-block').forEach(el => {
       const type = el.dataset.type;
-      el.style.display = !type || unlockedCommands.includes(type) ? '' : 'none';
+      if (!type) return;
+      const unlocked = unlockedCommands.includes(type);
+      el.classList.toggle('sb-block-locked', !unlocked);
+      el.draggable = unlocked;
+      if (!unlocked) {
+        if (!el.querySelector('.sb-lock-icon')) {
+          const lockIcon = document.createElement('span');
+          lockIcon.className = 'material-symbols-outlined sb-lock-icon';
+          lockIcon.textContent = 'lock';
+          el.appendChild(lockIcon);
+        }
+      } else {
+        const lockIcon = el.querySelector('.sb-lock-icon');
+        if (lockIcon) lockIcon.remove();
+      }
     });
+  }
+
+  filterByUnlocked(unlockedCommands) {
+    this.applyUnlockState(unlockedCommands);
   }
 }

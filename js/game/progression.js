@@ -2,12 +2,17 @@ import { AttributeSystem } from './attributes.js';
 
 const GLOBAL_RANKING_KEY = 'codequest_ranking';
 
-const LEVEL_UNLOCKS = {
-  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy'],
-  1: ['if', 'else'],
-  2: ['repeat'],
-  3: ['while']
+const CATEGORY_COMMANDS = {
+  movimento: ['move', 'turnRight', 'turnLeft', 'jump'],
+  combate: ['attack'],
+  controle: ['if', 'repeat', 'while'],
+  variavel: ['set_var', 'change_var', 'custom_var']
 };
+
+const CATEGORY_MILESTONES = [
+  { completedLevelId: 0, category: 'combate', icon: 'swords' },
+  { completedLevelId: 4, category: 'controle', icon: 'settings_ethernet' }
+];
 
 export class Progression {
   constructor(playerId = 'default', playerName = 'Anônimo') {
@@ -89,12 +94,32 @@ export class Progression {
   }
 
   _syncUnlocked() {
-    const set = new Set(LEVEL_UNLOCKS[0] || []);
-    for (const id of this.completedLevels) {
-      const next = LEVEL_UNLOCKS[id + 1];
-      if (next) next.forEach(c => set.add(c));
+    const set = new Set();
+    this._addCategoryCommands(set, 'movimento');
+    this._addCategoryCommands(set, 'variavel');
+    if (this.completedLevels.includes(0)) {
+      this._addCategoryCommands(set, 'combate');
+    }
+    if (this.completedLevels.includes(4)) {
+      this._addCategoryCommands(set, 'controle');
     }
     this.unlockedCommands = [...set];
+  }
+
+  _addCategoryCommands(set, category) {
+    const cmds = CATEGORY_COMMANDS[category];
+    if (cmds) cmds.forEach(c => set.add(c));
+  }
+
+  _getNewCategoryUnlock(completedLevelId) {
+    for (const milestone of CATEGORY_MILESTONES) {
+      if (milestone.completedLevelId === completedLevelId) {
+        const cmds = CATEGORY_COMMANDS[milestone.category] || [];
+        const isNew = cmds.some(c => !this.unlockedCommands.includes(c));
+        if (isNew) return milestone.category;
+      }
+    }
+    return null;
   }
 
   onLevelUp(callback) {
@@ -202,6 +227,7 @@ export class Progression {
 
   completeLevel(id, score = 0, blocksUsed = 0, idealBlocks = 0, rankLabel = 'C', timeElapsed = 0) {
     const isNew = !this.completedLevels.includes(id)
+    const newCategoryUnlock = isNew ? this._getNewCategoryUnlock(id) : null;
     if (isNew) {
       this.completedLevels.push(id)
     }
@@ -235,6 +261,8 @@ export class Progression {
 
     this._syncUnlocked()
     this._save()
+
+    return newCategoryUnlock;
   }
 
   saveLevelStats(id, { stars, score, blocksUsed, idealBlocks, timeElapsed }) {
@@ -284,5 +312,21 @@ export class Progression {
 
   getGlobalRanking() {
     return this._loadGlobalRanking().sort((a, b) => b.score - a.score)
+  }
+
+  static getCategoryLabel(category) {
+    const labels = {
+      combate: 'Combate',
+      controle: 'Condições'
+    };
+    return labels[category] || category;
+  }
+
+  static getCategoryIcon(category) {
+    const icons = {
+      combate: 'swords',
+      controle: 'settings_ethernet'
+    };
+    return icons[category] || 'lock';
   }
 }
