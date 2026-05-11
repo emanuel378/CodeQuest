@@ -1,7 +1,11 @@
 
 <div align="center">
 
-# 🤖 CodeQuest — Cidade da Lógica
+<p align="center">
+  <img src="assets/demo/banner.png" alt="Nome do Projeto" width="600" height="290">
+</p>
+
+# CodeQuest — Cidade da Lógica
 
 ### _Um RPG de lógica baseado em blocos_
 
