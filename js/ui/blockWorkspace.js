@@ -47,7 +47,7 @@ export class BlockWorkspace {
       varName: params?.varName || null,
       condition: params?.condition || (type === 'if' || type === 'while' ? 'obstacleDetected' : null),
       x: x ?? 40, y: y ?? (40 + this.blocks.size * 70),
-      w: type === 'custom_var' ? 80 : type === 'set_var' ? 260 : 220, h: ctrl ? 80 : 40,
+      w: type === 'custom_var' ? 80 : type === 'set_var' || type === 'change_var' ? 260 : 220, h: ctrl ? 80 : 40,
       prev: null, next: null, parent: null,
       children: [], elseChildren: [], ctrl
     };
@@ -161,7 +161,7 @@ export class BlockWorkspace {
 
     const clr = CAT_COLORS[b.category] || 'var(--on-surface-variant)';
     div.style.setProperty('--cat-color', clr);
-    if (b.type !== 'set_var') div.style.width = b.w + 'px';
+    if (b.type !== 'set_var' && b.type !== 'change_var') div.style.width = b.w + 'px';
 
     const body = document.createElement('div');
     body.className = 'sb-block-body';
@@ -210,6 +210,9 @@ export class BlockWorkspace {
       }
 
       div.style.height = 'auto';
+    } else if (b.type === 'change_var') {
+      div.classList.add('sb-block-changevar');
+      this._renderChangeVarBlock(content, b, clr);
     } else if (b.type === 'set_var') {
       div.classList.add('sb-block-setvar');
       this._renderSetVarBlock(content, b, clr);
@@ -234,7 +237,7 @@ export class BlockWorkspace {
         <span class="material-symbols-outlined">${b.icon}</span>
       </span>
       <span class="sb-label">${b.label}</span>
-      ${b.value != null ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
+      ${b.value != null && !['move','turnRight','turnLeft'].includes(b.type) ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
     `;
   }
 
@@ -270,6 +273,45 @@ export class BlockWorkspace {
       }
     }
     select.value = vars.includes(currentValue) ? currentValue : '';
+  }
+
+  _renderChangeVarBlock(content, b, clr) {
+    content.innerHTML = `
+      <span class="sb-icon" style="color:${clr};flex-shrink:0">
+        <span class="material-symbols-outlined">${b.icon}</span>
+      </span>
+      <span class="sb-label" style="flex-shrink:0">${b.label}</span>
+      <select class="sb-var-select" data-bid="${b.id}"></select>
+      <span class="sb-var-to" style="flex-shrink:0">para</span>
+      <input class="sb-input sb-input-circle" type="text" value="${b.value ?? 0}" data-bid="${b.id}" style="margin-left:0;flex-shrink:0">
+    `;
+    const select = content.querySelector('.sb-var-select');
+    if (select) this._populateChangeVarSelect(select, b);
+  }
+
+  _populateChangeVarSelect(select, b) {
+    const assignedVars = new Set();
+    for (const block of this.blocks.values()) {
+      if (block.type === 'set_var' && block.varName) {
+        assignedVars.add(block.varName);
+      }
+    }
+    const currentValue = b.varName || '';
+    select.innerHTML = '';
+    if (assignedVars.size === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '--';
+      select.appendChild(opt);
+    } else {
+      for (const v of assignedVars) {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      }
+    }
+    select.value = assignedVars.has(currentValue) ? currentValue : '';
   }
 
   _ctrlHtml(b, clr) {
@@ -993,7 +1035,13 @@ export class BlockWorkspace {
         const pe = select.closest('.sb-block');
         if (pe) {
           const b = this.blocks.get(pe.dataset.bid);
-          if (b) this._populateVarSelect(select, b);
+          if (b) {
+            if (b.type === 'change_var') {
+              this._populateChangeVarSelect(select, b);
+            } else {
+              this._populateVarSelect(select, b);
+            }
+          }
         }
       }
     });

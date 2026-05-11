@@ -33,7 +33,8 @@ const CATEGORIES = [
     label: 'Variáveis',
     icon: 'data_object',
     blocks: [
-      { type: 'set_var', label: 'Definir', icon: 'assignment', params: { varName: '', value: 0 } }
+      { type: 'set_var', label: 'Definir', icon: 'assignment', params: { varName: '', value: 0 } },
+      { type: 'change_var', label: 'Alterar', icon: 'edit', params: { varName: '', value: 0 } }
     ]
   }
 ];
@@ -172,6 +173,10 @@ export class BlockPalette {
       el.innerHTML = `<span>${varName}</span>`;
       this._content.appendChild(el);
     }
+
+    const sep = document.createElement('div');
+    sep.className = 'sb-var-separator';
+    this._content.appendChild(sep);
 
     const cat = CATEGORIES.find(c => c.id === 'variavel');
     if (cat) {

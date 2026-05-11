@@ -855,6 +855,11 @@ function initGame() {
         await new Promise(r => setTimeout(r, 350));
       }),
 
+      change_var: runWithGuard(async (cmd) => {
+        variables[cmd.varName] = Number(cmd.value) || 0;
+        await new Promise(r => setTimeout(r, 350));
+      }),
+
       detectObstacle: runWithGuard(async () => {
         const result = stage.detectObstacleAhead();
         await new Promise(r => setTimeout(r, 350));

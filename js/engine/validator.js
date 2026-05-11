@@ -1,12 +1,12 @@
 const VALID_COMMANDS = new Set([
   'move', 'turnRight', 'turnLeft', 'jump',
-  'attack', 'custom_var', 'set_var',
+  'attack', 'custom_var', 'set_var', 'change_var',
   'if', 'repeat', 'while'
 ]);
 
 const CONTROL_COMMANDS = new Set(['if', 'repeat', 'while']);
 
-const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'repeat', 'set_var']);
+const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'repeat', 'set_var', 'change_var']);
 
 const VALID_CONDITIONS = new Set(['obstacleDetected', 'enemyDetected']);
 
@@ -94,6 +94,10 @@ function validateNode(node, result, depth, path) {
 
   if (node.type === 'set_var') {
     validateSetVar(node, result, path);
+  }
+
+  if (node.type === 'change_var') {
+    validateChangeVar(node, result, path);
   }
 
   if (CONTROL_COMMANDS.has(node.type)) {
@@ -207,6 +211,12 @@ function validateWhile(node, result, depth, path) {
 function validateSetVar(node, result, path) {
   if (!node.varName || node.varName.trim() === '') {
     result.addError(`${path} (Definir): Nenhuma variável selecionada. Selecione uma variável no menu.`);
+  }
+}
+
+function validateChangeVar(node, result, path) {
+  if (!node.varName || node.varName.trim() === '') {
+    result.addError(`${path} (Alterar): Nenhuma variável selecionada. Selecione uma variável já definida.`);
   }
 }
 

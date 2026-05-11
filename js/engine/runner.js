@@ -18,6 +18,7 @@ const DEFAULT_HANDLERS = {
   attack: async () => {},
   custom_var: async () => {},
   set_var: async () => {},
+  change_var: async () => {},
   detectObstacle: async () => false,
   detectEnemy: async () => false
 };
