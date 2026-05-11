@@ -9,6 +9,8 @@ export class Stage {
     this.goal = null;
     this.player = null;
     this._enemyIdCounter = 0;
+    this.objectives = [];
+    this._objectiveStates = {};
   }
 
   loadLevel(levelConfig) {
@@ -28,6 +30,53 @@ export class Stage {
     });
     this.items = (levelConfig.items || []).map(i => ({ ...i }));
     this.goal = levelConfig.goal ? { ...levelConfig.goal } : null;
+    this.objectives = (levelConfig.objectives || []).map(o => ({ ...o }));
+    this._resetObjectiveStates();
+  }
+
+  _resetObjectiveStates() {
+    this._objectiveStates = {};
+    for (const obj of this.objectives) {
+      this._objectiveStates[obj.id] = false;
+    }
+  }
+
+  getObjectiveStates() {
+    return { ...this._objectiveStates };
+  }
+
+  getCompletedObjectiveIds() {
+    return Object.entries(this._objectiveStates)
+      .filter(([, v]) => v)
+      .map(([k]) => k);
+  }
+
+  checkAllObjectives() {
+    let changed = false;
+    for (const obj of this.objectives) {
+      const completed = this._evaluateObjective(obj.id);
+      if (completed !== this._objectiveStates[obj.id]) {
+        this._objectiveStates[obj.id] = completed;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  finalizeSurviveObjective() {
+    if ('survive' in this._objectiveStates) {
+      this._objectiveStates.survive = this.player ? this.player.isAlive() : true;
+    }
+  }
+
+  _evaluateObjective(id) {
+    switch (id) {
+      case 'reach_goal': return this.isGoalReached();
+      case 'defeat_enemies': return this.isEnemiesCleared();
+      case 'collect_item': return this.player ? this.player.hasItem : false;
+      case 'survive': return false;
+      default: return false;
+    }
   }
 
   setPlayer(player) {

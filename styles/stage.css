@@ -2178,3 +2178,88 @@
   border: 1px solid var(--color-accent);
   backdrop-filter: blur(4px);
 }
+
+.objectives-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 45;
+  min-width: 200px;
+  max-width: 260px;
+  background: color-mix(in srgb, var(--surface-container) 85%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--outline-variant));
+  border-radius: var(--rounded-lg);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 0 15px color-mix(in srgb, var(--color-accent) 8%, transparent);
+  padding: var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  pointer-events: none;
+}
+
+.objectives-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding-bottom: var(--sp-xs);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--outline-variant));
+}
+
+.objectives-header-icon {
+  font-size: 16px;
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-accent) 40%, transparent));
+}
+
+.objectives-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.objectives-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.objective-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-xs) 0;
+  transition: opacity 0.2s ease;
+}
+
+.objective-check {
+  font-size: 16px;
+  color: var(--outline);
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+}
+
+.objective-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--on-surface-variant);
+  transition: color 0.3s ease;
+}
+
+.objective-item.objective-checked .objective-check {
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-accent) 50%, transparent));
+}
+
+.objective-item.objective-checked .objective-desc {
+  color: var(--on-surface);
+  text-decoration: line-through;
+  opacity: 0.7;
+}

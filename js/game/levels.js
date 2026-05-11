@@ -11,6 +11,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy'],
     description: 'Aprenda os controles básicos movendo o herói até o objetivo.'
   },
@@ -26,6 +30,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [{ x: 2, y: 1, hp: 1, type: 1, direction: 2 }],
     items: [],
+    objectives: [
+      { id: 'defeat_enemies', description: 'Derrote o inimigo' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else'],
     description: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!'
   },
@@ -41,6 +49,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Navegue pelo grid e alcance o objetivo.'
   },
@@ -56,6 +68,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Navegue pelo grid e alcance o objetivo.'
   },
@@ -75,6 +91,10 @@ export const LEVELS = [
     ],
     enemies: [{ x: 4, y: 0, hp: 1, type: 0, direction: 2 }],
     items: [],
+    objectives: [
+      { id: 'defeat_enemies', description: 'Derrote o inimigo' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Use repetição para navegar pela floresta e derrotar inimigos.'
   },
@@ -90,6 +110,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Navegue pelo grid e alcance o objetivo.'
   },
@@ -105,6 +129,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Navegue pelo grid e alcance o objetivo.'
   },
@@ -127,6 +155,11 @@ export const LEVELS = [
       { x: 1, y: 3, hp: 2, type: 2, direction: 1 }
     ],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o núcleo do Logicron' },
+      { id: 'defeat_enemies', description: 'Derrote todos os inimigos' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Derrote o boss final e chegue ao núcleo do Logicron!'
   },
@@ -142,6 +175,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Navegue pelo grid e alcance o objetivo.'
   },
@@ -157,6 +194,10 @@ export const LEVELS = [
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Navegue pelo grid e alcance o objetivo.'
   }

@@ -11,6 +11,7 @@ import { router, ROUTE_CHANGE, consumePendingLevelId } from './ui/routes.js';
 import { GameErrorHandler } from './ui/gameErrorHandler.js';
 import { GameTutorial } from './ui/gameTutorial.js';
 import { ProfileMenu } from './ui/profileMenu.js';
+import { ObjectivesPanel } from './ui/objectivesPanel.js';
 import { audioManager } from './audio/audioManager.js';
 import { AttributesPanel } from './ui/attributesPanel.js';
 import { AttributeSystem } from './game/attributes.js';
@@ -89,6 +90,10 @@ function loadLevelById(levelId, skipMusic = false) {
 
   renderSimGrid(level);
   gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
+  if (gs.objectivesPanel) {
+    gs.objectivesPanel.setObjectives(gs.stage.objectives);
+    gs.objectivesPanel.reset();
+  }
   setStatus('Pronto', '#00FF3D');
   updateHUD();
 }
@@ -349,6 +354,10 @@ function tickEnemiesAndSync() {
   syncSimEntities();
   updateSimView();
 
+  if (gs.stage.checkAllObjectives() && gs.objectivesPanel) {
+    gs.objectivesPanel.updateState(gs.stage.getCompletedObjectiveIds());
+  }
+
   if (gs.els.attrVitalidade) {
     gs.els.attrVitalidade.textContent = gs.player.hp;
   }
@@ -428,6 +437,7 @@ function showGameOver() {
     gs.shouldStop = false;
     resetActiveLevel(true);
     setStatus('Pronto', '#00FF3D');
+    if (gs.objectivesPanel) gs.objectivesPanel.reset();
   });
 
   setTimeout(() => overlay.classList.add('active'), 10);
@@ -682,9 +692,12 @@ function initGame() {
   errorLog.className = 'error-log';
   document.querySelector('.simulation-panel')?.appendChild(errorLog);
 
+  const objectivesPanel = new ObjectivesPanel();
+  objectivesPanel.mount(els.workspace);
+
   gs = {
     workspace, palette, player, stage, progression,
-    attrPanel, playerManager,
+    attrPanel, playerManager, objectivesPanel,
     simGrid, statusDot, statusText, indicator, errorLog, els,
     activeLevelId: null,
     isRunning: false,
@@ -890,6 +903,11 @@ function initGame() {
 
       await new Promise(r => setTimeout(r, 200));
 
+      gs.stage.finalizeSurviveObjective();
+      if (gs.objectivesPanel) {
+        gs.objectivesPanel.updateState(gs.stage.getCompletedObjectiveIds());
+      }
+
       if (stage.checkVictory()) {
         setStatus('Vitória!', '#00FF3D');
         audioManager.playSfx('victory');
@@ -992,6 +1010,7 @@ function initGame() {
     workspace.clear();
     resetActiveLevel(true);
     setStatus('Pronto', '#00FF3D');
+    if (gs.objectivesPanel) gs.objectivesPanel.reset();
   });
 
   els.pauseBtn?.addEventListener('click', () => {
@@ -1072,7 +1091,10 @@ document.addEventListener(ROUTE_CHANGE, (e) => {
   }
 
   if (e.detail.path !== '/game' && e.detail.path !== '/levels') {
-    if (gs && gs.profileMenu) gs.profileMenu.destroy();
+    if (gs) {
+      if (gs.profileMenu) gs.profileMenu.destroy();
+      if (gs.objectivesPanel) gs.objectivesPanel.destroy();
+    }
     _gameInitialized = false;
     gs = null;
   }
