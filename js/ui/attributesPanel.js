@@ -45,16 +45,26 @@ export class AttributesPanel {
           <img src="assets/sprites/player/principal_frente.png" alt="Herói" class="sim-attributes-hero-img" />
         </div>
       </div>
+      <div class="player-level-section">
+        <div class="player-level-header">
+          <span class="player-level-label">Nível do Personagem</span>
+          <span class="player-level-badge">
+            <span class="material-symbols-outlined player-level-badge-icon">bolt</span>
+            Lv.<span class="player-level-num">1</span>
+          </span>
+        </div>
+        <div class="player-level-xp-row">
+          <div class="player-level-xp-bar">
+            <div class="player-level-xp-fill"></div>
+          </div>
+          <span class="player-level-xp-text">0/0 XP</span>
+        </div>
+      </div>
       <div class="sim-attributes-grid" id="attr-grid">
         ${this._renderAttr('nucleoLogico')}
         ${this._renderAttr('eficienciaAlgoritmo')}
       </div>
     `
-
-    const pointsDisplay = this._el.querySelector('#attr-points-display')
-    if (pointsDisplay) {
-      pointsDisplay.addEventListener('click', () => this._showContextMenu())
-    }
 
     const tooltip = document.createElement('div')
     tooltip.className = 'attr-tooltip'
@@ -82,19 +92,10 @@ export class AttributesPanel {
             Lv.<span class="attr-level-num">1</span>
           </span>
         </div>
-        <div class="sim-attr-xp-bar-container">
-          <div class="sim-attr-xp-bar">
-            <div class="sim-attr-xp-fill" data-attr="${attrId}"></div>
-          </div>
-          <span class="sim-attr-xp-text">0/0 XP</span>
-        </div>
-        <div class="sim-attr-footer" id="attr-footer-${attrId}">
+        <div class="sim-attr-footer">
           <span class="sim-attr-detail"></span>
-        </div>
-        <div class="sim-attr-point-row">
-          <button class="sim-attr-point-btn" data-attr="${attrId}" title="Gastar 1 ponto de atributo">
+          <button class="sim-attr-plus-btn" data-attr="${attrId}" title="Gastar 1 ponto para evoluir">
             <span class="material-symbols-outlined">add</span>
-            <span>Melhorar</span>
           </button>
         </div>
       </div>
@@ -103,6 +104,8 @@ export class AttributesPanel {
 
   _update() {
     if (!this._progression) return
+
+    this._updatePlayerLevel()
 
     const grid = this._el.querySelector('#attr-grid')
     if (!grid) return
@@ -114,21 +117,8 @@ export class AttributesPanel {
 
       const def = AttributeSystem.getDef(attrId)
       const data = this._progression.getAttribute(attrId)
-      const progress = AttributeSystem.getXpProgress(attrId, data.xp)
 
       item.querySelector('.attr-level-num').textContent = data.level
-
-      const fill = item.querySelector('.sim-attr-xp-fill')
-      const pct = Math.min(progress.progress * 100, 100)
-      fill.style.width = `${pct}%`
-
-      const xpText = item.querySelector('.sim-attr-xp-text')
-      if (data.level >= def.maxLevel) {
-        xpText.textContent = 'MÁXIMO'
-        fill.style.width = '100%'
-      } else {
-        xpText.textContent = `${progress.current}/${progress.needed} XP`
-      }
 
       const detail = item.querySelector('.sim-attr-detail')
       if (attrId === 'nucleoLogico') {
@@ -143,59 +133,43 @@ export class AttributesPanel {
 
     const ptsEl = this._el.querySelector('.attr-points-count')
     if (ptsEl) ptsEl.textContent = this._progression.getAttributePoints()
+
+    const pts = this._progression.getAttributePoints()
+    for (const attrId of attrs) {
+      const item = grid.querySelector(`[data-attr="${attrId}"]`)
+      if (!item) continue
+      const plusBtn = item.querySelector('.sim-attr-plus-btn')
+      if (!plusBtn) continue
+      const data = this._progression.getAttribute(attrId)
+      const def = AttributeSystem.getDef(attrId)
+      plusBtn.classList.toggle('visible', pts > 0 && data.level < def.maxLevel)
+    }
   }
 
-  _showContextMenu() {
-    const pts = this._progression.getAttributePoints()
-    if (pts <= 0) return
+  _updatePlayerLevel() {
+    const level = this._progression.getPlayerLevel()
+    const xp = this._progression.getPlayerXP()
+    const progress = AttributeSystem.getPlayerXpProgress(xp)
+    const maxLevel = AttributeSystem.getPlayerMaxLevel()
 
-    const existing = this._el.querySelector('.attr-context-menu')
-    if (existing) {
-      existing.remove()
-      return
+    const numEl = this._el.querySelector('.player-level-num')
+    if (numEl) numEl.textContent = level
+
+    const fill = this._el.querySelector('.player-level-xp-fill')
+    if (fill) {
+      const pct = Math.min(progress.progress * 100, 100)
+      fill.style.width = `${pct}%`
     }
 
-    const menu = document.createElement('div')
-    menu.className = 'attr-context-menu'
-
-    const attrs = ['nucleoLogico', 'eficienciaAlgoritmo']
-    for (const attrId of attrs) {
-      const def = AttributeSystem.getDef(attrId)
-      const data = this._progression.getAttribute(attrId)
-      const canUp = data.level < def.maxLevel
-      const btn = document.createElement('button')
-      btn.className = `attr-context-item${canUp ? '' : ' disabled'}`
-      btn.dataset.attr = attrId
-      btn.innerHTML = `
-        <span class="material-symbols-outlined" style="color:${def.color}">${def.icon}</span>
-        <span>${def.name}</span>
-        <span class="attr-context-level">Lv.${data.level}</span>
-      `
-      if (canUp) {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation()
-          this._spendPoint(attrId)
-          menu.remove()
-        })
-      }
-      menu.appendChild(btn)
-    }
-
-    const ptsDisplay = this._el.querySelector('#attr-points-display')
-    if (ptsDisplay) {
-      const rect = ptsDisplay.getBoundingClientRect()
-      menu.style.top = `${rect.bottom + 4}px`
-      menu.style.right = `${this._el.offsetWidth - rect.right}px`
-    }
-    this._el.appendChild(menu)
-
-    const close = (e) => {
-      if (!menu.contains(e.target)) {
-        menu.remove()
-        document.removeEventListener('click', close)
+    const xpText = this._el.querySelector('.player-level-xp-text')
+    if (xpText) {
+      if (level >= maxLevel) {
+        xpText.textContent = 'MÁXIMO'
+        if (fill) fill.style.width = '100%'
+      } else {
+        xpText.textContent = `${progress.current}/${progress.needed} XP`
       }
     }
-    setTimeout(() => document.addEventListener('click', close), 0)
   }
 
   _spendPoint(attrId) {
@@ -203,28 +177,25 @@ export class AttributesPanel {
     const prevLevel = this._progression.getAttribute(attrId).level
     const success = this._progression.spendAttributePoint(attrId)
     if (success) {
-      const newLevel = this._progression.getAttribute(attrId).level
       this._update()
-      if (newLevel > prevLevel) {
-        this._playLevelUp(attrId, newLevel)
-      }
     }
   }
 
-  _playLevelUp(attrId, newLevel) {
-    const item = this._el.querySelector(`[data-attr="${attrId}"]`)
-    if (!item) return
+  _playPlayerLevelUp(newLevel) {
+    this._update()
+    const section = this._el.querySelector('.player-level-section')
+    if (!section) return
 
-    item.classList.add('attr-levelup')
+    section.classList.add('player-levelup')
 
     const burst = document.createElement('div')
-    burst.className = 'attr-levelup-burst'
-    burst.innerHTML = `<span class="attr-levelup-text">LEVEL UP!<br>Lv.${newLevel}</span>`
-    item.appendChild(burst)
+    burst.className='attr-levelup-burst'
+    burst.innerHTML=`<span class="attr-levelup-text">LEVEL UP!<br>Lv.${newLevel}</span>`
+    section.appendChild(burst)
 
     setTimeout(() => {
       burst.remove()
-      item.classList.remove('attr-levelup')
+      section.classList.remove('player-levelup')
     }, 1600)
 
     try {
@@ -289,22 +260,23 @@ export class AttributesPanel {
 
     const hideHandler = () => this._hideTooltip()
 
-    const pointHandler = (e) => {
-      const btn = e.target.closest('.sim-attr-point-btn')
+    grid.addEventListener('mouseover', infoHandler)
+    grid.addEventListener('mouseout', hideHandler)
+
+    const plusHandler = (e) => {
+      const btn = e.target.closest('.sim-attr-plus-btn')
       if (btn) {
         const attrId = btn.dataset.attr
         this._spendPoint(attrId)
       }
     }
 
-    grid.addEventListener('mouseover', infoHandler)
-    grid.addEventListener('mouseout', hideHandler)
-    grid.addEventListener('click', pointHandler)
+    grid.addEventListener('click', plusHandler)
 
     this._boundListeners.push(
       { el: grid, type: 'mouseover', handler: infoHandler },
       { el: grid, type: 'mouseout', handler: hideHandler },
-      { el: grid, type: 'click', handler: pointHandler }
+      { el: grid, type: 'click', handler: plusHandler }
     )
   }
 
