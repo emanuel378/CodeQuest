@@ -712,6 +712,7 @@ function initGame() {
   const stage = new Stage(5);
 
   const playerManager = _getPlayerManager();
+  playerManager.refresh();
   const activePlayer = playerManager.getActivePlayer();
   const playerId = activePlayer ? activePlayer.id : 'default';
   const playerName = activePlayer ? activePlayer.name : 'Anônimo';

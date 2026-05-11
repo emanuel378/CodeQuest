@@ -8,6 +8,10 @@ export class PlayerManager {
     this._load();
   }
 
+  refresh() {
+    this._load();
+  }
+
   getPlayers() {
     return [...this.players];
   }
