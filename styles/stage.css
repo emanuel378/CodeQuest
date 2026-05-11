@@ -418,10 +418,8 @@
 }
 
 .sim-grid {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  max-width: 300px;
-  max-height: 300px;
+  width: 300px;
+  height: 300px;
   position: relative;
   border: 1px solid rgba(0, 242, 255, 0.3);
   box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
@@ -429,11 +427,8 @@
     linear-gradient(rgba(0, 242, 255, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 242, 255, 0.2) 1px, transparent 1px);
   background-size: 30px 30px;
-}
-
-.sim-grid {
-  position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .sim-entity {

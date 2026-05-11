@@ -148,7 +148,7 @@ function renderSimGrid(level) {
 
   gs.simGrid.innerHTML = '';
 
-  const cellW = gs.simGrid.offsetWidth / level.gridSize;
+  const cellW = gs.simGrid.clientWidth / level.gridSize;
 
   gs.simGrid.style.backgroundSize = `${cellW}px ${cellW}px`;
   gs.simGrid.style.backgroundImage = `
@@ -278,7 +278,7 @@ function renderSimGrid(level) {
 function updateSimView() {
   const robot = gs.player.__robotEl;
   if (!robot || !gs.simGrid) return;
-  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+  const cellSize = gs.simGrid.clientWidth / gs.stage.gridSize;
 
   robot.style.left = `${gs.player.x * cellSize}px`;
   robot.style.top = `${gs.player.y * cellSize}px`;
@@ -303,7 +303,7 @@ function updateSimView() {
 }
 
 function syncSimEntities() {
-  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+  const cellSize = gs.simGrid.clientWidth / gs.stage.gridSize;
 
   for (const el of gs.simGrid.querySelectorAll('.sim-enemy')) {
     const enemyId = el.dataset.enemyId;
@@ -336,7 +336,7 @@ function syncSimEntities() {
 }
 
 function syncSimObstacles() {
-  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+  const cellSize = gs.simGrid.clientWidth / gs.stage.gridSize;
 
   for (const el of gs.simGrid.querySelectorAll('.sim-obstacle')) {
     const x = parseInt(el.dataset.x);
@@ -396,7 +396,7 @@ function tickEnemiesAndSync() {
 }
 
 function flashLaserCells(attack) {
-  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+  const cellSize = gs.simGrid.clientWidth / gs.stage.gridSize;
 
   for (const cell of attack.cells) {
     const overlay = document.createElement('div');
@@ -418,7 +418,7 @@ function flashPlayerDamage() {
 }
 
 function flashMeleeCell(attack) {
-  const cellSize = gs.simGrid.offsetWidth / gs.stage.gridSize;
+  const cellSize = gs.simGrid.clientWidth / gs.stage.gridSize;
 
   for (const cell of attack.cells) {
     const overlay = document.createElement('div');
@@ -1126,6 +1126,8 @@ function initGame() {
       }
     });
   }
+
+
 
   if (els.simViewport) {
     const ro = new ResizeObserver(() => {
