@@ -933,7 +933,7 @@ function initGame() {
       }),
 
       detectEnemy: runWithGuard(async () => {
-        const result = stage.detectEnemyNearby(3);
+        const result = stage.detectEnemyNearby();
         await new Promise(r => setTimeout(r, 350));
         return result;
       })

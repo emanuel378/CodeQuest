@@ -146,13 +146,10 @@ export class Stage {
     return this.isObstacleAt(ahead.x, ahead.y) || !this.isInBounds(ahead.x, ahead.y);
   }
 
-  detectEnemyNearby(range = 3) {
+  detectEnemyNearby() {
     if (!this.player) return false;
-    return this.enemies.some(e => {
-      if (!e.alive) return false;
-      const dist = Math.abs(e.x - this.player.x) + Math.abs(e.y - this.player.y);
-      return dist <= range;
-    });
+    const ahead = this.player.peekForward();
+    return this.isEnemyAt(ahead.x, ahead.y);
   }
 
   attackEnemy() {
