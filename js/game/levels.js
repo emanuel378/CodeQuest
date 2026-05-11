@@ -16,7 +16,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var'],
     description: 'Aprenda os controles básicos movendo o herói até o objetivo.'
   },
   {
@@ -36,7 +36,7 @@ export const LEVELS = [
       { id: 'defeat_enemies', description: 'Derrote o inimigo' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else'],
     description: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!'
   },
   {
@@ -58,7 +58,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Desvie da torre giratória e atravesse o porto.'
   },
   {
@@ -81,7 +81,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Use as rochas como cobertura contra o feixe do laser.'
   },
   {
@@ -105,7 +105,7 @@ export const LEVELS = [
       { id: 'defeat_enemies', description: 'Derrote o inimigo' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Use repetição para navegar pela floresta e derrotar inimigos.'
   },
   {
@@ -130,7 +130,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Um perseguidor patrulha as ruínas. Movimente-se rápido ou enfrente-o.'
   },
   {
@@ -159,7 +159,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Laser e torre protegem o labirinto. Planeje sua rota com cuidado.'
   },
   {
@@ -187,7 +187,7 @@ export const LEVELS = [
       { id: 'defeat_enemies', description: 'Derrote todos os inimigos' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Derrote o boss final e chegue ao núcleo do Logicron!'
   },
   {
@@ -216,7 +216,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Perseguidor e laser no abismo. A rota mais curta pode ser a mais perigosa.'
   },
   {
@@ -247,7 +247,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
     description: 'Todos os inimigos reunidos. Use todas as habilidades para vencer.'
   }
 ];

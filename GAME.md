@@ -20,7 +20,7 @@
 
 - Sempre seguir o formato exato das tabelas nos documentos referenciados
 - Usar números para níveis (0, 1, 2, 3...)
-- Categorias de blocos: *Movimento*, *Controle*, *Sensores*, *Combate*, *Variáveis*
+- Categorias de blocos: *Movimento*, *Controle*, *Combate*, *Variáveis*
 - Obstáculos devem ser tipos específicos, nunca apenas "Contém"/"Não contém"
 - Todo nível **deve** ter um array `objectives` com no mínimo `survive` + o objetivo principal
 - IDs de objetivos: `reach_goal`, `defeat_enemies`, `collect_item`, `survive`

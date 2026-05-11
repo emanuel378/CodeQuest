@@ -5,7 +5,6 @@ let nextId = 1;
 const CAT_COLORS = {
   movimento: 'var(--primary-container)',
   controle: 'var(--secondary-container)',
-  sensor: 'var(--tertiary-container)',
   combate: 'var(--error)',
   variavel: 'var(--secondary)'
 };
@@ -15,8 +14,9 @@ const SNAP_DISTANCE = 90;
 const WORKSPACE_PAD = 400;
 
 export class BlockWorkspace {
-  constructor(containerEl) {
+  constructor(containerEl, palette) {
     this.ct = containerEl;
+    this.palette = palette;
     this.zoom = 1;
     this.blocks = new Map();
     this._drag = null;
@@ -44,9 +44,10 @@ export class BlockWorkspace {
     const b = {
       id, type, label, icon, category,
       value: params?.value,
+      varName: params?.varName || null,
       condition: params?.condition || (type === 'if' || type === 'while' ? 'obstacleDetected' : null),
       x: x ?? 40, y: y ?? (40 + this.blocks.size * 70),
-      w: 220, h: ctrl ? 80 : 40,
+      w: type === 'custom_var' ? 80 : type === 'set_var' ? 260 : 220, h: ctrl ? 80 : 40,
       prev: null, next: null, parent: null,
       children: [], elseChildren: [], ctrl
     };
@@ -125,6 +126,7 @@ export class BlockWorkspace {
   _toCmd(b) {
     const c = { type: b.type, _blockId: b.id };
     if (b.value != null) c.value = b.value;
+    if (b.varName) c.varName = b.varName;
     if (b.condition) c.condition = b.condition;
     if (b.ctrl) {
       const kids = this._walk(b.children);
@@ -155,10 +157,11 @@ export class BlockWorkspace {
     div.className = 'sb-block';
 
     if (b.ctrl) div.classList.add('sb-control');
+    if (b.type === 'custom_var') div.classList.add('sb-block-variable');
 
     const clr = CAT_COLORS[b.category] || 'var(--on-surface-variant)';
     div.style.setProperty('--cat-color', clr);
-    div.style.width = b.w + 'px';
+    if (b.type !== 'set_var') div.style.width = b.w + 'px';
 
     const body = document.createElement('div');
     body.className = 'sb-block-body';
@@ -207,6 +210,9 @@ export class BlockWorkspace {
       }
 
       div.style.height = 'auto';
+    } else if (b.type === 'set_var') {
+      div.classList.add('sb-block-setvar');
+      this._renderSetVarBlock(content, b, clr);
     } else {
       content.innerHTML = this._simpleHtml(b, clr);
     }
@@ -230,6 +236,40 @@ export class BlockWorkspace {
       <span class="sb-label">${b.label}</span>
       ${b.value != null ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
     `;
+  }
+
+  _renderSetVarBlock(content, b, clr) {
+    content.innerHTML = `
+      <span class="sb-icon" style="color:${clr};flex-shrink:0">
+        <span class="material-symbols-outlined">${b.icon}</span>
+      </span>
+      <span class="sb-label" style="flex-shrink:0">${b.label}</span>
+      <select class="sb-var-select" data-bid="${b.id}"></select>
+      <span class="sb-var-eq" style="flex-shrink:0">recebe</span>
+      <input class="sb-input sb-input-circle" type="text" value="${b.value ?? 0}" data-bid="${b.id}" style="margin-left:0;flex-shrink:0">
+    `;
+    const select = content.querySelector('.sb-var-select');
+    if (select) this._populateVarSelect(select, b);
+  }
+
+  _populateVarSelect(select, b) {
+    const vars = this.palette ? this.palette.getVariables() : [];
+    const currentValue = b.varName || '';
+    select.innerHTML = '';
+    if (vars.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '--';
+      select.appendChild(opt);
+    } else {
+      for (const v of vars) {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      }
+    }
+    select.value = vars.includes(currentValue) ? currentValue : '';
   }
 
   _ctrlHtml(b, clr) {
@@ -382,15 +422,17 @@ export class BlockWorkspace {
 
   _createPaletteGhost(data, x, y) {
     this._removePaletteGhost();
+    const isSetVar = data.type === 'set_var';
     const temp = {
       type: data.type,
       label: data.label,
       icon: data.icon,
       category: data.category,
       ctrl: CONTROL_TYPES.has(data.type),
-      w: 220,
+      w: isSetVar ? 260 : 220,
       h: CONTROL_TYPES.has(data.type) ? 80 : 40,
       value: data.params?.value,
+      varName: data.params?.varName || null,
       condition: data.params?.condition || null,
       children: [],
       elseChildren: []
@@ -447,11 +489,11 @@ export class BlockWorkspace {
         }
       }
 
-      if (o.parent) continue;
+      if (o.parent || o.type === 'custom_var') continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
-      const ddx = Math.abs(mx - (ox + o.w / 2));
+      const ddx = Math.abs(mx - (ox + or.width / this.zoom / 2));
       const ddy = my - (oy + or.height / this.zoom);
 
       if (ddx < sn && ddy >= 0 && ddy < bestDist) {
@@ -487,7 +529,7 @@ export class BlockWorkspace {
 
   _trySnap(id, mx, my) {
     const b = this.blocks.get(id);
-    if (!b) return false;
+    if (!b || b.type === 'custom_var') return false;
 
     const sn = SNAP_DISTANCE / this.zoom;
     let best = null;
@@ -501,7 +543,7 @@ export class BlockWorkspace {
       const oy = (or.top - crt.top) / this.zoom;
       const oHeight = or.height / this.zoom;
 
-      const ddx = Math.abs(mx - (ox + o.w / 2));
+      const ddx = Math.abs(mx - (ox + or.width / this.zoom / 2));
       const ddy = my - (oy + oHeight);
 
       if (ddx < sn && ddy >= 0 && ddy < bestDist) {
@@ -621,11 +663,11 @@ export class BlockWorkspace {
         }
       }
 
-      if (o.id === id || o.parent) continue;
+      if (o.id === id || o.parent || o.type === 'custom_var') continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
-      const ddx = Math.abs(mx - (ox + o.w / 2));
+      const ddx = Math.abs(mx - (ox + or.width / this.zoom / 2));
       const ddy = my - (oy + or.height / this.zoom);
 
       if (ddx < sn && ddy >= 0 && ddy < bestDist) {
@@ -661,7 +703,7 @@ export class BlockWorkspace {
       b.el.classList.remove('dragging');
       const childArea = this._findChildArea(cx, cy);
       if (childArea) {
-        const data = { type: b.type, label: b.label, icon: b.icon, category: b.category, params: { value: b.value, condition: b.condition } };
+        const data = { type: b.type, label: b.label, icon: b.icon, category: b.category, params: { value: b.value, varName: b.varName, condition: b.condition } };
         this.removeBlock(b.id);
         this._dropChild(childArea, data);
       } else {
@@ -681,7 +723,7 @@ export class BlockWorkspace {
       data.push({
         id: b.id, type: b.type, label: b.label, icon: b.icon,
         category: b.category, x: b.x, y: b.y,
-        value: b.value, condition: b.condition,
+        value: b.value, varName: b.varName, condition: b.condition,
         prev: b.prev, next: b.next, parent: b.parent,
         children: b.children, elseChildren: b.elseChildren, ctrl: b.ctrl
       });
@@ -739,7 +781,7 @@ export class BlockWorkspace {
       id: bd.id, type: bd.type, label: bd.label, icon: bd.icon,
       category: bd.category, x: bd.x, y: bd.y,
       w: bd.w || 220, h: bd.h || (bd.ctrl ? 80 : 40),
-      value: bd.value, condition: bd.condition,
+      value: bd.value, varName: bd.varName, condition: bd.condition,
       prev: bd.prev, next: bd.next, parent: bd.parent,
       children: [...(bd.children || [])],
       elseChildren: [...(bd.elseChildren || [])],
@@ -863,6 +905,27 @@ export class BlockWorkspace {
       this.save();
     });
 
+    this.ct.addEventListener('change', (e) => {
+      const select = e.target.closest('.sb-var-select');
+      if (!select) return;
+      const pe = select.closest('.sb-block');
+      if (!pe) return;
+      const b = this.blocks.get(pe.dataset.bid);
+      if (b) b.varName = select.value;
+      this.save();
+    });
+
+    this.ct.addEventListener('mousedown', (e) => {
+      const select = e.target.closest('.sb-var-select');
+      if (select) {
+        const pe = select.closest('.sb-block');
+        if (pe) {
+          const b = this.blocks.get(pe.dataset.bid);
+          if (b) this._populateVarSelect(select, b);
+        }
+      }
+    });
+
     this.ct.addEventListener('input', (e) => {
       const inp = e.target.closest('.sb-input');
       if (!inp) return;
@@ -876,7 +939,7 @@ export class BlockWorkspace {
     this.ct.addEventListener('click', (e) => {
       this.ct.querySelectorAll('.sb-block.selected').forEach(el => el.classList.remove('selected'));
       const block = e.target.closest('.sb-block');
-      if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip')) {
+      if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq')) {
         block.classList.add('selected');
       }
     });
@@ -885,7 +948,7 @@ export class BlockWorkspace {
       if (e.target.closest('.sb-zoom-controls, .btn-zoom')) return;
       const block = e.target.closest('.sb-block');
       if (!block) return;
-      if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip')) return;
+      if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq')) return;
       const b = this.blocks.get(block.dataset.bid);
       if (!b) return;
       this._dragStartPos = { x: e.clientX, y: e.clientY };

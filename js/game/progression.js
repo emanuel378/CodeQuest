@@ -3,7 +3,7 @@ import { AttributeSystem } from './attributes.js';
 const GLOBAL_RANKING_KEY = 'codequest_ranking';
 
 const LEVEL_UNLOCKS = {
-  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
   1: [],
   2: [],
   3: []

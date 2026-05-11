@@ -16,9 +16,8 @@ const DEFAULT_HANDLERS = {
   turnLeft: async () => {},
   jump: async () => {},
   attack: async () => {},
-  pickup: async () => {},
-  drop: async () => {},
-  activate: async () => {},
+  custom_var: async () => {},
+  set_var: async () => {},
   detectObstacle: async () => false,
   detectEnemy: async () => false
 };

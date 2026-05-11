@@ -11,7 +11,7 @@ const STEPS = [
   },
   {
     title: 'Controles e Regras',
-    icon: 'sensors',
+    icon: 'controller',
     text: 'Arraste blocos da paleta para o workspace e encaixe-os para formar programas sequenciais. Use blocos de controle como "Se" e "Repetir" para criar lógica avançada. Veja abaixo os blocos disponíveis:',
     hasDemo: true
   },
@@ -43,14 +43,6 @@ const DEMO_CATEGORIES = [
     ]
   },
   {
-    label: 'Sensores',
-    color: 'var(--tertiary-container)',
-    items: [
-      { type: 'detectObstacle', label: 'Detectar Obstáculo', icon: 'block', desc: 'Retorna verdadeiro se há um obstáculo na casa à frente' },
-      { type: 'detectEnemy', label: 'Detectar Inimigo', icon: 'dangerous', desc: 'Retorna verdadeiro se há um inimigo num raio de 3 casas' }
-    ]
-  },
-  {
     label: 'Combate',
     color: 'var(--error)',
     items: [
@@ -58,12 +50,10 @@ const DEMO_CATEGORIES = [
     ]
   },
   {
-    label: 'Ações',
+    label: 'Variáveis',
     color: 'var(--secondary)',
     items: [
-      { type: 'pickup', label: 'Pegar', icon: 'back_hand', desc: 'Pega um item na casa atual do robô' },
-      { type: 'drop', label: 'Soltar', icon: 'do_not_disturb_on', desc: 'Solta o item que o robô está carregando' },
-      { type: 'activate', label: 'Ativar', icon: 'power_settings_new', desc: 'Ativa mecanismos especiais no nível' }
+      { type: 'custom_var', label: 'Variável', icon: 'data_object', desc: 'Bloco de variável personalizada criada na paleta' }
     ]
   }
 ];
@@ -521,33 +511,6 @@ export class GameTutorial {
         break;
       }
 
-      case 'detectObstacle': {
-        if (this._obstacleEl) {
-          this._obstacleEl.style.display = 'flex';
-          this._obstacleEl.style.opacity = '0';
-          await this._delay(50);
-          this._obstacleEl.style.transition = 'opacity 0.3s ease';
-          this._obstacleEl.style.opacity = '1';
-          await this._delay(350);
-        }
-        if (this._robotEl) {
-          this._robotEl.classList.add('tutorial-scan');
-          await this._delay(600);
-          this._robotEl.classList.remove('tutorial-scan');
-        }
-        break;
-      }
-
-      case 'detectEnemy': {
-        if (this._robotEl) {
-          this._robotEl.classList.add('tutorial-scan');
-          this._robotEl.style.boxShadow = '0 0 20px var(--error), 0 0 40px rgba(255, 0, 0, 0.3)';
-          await this._delay(700);
-          this._robotEl.classList.remove('tutorial-scan');
-          this._robotEl.style.boxShadow = '';
-        }
-        break;
-      }
 
       case 'attack': {
         if (this._enemyEl) {
@@ -560,48 +523,11 @@ export class GameTutorial {
         break;
       }
 
-      case 'pickup': {
-        if (this._itemEl) {
-          this._itemEl.style.display = 'flex';
-          this._itemEl.style.opacity = '0';
-          await this._delay(50);
-          this._itemEl.style.transition = 'opacity 0.3s ease';
-          this._itemEl.style.opacity = '1';
-          await this._delay(350);
-          this._itemEl.style.transition = 'left 0.4s ease, top 0.4s ease, opacity 0.3s ease';
-          const cs = this._cellSize;
-          this._itemEl.style.left = `${this._rx * cs + cs * 0.15}px`;
-          this._itemEl.style.top = `${this._ry * cs + cs * 0.15}px`;
-          await this._delay(350);
-          this._itemEl.style.opacity = '0';
-          await this._delay(300);
-        }
-        break;
-      }
-
-      case 'drop': {
-        if (this._itemEl) {
-          this._itemEl.style.display = 'flex';
-          this._itemEl.style.opacity = '0';
-          const cs = this._cellSize;
-          this._itemEl.style.left = `${this._rx * cs + cs * 0.15}px`;
-          this._itemEl.style.top = `${(this._ry + 1) * cs + cs * 0.15}px`;
-          await this._delay(50);
-          this._itemEl.style.transition = 'opacity 0.3s ease';
-          this._itemEl.style.opacity = '1';
-          await this._delay(400);
-          this._itemEl.style.display = 'none';
-        }
-        break;
-      }
-
-      case 'activate': {
+      case 'custom_var': {
         if (this._robotEl) {
-          this._robotEl.classList.add('tutorial-activate');
-          this._robotEl.style.boxShadow = '0 0 25px var(--primary-container), 0 0 50px rgba(0, 242, 255, 0.4)';
-          await this._delay(700);
-          this._robotEl.classList.remove('tutorial-activate');
-          this._robotEl.style.boxShadow = '';
+          this._robotEl.classList.add('tutorial-scan');
+          await this._delay(400);
+          this._robotEl.classList.remove('tutorial-scan');
         }
         break;
       }

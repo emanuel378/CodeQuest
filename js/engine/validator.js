@@ -1,13 +1,12 @@
 const VALID_COMMANDS = new Set([
   'move', 'turnRight', 'turnLeft', 'jump',
-  'attack', 'pickup', 'drop', 'activate',
-  'detectObstacle', 'detectEnemy',
+  'attack', 'custom_var', 'set_var',
   'if', 'repeat', 'while'
 ]);
 
 const CONTROL_COMMANDS = new Set(['if', 'repeat', 'while']);
 
-const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'repeat']);
+const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'repeat', 'set_var']);
 
 const VALID_CONDITIONS = new Set(['obstacleDetected', 'enemyDetected']);
 
@@ -93,6 +92,10 @@ function validateNode(node, result, depth, path) {
     validateNumericValue(node, result, path);
   }
 
+  if (node.type === 'set_var') {
+    validateSetVar(node, result, path);
+  }
+
   if (CONTROL_COMMANDS.has(node.type)) {
     validateControlBlock(node, result, depth, path);
   }
@@ -123,7 +126,7 @@ function validateControlBlock(node, result, depth, path) {
 
 function validateIf(node, result, depth, path) {
   if (!node.condition) {
-    result.addError(`${path} (Se): Nenhuma condição definida. Clique no hexágono ou arraste um sensor para definir a condição.`);
+    result.addError(`${path} (Se): Nenhuma condição definida. Clique no hexágono para definir a condição.`);
   } else if (!VALID_CONDITIONS.has(node.condition)) {
     result.addError(`${path} (Se): Condição "${node.condition}" inválida. Use "Obstáculo" ou "Inimigo".`);
   }
@@ -173,7 +176,7 @@ function validateRepeat(node, result, depth, path) {
 
 function validateWhile(node, result, depth, path) {
   if (!node.condition) {
-    result.addError(`${path} (Enquanto): Nenhuma condição definida. Clique no hexágono ou arraste um sensor para definir.`);
+    result.addError(`${path} (Enquanto): Nenhuma condição definida. Clique no hexágono para definir a condição.`);
   } else if (!VALID_CONDITIONS.has(node.condition)) {
     result.addError(`${path} (Enquanto): Condição "${node.condition}" inválida. Use "Obstáculo" ou "Inimigo".`);
   }
@@ -198,6 +201,12 @@ function validateWhile(node, result, depth, path) {
     for (let i = 0; i < node.children.length; i++) {
       validateNode(node.children[i], result, depth + 1, `${path} (Enquanto) > #${i + 1}`);
     }
+  }
+}
+
+function validateSetVar(node, result, path) {
+  if (!node.varName || node.varName.trim() === '') {
+    result.addError(`${path} (Definir): Nenhuma variável selecionada. Selecione uma variável no menu.`);
   }
 }
 

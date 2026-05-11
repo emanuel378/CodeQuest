@@ -4,13 +4,12 @@
 
 ### Paleta de Blocos
 
-A paleta (`js/ui/blockPalette.js`) é dividida em 5 categorias com abas e cores específicas:
+A paleta (`js/ui/blockPalette.js`) é dividida em 4 categorias com abas e cores específicas:
 
 | Categoria | Cor (Token CSS) | Cor (Nome) |
 | --- | --- | --- |
 | Movimento | `var(--primary-container)` | Ciano |
 | Controle | `var(--secondary-container)` | Roxo |
-| Sensores | `var(--tertiary-container)` | Verde |
 | Combate | `var(--error)` | Vermelho |
 | Variáveis | `var(--secondary)` | Roxo |
 
@@ -25,12 +24,8 @@ A paleta (`js/ui/blockPalette.js`) é dividida em 5 categorias com abas e cores 
 | Se (if) | *Controle* | 1 | Executa o bloco `then` se a condição for verdadeira, senão executa `else` |
 | Repetir | *Controle* | 2 | Repete os blocos internos N vezes (max 100) |
 | Enquanto | *Controle* | 2 | Repete os blocos internos enquanto a condição for verdadeira (max 200 iterações) |
-| Detectar obstáculo | *Sensores* | 0 (Inicial) | Retorna `true` se há obstáculo ou borda à frente |
-| Detectar inimigo | *Sensores* | 0 (Inicial) | Retorna `true` se há inimigo num raio de 3 células (distância Manhattan) |
 | Atacar | *Combate* | 0 (Inicial) | Ataca o inimigo na célula frontal, causando 1 de dano |
-| Pegar | *Variáveis* | 0 (Inicial) | Pega um item da célula atual |
-| Soltar | *Variáveis* | 0 (Inicial) | Solta o item que o herói carrega |
-| Ativar | *Variáveis* | 0 (Inicial) | Ativa um mecanismo na célula atual |
+| Variável customizada | *Variáveis* | 0 (Inicial) | Bloco de variável criado pelo usuário via input na paleta |
 
 ### Condições Válidas
 

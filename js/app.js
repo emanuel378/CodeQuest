@@ -660,9 +660,9 @@ function initGame() {
     return;
   }
 
-  const workspace = new BlockWorkspace(els.workspace);
-  workspace.restore();
   const palette = new BlockPalette(els.palette);
+  const workspace = new BlockWorkspace(els.workspace, palette);
+  workspace.restore();
   const player = new Player(5);
   const stage = new Stage(5);
 
@@ -802,6 +802,8 @@ function initGame() {
 
     setStatus('Executando...', '#00f2ff');
 
+    const variables = {};
+
     const handlers = {
       move: runWithGuard(async (cmd) => {
         const steps = Math.max(1, cmd.value || 1);
@@ -848,21 +850,9 @@ function initGame() {
         tickEnemiesAndSync();
       }),
 
-      pickup: runWithGuard(async () => {
-        stage.pickupItem();
+      set_var: runWithGuard(async (cmd) => {
+        variables[cmd.varName] = Number(cmd.value) || 0;
         await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
-      }),
-
-      drop: runWithGuard(async () => {
-        stage.dropItem();
-        await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
-      }),
-
-      activate: runWithGuard(async () => {
-        await new Promise(r => setTimeout(r, 350));
-        tickEnemiesAndSync();
       }),
 
       detectObstacle: runWithGuard(async () => {
