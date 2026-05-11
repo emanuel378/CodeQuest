@@ -799,7 +799,7 @@ function initGame() {
     })
     loadCurrentLevel();
   }, () => {
-    if (_currentTutorial) return;
+    if (_currentTutorial || _tutorialCompleted) return;
     _currentTutorial = new GameTutorial(onTutorialComplete);
     setTimeout(() => {
       if (_currentTutorial) _currentTutorial.show();
@@ -1142,10 +1142,12 @@ function initGame() {
 
 let _gameInitialized = false;
 let _currentTutorial = null;
+let _tutorialCompleted = false;
 let _errorFadeTimeout = null;
 
 function onTutorialComplete() {
   _currentTutorial = null;
+  _tutorialCompleted = true;
   if (gs && gs.profileMenu) {
     const players = gs.playerManager.getPlayers();
     if (players.length === 0) {
@@ -1162,7 +1164,7 @@ document.addEventListener('game:ready', () => {
   const players = gs.playerManager.getPlayers();
   const activePlayer = gs.playerManager.getActivePlayer();
 
-  if (players.length === 0 || (activePlayer && gs.progression.completedLevels.length === 0)) {
+  if (!_tutorialCompleted && (players.length === 0 || (activePlayer && gs.progression.completedLevels.length === 0))) {
     _currentTutorial = new GameTutorial(onTutorialComplete);
     setTimeout(() => {
       if (_currentTutorial) _currentTutorial.show();
