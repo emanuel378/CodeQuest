@@ -16,7 +16,7 @@ const CATEGORIES = [
     icon: 'settings_ethernet',
     blocks: [
       { type: 'if', label: 'Se', icon: 'call_split', params: { condition: 'obstacleDetected' } },
-      { type: 'repeat', label: 'Repetir', icon: 'repeat', params: { value: 5 } },
+      { type: 'repeat', label: 'Repetir', icon: 'repeat', params: {} },
       { type: 'while', label: 'Enquanto', icon: 'loop', params: { condition: 'obstacleDetected' } }
     ]
   },

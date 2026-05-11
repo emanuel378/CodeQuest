@@ -132,9 +132,9 @@ async function executeRepeat(cmd, handlers, delayMs, eventTarget, validation, va
   if (cmd.varName && variables[cmd.varName] !== undefined) {
     count = Math.min(Number(variables[cmd.varName]) || 1, MAX_REPEAT);
   } else {
-    count = Math.min(cmd.value || 1, MAX_REPEAT);
+    count = 0;
   }
-  if (!cmd.children || cmd.children.length === 0) return;
+  if (count < 1 || !cmd.children || cmd.children.length === 0) return;
 
   for (let i = 0; i < count; i++) {
     for (const child of cmd.children) {

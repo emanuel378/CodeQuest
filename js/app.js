@@ -801,7 +801,6 @@ function initGame() {
     setStatus('Validando...', '#ebb2ff');
 
     const commands = workspace.getCommandTree();
-    console.log('Commands:', JSON.stringify(commands, null, 2));
 
     if (commands.length === 0) {
       setStatus('Nenhum bloco', '#ebb2ff');

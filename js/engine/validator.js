@@ -173,22 +173,12 @@ function validateIf(node, result, depth, path) {
 }
 
 function validateRepeat(node, result, depth, path) {
-  const hasValue = node.value !== undefined && node.value !== null;
   const hasVar = node.varName && node.varName.trim() !== '';
 
-  if (!hasValue && !hasVar) {
+  if (!hasVar) {
     result.addError(`${path} (Repetir): Número de repetições obrigatório. Encaixe uma variável no bloco Repetir.`);
-  } else if (hasVar) {
-    if (!_isVariableDefinedBefore(node, result)) {
-      result.addError(`${path} (Repetir): Variável "${node.varName}" não foi definida antes do bloco Repetir. Adicione um bloco "Definir ${node.varName}" antes.`);
-    }
-  } else {
-    const count = Number(node.value);
-    if (isNaN(count) || count < 1) {
-      result.addError(`${path} (Repetir): Número inválido "${node.value}". Use um número inteiro positivo.`);
-    } else if (count > MAX_REPEAT_COUNT) {
-      result.addWarning(`${path} (Repetir): ${count} repetições excede o limite de ${MAX_REPEAT_COUNT}. Será limitado a ${MAX_REPEAT_COUNT}.`);
-    }
+  } else if (!_isVariableDefinedBefore(node, result)) {
+    result.addError(`${path} (Repetir): Variável "${node.varName}" não foi definida antes do bloco Repetir. Adicione um bloco "Definir ${node.varName}" antes.`);
   }
 
   if (!node.children || node.children.length === 0) {
