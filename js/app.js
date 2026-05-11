@@ -1129,13 +1129,21 @@ function initGame() {
 
 
 
-  if (els.simViewport) {
+  if (gs.simGrid) {
     const ro = new ResizeObserver(() => {
-      if (gs && gs.stage && gs.simGrid && !gs.isRunning) {
-        updateSimView();
+      if (gs && gs.stage && gs.simGrid && !gs.isRunning && gs.activeLevelId !== null) {
+        const level = getLevel(gs.activeLevelId);
+        if (level) {
+          ro.disconnect();
+          renderSimGrid(level);
+          updateSimView();
+          requestAnimationFrame(() => {
+            if (gs && gs.simGrid) ro.observe(gs.simGrid);
+          });
+        }
       }
     });
-    ro.observe(els.simViewport);
+    ro.observe(gs.simGrid);
     gs._resizeObserver = ro;
   }
 
@@ -1190,6 +1198,7 @@ document.addEventListener(ROUTE_CHANGE, (e) => {
 
   if (e.detail.path !== '/game' && e.detail.path !== '/levels') {
     if (gs) {
+      if (gs._resizeObserver) gs._resizeObserver.disconnect();
       if (gs.profileMenu) gs.profileMenu.destroy();
       if (gs.objectivesPanel) gs.objectivesPanel.destroy();
     }
