@@ -6,7 +6,7 @@
 
 | Nível | Nome | Tema | Blocos Desbloqueados | Inimigos | Objetivos | Blocos Ideais | Complexidade | Dificuldade | Obstáculos |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | Tutorial | `ocean` | move, turnRight, turnLeft, jump, attack, pickup, drop, activate, detectObstacle, detectEnemy | — | reach_goal, survive | 6 | 1 | ★ | — |
+| 0 | Tutorial | `ocean` | move, turnRight, turnLeft, jump, attack, custom_var | — | reach_goal, survive | 6 | 1 | ★ | — |
 | 1 | Cidade da Lógica | `ocean` | if, else | 1 Turret (1HP) | defeat_enemies, survive | 8 | 2 | ★★ | — |
 | 2 | Nível 2 | `ocean` | repeat, while | — | reach_goal, survive | 6 | 1 | ★ | — |
 | 3 | Nível 3 | `ocean` | — | — | reach_goal, survive | 6 | 1 | ★ | — |
@@ -23,15 +23,14 @@ O sistema de desbloqueio (`js/game/progression.js`) usa `LEVEL_UNLOCKS` baseado 
 
 ```javascript
 LEVEL_UNLOCKS = {
-  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop',
-      'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
+  0: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'if', 'else', 'repeat', 'while'],
   1: [],
   2: [],
   3: []
 }
 ```
 
-Na prática, todos os 14 comandos são desbloqueados desde o início. O `if/else` fica disponível no nível 1 e `repeat/while` no nível 2 conforme a tabela acima (controlado pela paleta filtrar por comandos desbloqueados).
+Na prática, todos os comandos são desbloqueados desde o início. O `if/else` fica disponível no nível 1 e `repeat/while` no nível 2 conforme a tabela acima (controlado pela paleta filtrar por comandos desbloqueados).
 
 ### Sistema de Tentativas
 

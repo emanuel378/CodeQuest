@@ -16,17 +16,8 @@ const CATEGORIES = [
     icon: 'settings_ethernet',
     blocks: [
       { type: 'if', label: 'Se', icon: 'call_split', params: { condition: 'obstacleDetected' } },
-      { type: 'repeat', label: 'Repetir', icon: 'repeat', params: { value: 5 } },
+      { type: 'repeat', label: 'Repetir', icon: 'repeat', params: {} },
       { type: 'while', label: 'Enquanto', icon: 'loop', params: { condition: 'obstacleDetected' } }
-    ]
-  },
-  {
-    id: 'sensor',
-    label: 'Sensores',
-    icon: 'sensors',
-    blocks: [
-      { type: 'detectObstacle', label: 'Detectar obstáculo', icon: 'block' },
-      { type: 'detectEnemy', label: 'Detectar inimigo', icon: 'dangerous' }
     ]
   },
   {
@@ -42,9 +33,8 @@ const CATEGORIES = [
     label: 'Variáveis',
     icon: 'data_object',
     blocks: [
-      { type: 'pickup', label: 'Pegar', icon: 'back_hand' },
-      { type: 'drop', label: 'Soltar', icon: 'do_not_disturb_on' },
-      { type: 'activate', label: 'Ativar', icon: 'power_settings_new' }
+      { type: 'set_var', label: 'Definir', icon: 'assignment', params: { varName: '', value: 0 } },
+      { type: 'change_var', label: 'Alterar', icon: 'edit', params: { varName: '', value: 0 } }
     ]
   }
 ];
@@ -52,7 +42,6 @@ const CATEGORIES = [
 const CATEGORY_COLORS = {
   movimento: 'var(--primary-container)',
   controle: 'var(--secondary-container)',
-  sensor: 'var(--tertiary-container)',
   combate: 'var(--error)',
   variavel: 'var(--secondary)'
 };
@@ -61,6 +50,7 @@ export class BlockPalette {
   constructor(containerEl) {
     this.container = containerEl;
     this.activeCategory = null;
+    this._variables = [];
     this._render();
     this._setupDrag();
   }
@@ -110,6 +100,11 @@ export class BlockPalette {
 
     this._content.innerHTML = '';
 
+    if (catId === 'variavel') {
+      this._renderVariableCategory();
+      return;
+    }
+
     for (const blockDef of cat.blocks) {
       const el = document.createElement('div');
       el.className = 'sb-palette-block';
@@ -131,6 +126,82 @@ export class BlockPalette {
     }
   }
 
+  _renderVariableCategory() {
+    const color = CATEGORY_COLORS.variavel;
+
+    const label = document.createElement('div');
+    label.className = 'sb-var-label';
+    label.textContent = 'Criar variável';
+    this._content.appendChild(label);
+
+    const inputRow = document.createElement('div');
+    inputRow.className = 'sb-var-input-row';
+    inputRow.innerHTML = `
+      <input class="sb-var-input" type="text" placeholder="ex: contador" maxlength="20">
+      <button class="sb-var-add-btn" style="border-color:${color};color:${color}">+</button>
+    `;
+
+    const input = inputRow.querySelector('.sb-var-input');
+    const addBtn = inputRow.querySelector('.sb-var-add-btn');
+
+    const doAdd = () => {
+      const name = input.value.trim();
+      if (!name) return;
+      if (!/^[a-zA-Z_]\w*$/.test(name)) return;
+      if (this._variables.includes(name)) return;
+      this._variables.push(name);
+      input.value = '';
+      this._selectCategory('variavel');
+    };
+
+    addBtn.addEventListener('click', doAdd);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doAdd();
+    });
+
+    this._content.appendChild(inputRow);
+
+    for (const varName of this._variables) {
+      const el = document.createElement('div');
+      el.className = 'sb-palette-block sb-palette-block-var';
+      el.draggable = true;
+      el.dataset.type = 'custom_var';
+      el.dataset.label = varName;
+      el.dataset.icon = '';
+      el.dataset.category = 'variavel';
+      el.dataset.params = JSON.stringify({ varName });
+      el.innerHTML = `<span>${varName}</span>`;
+      this._content.appendChild(el);
+    }
+
+    const sep = document.createElement('div');
+    sep.className = 'sb-var-separator';
+    this._content.appendChild(sep);
+
+    const cat = CATEGORIES.find(c => c.id === 'variavel');
+    if (cat) {
+      for (const blockDef of cat.blocks) {
+        const el = document.createElement('div');
+        el.className = 'sb-palette-block';
+        el.draggable = true;
+        el.dataset.type = blockDef.type;
+        el.dataset.label = blockDef.label;
+        el.dataset.icon = blockDef.icon;
+        el.dataset.category = 'variavel';
+        el.dataset.params = JSON.stringify(blockDef.params || {});
+
+        const c = CATEGORY_COLORS.variavel;
+        el.innerHTML = `
+          <div class="sb-palette-headlight" style="--cat-color:${c}"><div class="sb-palette-headlight-lens"></div></div>
+          <span class="material-symbols-outlined" style="color:${c}">${blockDef.icon}</span>
+          <span>${blockDef.label}</span>
+        `;
+
+        this._content.appendChild(el);
+      }
+    }
+  }
+
   _setupDrag() {
     this._content.addEventListener('dragstart', (e) => {
       const block = e.target.closest('.sb-palette-block');
@@ -145,6 +216,10 @@ export class BlockPalette {
       }));
       e.dataTransfer.effectAllowed = 'copy';
     });
+  }
+
+  getVariables() {
+    return [...this._variables];
   }
 
   filterByUnlocked(unlockedCommands) {

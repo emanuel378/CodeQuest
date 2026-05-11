@@ -1,13 +1,12 @@
 const VALID_COMMANDS = new Set([
   'move', 'turnRight', 'turnLeft', 'jump',
-  'attack', 'pickup', 'drop', 'activate',
-  'detectObstacle', 'detectEnemy',
+  'attack', 'custom_var', 'set_var', 'change_var',
   'if', 'repeat', 'while'
 ]);
 
 const CONTROL_COMMANDS = new Set(['if', 'repeat', 'while']);
 
-const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'repeat']);
+const COMMANDS_WITH_VALUE = new Set(['move', 'jump', 'set_var', 'change_var']);
 
 const VALID_CONDITIONS = new Set(['obstacleDetected', 'enemyDetected']);
 
@@ -61,11 +60,28 @@ export function validateCommands(commands) {
     return result;
   }
 
+  result._cmdIndexMap = new Map();
+  _buildIndexMap(commands, result._cmdIndexMap);
+
   for (let i = 0; i < commands.length; i++) {
     validateNode(commands[i], result, 0, `#${i + 1}`);
   }
 
   return result;
+}
+
+function _buildIndexMap(commands, map, startIndex = 0) {
+  let idx = startIndex;
+  for (const cmd of commands) {
+    map.set(cmd, idx++);
+    if (cmd.children && cmd.children.length > 0) {
+      idx = _buildIndexMap(cmd.children, map, idx);
+    }
+    if (cmd.elseChildren && cmd.elseChildren.length > 0) {
+      idx = _buildIndexMap(cmd.elseChildren, map, idx);
+    }
+  }
+  return idx;
 }
 
 function validateNode(node, result, depth, path) {
@@ -91,6 +107,14 @@ function validateNode(node, result, depth, path) {
 
   if (COMMANDS_WITH_VALUE.has(node.type) && node.type !== 'repeat') {
     validateNumericValue(node, result, path);
+  }
+
+  if (node.type === 'set_var') {
+    validateSetVar(node, result, path);
+  }
+
+  if (node.type === 'change_var') {
+    validateChangeVar(node, result, path);
   }
 
   if (CONTROL_COMMANDS.has(node.type)) {
@@ -123,7 +147,7 @@ function validateControlBlock(node, result, depth, path) {
 
 function validateIf(node, result, depth, path) {
   if (!node.condition) {
-    result.addError(`${path} (Se): Nenhuma condição definida. Clique no hexágono ou arraste um sensor para definir a condição.`);
+    result.addError(`${path} (Se): Nenhuma condição definida. Clique no hexágono para definir a condição.`);
   } else if (!VALID_CONDITIONS.has(node.condition)) {
     result.addError(`${path} (Se): Condição "${node.condition}" inválida. Use "Obstáculo" ou "Inimigo".`);
   }
@@ -149,17 +173,12 @@ function validateIf(node, result, depth, path) {
 }
 
 function validateRepeat(node, result, depth, path) {
-  const hasValue = node.value !== undefined && node.value !== null;
+  const hasVar = node.varName && node.varName.trim() !== '';
 
-  if (!hasValue) {
-    result.addError(`${path} (Repetir): Número de repetições obrigatório. Preencha o círculo branco no bloco.`);
-  } else {
-    const count = Number(node.value);
-    if (isNaN(count) || count < 1) {
-      result.addError(`${path} (Repetir): Número inválido "${node.value}". Use um número inteiro positivo.`);
-    } else if (count > MAX_REPEAT_COUNT) {
-      result.addWarning(`${path} (Repetir): ${count} repetições excede o limite de ${MAX_REPEAT_COUNT}. Será limitado a ${MAX_REPEAT_COUNT}.`);
-    }
+  if (!hasVar) {
+    result.addError(`${path} (Repetir): Número de repetições obrigatório. Encaixe uma variável no bloco Repetir.`);
+  } else if (!_isVariableDefinedBefore(node, result)) {
+    result.addError(`${path} (Repetir): Variável "${node.varName}" não foi definida antes do bloco Repetir. Adicione um bloco "Definir ${node.varName}" antes.`);
   }
 
   if (!node.children || node.children.length === 0) {
@@ -171,9 +190,20 @@ function validateRepeat(node, result, depth, path) {
   }
 }
 
+function _isVariableDefinedBefore(repeatNode, result) {
+  const cmdIndex = result._cmdIndexMap?.get(repeatNode);
+  if (cmdIndex === undefined) return true;
+  for (const [node, idx] of result._cmdIndexMap) {
+    if (idx >= cmdIndex) continue;
+    if (node.type === 'set_var' && node.varName === repeatNode.varName) return true;
+    if (node.type === 'change_var' && node.varName === repeatNode.varName) return true;
+  }
+  return false;
+}
+
 function validateWhile(node, result, depth, path) {
   if (!node.condition) {
-    result.addError(`${path} (Enquanto): Nenhuma condição definida. Clique no hexágono ou arraste um sensor para definir.`);
+    result.addError(`${path} (Enquanto): Nenhuma condição definida. Clique no hexágono para definir a condição.`);
   } else if (!VALID_CONDITIONS.has(node.condition)) {
     result.addError(`${path} (Enquanto): Condição "${node.condition}" inválida. Use "Obstáculo" ou "Inimigo".`);
   }
@@ -198,6 +228,18 @@ function validateWhile(node, result, depth, path) {
     for (let i = 0; i < node.children.length; i++) {
       validateNode(node.children[i], result, depth + 1, `${path} (Enquanto) > #${i + 1}`);
     }
+  }
+}
+
+function validateSetVar(node, result, path) {
+  if (!node.varName || node.varName.trim() === '') {
+    result.addError(`${path} (Definir): Nenhuma variável selecionada. Selecione uma variável no menu.`);
+  }
+}
+
+function validateChangeVar(node, result, path) {
+  if (!node.varName || node.varName.trim() === '') {
+    result.addError(`${path} (Alterar): Nenhuma variável selecionada. Selecione uma variável já definida.`);
   }
 }
 

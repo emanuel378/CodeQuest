@@ -132,22 +132,6 @@ export class Stage {
     return false;
   }
 
-  pickupItem() {
-    if (!this.player) return false;
-    const idx = this.items.findIndex(i => i.x === this.player.x && i.y === this.player.y);
-    if (idx !== -1) {
-      this.items.splice(idx, 1);
-      if (this.player) this.player.hasItem = true;
-      return true;
-    }
-    return false;
-  }
-
-  dropItem() {
-    if (!this.player || !this.player.hasItem) return false;
-    this.player.hasItem = false;
-    return true;
-  }
 
   isGoalReached() {
     if (!this.goal || !this.player) return false;

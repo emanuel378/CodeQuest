@@ -1158,37 +1158,120 @@
 .error-log {
   display: none;
   flex-direction: column;
-  gap: 4px;
-  padding: var(--sp-sm) var(--sp-md);
-  background: rgba(0, 0, 0, 0.6);
-  border-top: 1px solid var(--outline-variant);
-  max-height: 120px;
+  gap: var(--sp-xs);
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  min-width: 280px;
+  max-width: 420px;
+  background: color-mix(in srgb, var(--surface-container-lowest) 75%, var(--error-container) 25%);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--error) 60%, transparent);
+  border-radius: var(--rounded-md);
+  padding: var(--sp-md);
+  max-height: 200px;
   overflow-y: auto;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.5),
+    0 0 25px color-mix(in srgb, var(--error) 30%, transparent);
+  animation: alarm-flash 1.5s ease-in-out 2;
 }
 
-.log-entry {
+.error-log.fade-out {
+  animation: alarm-fade-out 0.8s ease-in-out forwards;
+}
+
+.error-log > div {
   font-family: var(--font-display);
-  font-size: 11px;
-  line-height: 1.4;
-  padding: 2px 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: var(--sp-sm) var(--sp-md);
   border-radius: var(--rounded-sm);
   display: flex;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: center;
+  gap: var(--sp-sm);
 }
 
-.log-entry span {
+.error-log > div span {
   flex: 1;
 }
 
 .log-error {
   color: var(--error);
-  background: rgba(147, 0, 10, 0.15);
+  font-weight: 700;
+}
+
+.log-error::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: var(--rounded-full);
+  background: var(--error);
+  box-shadow: 0 0 8px var(--error), 0 0 16px color-mix(in srgb, var(--error) 60%, transparent);
+  flex-shrink: 0;
+  animation: alarm-dot-pulse 1s ease-in-out infinite;
 }
 
 .log-warning {
   color: var(--secondary);
-  background: rgba(182, 0, 248, 0.1);
+  background: color-mix(in srgb, var(--secondary-container) 15%, transparent);
+  border-left: 3px solid var(--secondary);
+}
+
+@keyframes alarm-flash {
+  0%, 100% {
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      0 0 15px color-mix(in srgb, var(--error) 40%, transparent),
+      0 0 30px color-mix(in srgb, var(--error-container) 25%, transparent);
+    border-color: color-mix(in srgb, var(--error) 50%, transparent);
+  }
+  25% {
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      0 0 25px var(--error),
+      0 0 50px var(--error-container);
+    border-color: var(--error);
+  }
+  50% {
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      0 0 10px color-mix(in srgb, var(--error) 40%, transparent),
+      0 0 20px color-mix(in srgb, var(--error-container) 20%, transparent);
+    border-color: color-mix(in srgb, var(--error) 40%, transparent);
+  }
+  75% {
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      0 0 30px var(--error),
+      0 0 60px var(--error-container);
+    border-color: var(--error);
+  }
+}
+
+@keyframes alarm-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.92);
+    display: none;
+  }
+}
+
+@keyframes alarm-dot-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--error), 0 0 16px color-mix(in srgb, var(--error) 60%, transparent);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 4px var(--error), 0 0 8px color-mix(in srgb, var(--error) 30%, transparent);
+  }
 }
 
 .sim-controls {
