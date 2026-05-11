@@ -4,10 +4,8 @@
 <p align="center">
   <img src="assets/demo/banner.png" alt="Nome do Projeto" width="600" height="290">
 </p>
+<h2>_Um RPG de lógica baseado em blocos_</h2> 
 
-# CodeQuest — Cidade da Lógica
-
-### _Um RPG de lógica baseado em blocos_
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/pt-BR/docs/Web/HTML)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](https://developer.mozilla.org/pt-BR/docs/Web/CSS)
