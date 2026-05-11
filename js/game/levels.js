@@ -50,7 +50,7 @@ export const LEVELS = [
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 0, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [
-      { x: 4, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 4, y: 2, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [{ x: 3, y: 1, hp: 1, type: 1, direction: 0 }],
     items: [],
@@ -72,8 +72,8 @@ export const LEVELS = [
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 4, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [
-      { x: 1, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' },
-      { x: 4, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 1, y: 2, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
+      { x: 4, y: 2, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [{ x: 3, y: 0, hp: 1, type: 0, direction: 2 }, { x: 1, y: 0, hp: 1, type: 0, direction: 2 }],
     items: [],
@@ -92,12 +92,12 @@ export const LEVELS = [
     idealBlockCount: 10,
     complexity: 4,
     difficulty: 2,
-    playerStart: { x: 0, y: 4, direction: 0 },
+    playerStart: { x: 0, y: 5, direction: 0 },
     goal: null,
     obstacles: [
-      { x: 2, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 3, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 1, y: 1, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 2, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 3, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 1, y: 1, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [{ x: 5, y: 0, hp: 1, type: 0, direction: 2 }],
     items: [],
@@ -119,10 +119,10 @@ export const LEVELS = [
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
     obstacles: [
-      { x: 2, y: 1, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 4, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo2.png' },
-      { x: 1, y: 4, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 3, y: 4, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 2, y: 1, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 4, y: 2, type: 'laser', sprite: 'assets/sprites/obstacles/laser.png' },
+      { x: 1, y: 4, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 3, y: 4, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [{ x: 3, y: 2, hp: 1, type: 2, direction: 1 }],
     items: [],
@@ -144,11 +144,11 @@ export const LEVELS = [
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
     obstacles: [
-      { x: 1, y: 0, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' },
-      { x: 3, y: 1, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 2, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 4, y: 3, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo2.png' },
-      { x: 2, y: 4, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 1, y: 0, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
+      { x: 3, y: 1, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 2, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 4, y: 3, type: 'laser', sprite: 'assets/sprites/obstacles/laser.png' },
+      { x: 2, y: 4, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [
       { x: 0, y: 0, hp: 1, type: 0, direction: 1 },
@@ -173,9 +173,9 @@ export const LEVELS = [
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 0, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
-      { x: 3, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' },
-      { x: 4, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 5, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 3, y: 2, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
+      { x: 4, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 5, y: 2, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [
       { x: 6, y: 2, hp: 3, type: 0, direction: 2 },
@@ -201,11 +201,11 @@ export const LEVELS = [
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 0, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
-      { x: 2, y: 1, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo2.png' },
-      { x: 4, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 1, y: 3, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' },
-      { x: 5, y: 4, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 3, y: 5, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+      { x: 2, y: 1, type: 'laser', sprite: 'assets/sprites/obstacles/laser.png' },
+      { x: 4, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 1, y: 3, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
+      { x: 5, y: 4, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 3, y: 5, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
     ],
     enemies: [
       { x: 4, y: 3, hp: 2, type: 2, direction: 3 },
@@ -230,12 +230,12 @@ export const LEVELS = [
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 6, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
-      { x: 1, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 3, y: 1, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' },
-      { x: 4, y: 3, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
-      { x: 2, y: 4, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo2.png' },
-      { x: 5, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' },
-      { x: 3, y: 5, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' }
+      { x: 1, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 3, y: 1, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
+      { x: 4, y: 3, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
+      { x: 2, y: 4, type: 'laser', sprite: 'assets/sprites/obstacles/laser.png' },
+      { x: 5, y: 2, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
+      { x: 3, y: 5, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' }
     ],
     enemies: [
       { x: 3, y: 2, hp: 2, type: 1, direction: 0 },

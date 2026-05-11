@@ -368,7 +368,7 @@ function tickEnemiesAndSync() {
 
   if (wasHit) {
     flashPlayerDamage();
-    audioManager.playSfx('error');
+    audioManager.playSfx('takedmg');
   }
 
   if (!gs.stage.isPlayerAlive()) {
@@ -807,7 +807,17 @@ function initGame() {
         const steps = Math.max(1, cmd.value || 1);
         for (let i = 0; i < steps; i++) {
           const ahead = player.peekForward();
-          if (!stage.canMoveTo(ahead.x, ahead.y)) break;
+          if (!stage.canMoveTo(ahead.x, ahead.y)) {
+            if (stage.isObstacleAt(ahead.x, ahead.y)) {
+              const obs = stage.obstacles.find(o => o.x === ahead.x && o.y === ahead.y);
+              if (obs && obs.type === 'laser') {
+                audioManager.playSfx('laserBlock');
+              } else {
+                audioManager.playSfx('obstacle');
+              }
+            }
+            break;
+          }
           player.moveForward(1);
           updateSimView();
           if (gs.shouldStop) return;
