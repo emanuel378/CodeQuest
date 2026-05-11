@@ -16,9 +16,9 @@ const DEFAULT_HANDLERS = {
   turnLeft: async () => {},
   jump: async () => {},
   attack: async () => {},
-  pickup: async () => {},
-  drop: async () => {},
-  activate: async () => {},
+  custom_var: async () => {},
+  set_var: async () => {},
+  change_var: async () => {},
   detectObstacle: async () => false,
   detectEnemy: async () => false
 };
@@ -33,7 +33,8 @@ export async function runCommands(commands, options = {}) {
     handlers = {},
     delayMs = 500,
     eventTarget = new EventTarget(),
-    validation = null
+    validation = null,
+    variables = {}
   } = options;
 
   const allHandlers = { ...DEFAULT_HANDLERS, ...handlers };
@@ -49,7 +50,7 @@ export async function runCommands(commands, options = {}) {
 
   for (const command of commands) {
     try {
-      await executeCommand(command, allHandlers, delayMs, eventTarget, validation);
+      await executeCommand(command, allHandlers, delayMs, eventTarget, validation, variables);
     } catch (error) {
       if (error.message === 'Execution stopped') throw error;
       if (error.message === 'Command limit exceeded') throw error;
@@ -65,7 +66,7 @@ export async function runCommands(commands, options = {}) {
   return eventTarget;
 }
 
-async function executeCommand(cmd, handlers, delayMs, eventTarget, validation) {
+async function executeCommand(cmd, handlers, delayMs, eventTarget, validation, variables = {}) {
   if (!cmd || !cmd.type) {
     console.error('Invalid command:', cmd);
     return;
@@ -84,13 +85,13 @@ async function executeCommand(cmd, handlers, delayMs, eventTarget, validation) {
 
   switch (cmd.type) {
     case 'if':
-      await executeIf(cmd, handlers, delayMs, eventTarget, validation);
+      await executeIf(cmd, handlers, delayMs, eventTarget, validation, variables);
       break;
     case 'repeat':
-      await executeRepeat(cmd, handlers, delayMs, eventTarget, validation);
+      await executeRepeat(cmd, handlers, delayMs, eventTarget, validation, variables);
       break;
     case 'while':
-      await executeWhile(cmd, handlers, delayMs, eventTarget, validation);
+      await executeWhile(cmd, handlers, delayMs, eventTarget, validation, variables);
       break;
     default:
       if (handlers[cmd.type]) {
@@ -106,7 +107,7 @@ async function executeCommand(cmd, handlers, delayMs, eventTarget, validation) {
   }));
 }
 
-async function executeIf(cmd, handlers, delayMs, eventTarget, validation) {
+async function executeIf(cmd, handlers, delayMs, eventTarget, validation, variables = {}) {
   const condition = cmd.condition || 'obstacleDetected';
   const sensorHandler = getSensorHandler(handlers, condition);
   let result = false;
@@ -121,23 +122,28 @@ async function executeIf(cmd, handlers, delayMs, eventTarget, validation) {
   const branch = result ? cmd.children : cmd.elseChildren;
   if (branch && branch.length > 0) {
     for (const child of branch) {
-      await executeCommand(child, handlers, delayMs, eventTarget, validation);
+      await executeCommand(child, handlers, delayMs, eventTarget, validation, variables);
     }
   }
 }
 
-async function executeRepeat(cmd, handlers, delayMs, eventTarget, validation) {
-  const count = Math.min(cmd.value || 1, MAX_REPEAT);
-  if (!cmd.children || cmd.children.length === 0) return;
+async function executeRepeat(cmd, handlers, delayMs, eventTarget, validation, variables = {}) {
+  let count;
+  if (cmd.varName && variables[cmd.varName] !== undefined) {
+    count = Math.min(Number(variables[cmd.varName]) || 1, MAX_REPEAT);
+  } else {
+    count = 0;
+  }
+  if (count < 1 || !cmd.children || cmd.children.length === 0) return;
 
   for (let i = 0; i < count; i++) {
     for (const child of cmd.children) {
-      await executeCommand(child, handlers, delayMs, eventTarget, validation);
+      await executeCommand(child, handlers, delayMs, eventTarget, validation, variables);
     }
   }
 }
 
-async function executeWhile(cmd, handlers, delayMs, eventTarget, validation) {
+async function executeWhile(cmd, handlers, delayMs, eventTarget, validation, variables = {}) {
   const condition = cmd.condition || 'obstacleDetected';
   const sensorHandler = getSensorHandler(handlers, condition);
   if (!cmd.children || cmd.children.length === 0) return;
@@ -157,7 +163,7 @@ async function executeWhile(cmd, handlers, delayMs, eventTarget, validation) {
     if (!shouldContinue) break;
 
     for (const child of cmd.children) {
-      await executeCommand(child, handlers, delayMs, eventTarget, validation);
+      await executeCommand(child, handlers, delayMs, eventTarget, validation, variables);
     }
 
     iterations++;

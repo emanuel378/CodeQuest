@@ -5,7 +5,6 @@ let nextId = 1;
 const CAT_COLORS = {
   movimento: 'var(--primary-container)',
   controle: 'var(--secondary-container)',
-  sensor: 'var(--tertiary-container)',
   combate: 'var(--error)',
   variavel: 'var(--secondary)'
 };
@@ -15,8 +14,10 @@ const SNAP_DISTANCE = 90;
 const WORKSPACE_PAD = 400;
 
 export class BlockWorkspace {
-  constructor(containerEl) {
+  constructor(containerEl, palette, options = {}) {
     this.ct = containerEl;
+    this.palette = palette;
+    this.onError = options.onError || null;
     this.zoom = 1;
     this.blocks = new Map();
     this._drag = null;
@@ -44,9 +45,10 @@ export class BlockWorkspace {
     const b = {
       id, type, label, icon, category,
       value: params?.value,
+      varName: params?.varName || null,
       condition: params?.condition || (type === 'if' || type === 'while' ? 'obstacleDetected' : null),
       x: x ?? 40, y: y ?? (40 + this.blocks.size * 70),
-      w: 220, h: ctrl ? 80 : 40,
+      w: type === 'custom_var' ? 80 : type === 'set_var' || type === 'change_var' ? 260 : 220, h: ctrl ? 80 : 40,
       prev: null, next: null, parent: null,
       children: [], elseChildren: [], ctrl
     };
@@ -125,6 +127,7 @@ export class BlockWorkspace {
   _toCmd(b) {
     const c = { type: b.type, _blockId: b.id };
     if (b.value != null) c.value = b.value;
+    if (b.varName) c.varName = b.varName;
     if (b.condition) c.condition = b.condition;
     if (b.ctrl) {
       const kids = this._walk(b.children);
@@ -155,10 +158,11 @@ export class BlockWorkspace {
     div.className = 'sb-block';
 
     if (b.ctrl) div.classList.add('sb-control');
+    if (b.type === 'custom_var') div.classList.add('sb-block-variable');
 
     const clr = CAT_COLORS[b.category] || 'var(--on-surface-variant)';
     div.style.setProperty('--cat-color', clr);
-    div.style.width = b.w + 'px';
+    if (b.type !== 'set_var' && b.type !== 'change_var') div.style.width = b.w + 'px';
 
     const body = document.createElement('div');
     body.className = 'sb-block-body';
@@ -207,6 +211,12 @@ export class BlockWorkspace {
       }
 
       div.style.height = 'auto';
+    } else if (b.type === 'change_var') {
+      div.classList.add('sb-block-changevar');
+      this._renderChangeVarBlock(content, b, clr);
+    } else if (b.type === 'set_var') {
+      div.classList.add('sb-block-setvar');
+      this._renderSetVarBlock(content, b, clr);
     } else {
       content.innerHTML = this._simpleHtml(b, clr);
     }
@@ -228,8 +238,81 @@ export class BlockWorkspace {
         <span class="material-symbols-outlined">${b.icon}</span>
       </span>
       <span class="sb-label">${b.label}</span>
-      ${b.value != null ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
+      ${b.value != null && !['move','turnRight','turnLeft'].includes(b.type) ? `<input class="sb-input sb-input-circle" type="text" value="${b.value}" data-bid="${b.id}">` : ''}
     `;
+  }
+
+  _renderSetVarBlock(content, b, clr) {
+    content.innerHTML = `
+      <span class="sb-icon" style="color:${clr};flex-shrink:0">
+        <span class="material-symbols-outlined">${b.icon}</span>
+      </span>
+      <span class="sb-label" style="flex-shrink:0">${b.label}</span>
+      <select class="sb-var-select" data-bid="${b.id}"></select>
+      <span class="sb-var-eq" style="flex-shrink:0">recebe</span>
+      <input class="sb-input sb-input-circle" type="text" value="${b.value ?? 0}" data-bid="${b.id}" style="margin-left:0;flex-shrink:0">
+    `;
+    const select = content.querySelector('.sb-var-select');
+    if (select) this._populateVarSelect(select, b);
+  }
+
+  _populateVarSelect(select, b) {
+    const vars = this.palette ? this.palette.getVariables() : [];
+    const currentValue = b.varName || '';
+    select.innerHTML = '';
+    if (vars.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '--';
+      select.appendChild(opt);
+    } else {
+      for (const v of vars) {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      }
+    }
+    select.value = vars.includes(currentValue) ? currentValue : '';
+  }
+
+  _renderChangeVarBlock(content, b, clr) {
+    content.innerHTML = `
+      <span class="sb-icon" style="color:${clr};flex-shrink:0">
+        <span class="material-symbols-outlined">${b.icon}</span>
+      </span>
+      <span class="sb-label" style="flex-shrink:0">${b.label}</span>
+      <select class="sb-var-select" data-bid="${b.id}"></select>
+      <span class="sb-var-to" style="flex-shrink:0">para</span>
+      <input class="sb-input sb-input-circle" type="text" value="${b.value ?? 0}" data-bid="${b.id}" style="margin-left:0;flex-shrink:0">
+    `;
+    const select = content.querySelector('.sb-var-select');
+    if (select) this._populateChangeVarSelect(select, b);
+  }
+
+  _populateChangeVarSelect(select, b) {
+    const assignedVars = new Set();
+    for (const block of this.blocks.values()) {
+      if (block.type === 'set_var' && block.varName) {
+        assignedVars.add(block.varName);
+      }
+    }
+    const currentValue = b.varName || '';
+    select.innerHTML = '';
+    if (assignedVars.size === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '--';
+      select.appendChild(opt);
+    } else {
+      for (const v of assignedVars) {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+      }
+    }
+    select.value = assignedVars.has(currentValue) ? currentValue : '';
   }
 
   _ctrlHtml(b, clr) {
@@ -250,7 +333,14 @@ export class BlockWorkspace {
         </div>`;
     }
     if (b.type === 'repeat') {
-      html += `<input class="sb-input sb-input-circle" type="text" value="${b.value || 5}" data-bid="${b.id}">`;
+      if (b.varName) {
+        html += `<span class="sb-var-slot sb-var-slot-filled" data-bid="${b.id}">
+          <span class="sb-var-slot-name">${b.varName}</span>
+          <button class="sb-var-slot-clear" data-bid="${b.id}">&times;</button>
+        </span>`;
+      } else {
+        html += `<span class="sb-var-slot" data-bid="${b.id}"><span class="sb-var-slot-placeholder">var</span></span>`;
+      }
     }
     html += `</div>`;
     return html;
@@ -267,26 +357,20 @@ export class BlockWorkspace {
   _applyInlineContentStyles(el, apply) {
     const content = el?.querySelector('.sb-content');
     if (!content) return;
-    if (apply) {
+    const isCtrl = el.classList.contains('sb-control');
+    if (apply && !isCtrl) {
+      const isNested = el.classList.contains('sb-nested');
       content.style.flexDirection = 'row';
       content.style.alignItems = 'center';
-      content.style.gap = '8px';
-      content.style.padding = '8px 12px';
-      content.style.minWidth = '0';
-      content.style.fontSize = '12px';
-      content.style.whiteSpace = 'nowrap';
-      content.style.overflow = 'hidden';
-      content.style.textOverflow = 'ellipsis';
+      content.style.gap = isNested ? '4px' : '8px';
+      content.style.padding = isNested ? '4px 6px' : '8px 12px';
+      content.style.fontSize = isNested ? '11px' : '12px';
     } else {
       content.style.flexDirection = '';
       content.style.alignItems = '';
       content.style.gap = '';
       content.style.padding = '';
-      content.style.minWidth = '';
       content.style.fontSize = '';
-      content.style.whiteSpace = '';
-      content.style.overflow = '';
-      content.style.textOverflow = '';
     }
   }
 
@@ -297,6 +381,21 @@ export class BlockWorkspace {
   }
 
   drop(data, clientX, clientY) {
+    if (data.type === 'custom_var') {
+      const varName = data.params?.varName;
+      if (varName && this._isVariableDefined(varName)) {
+        const slotResult = this._findVarSlot(clientX, clientY);
+        if (slotResult) {
+          this._dockVariableToRepeat(slotResult.repeatBlock, slotResult.slotEl, varName);
+          audioManager.playSfx('snap');
+          return slotResult.repeatBlock;
+        }
+      } else if (varName && !this._isVariableDefined(varName)) {
+        audioManager.playSfx('error');
+        if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+      }
+    }
+
     const { x: mx, y: my } = this._clientToCanvas(clientX, clientY);
 
     const childArea = this._findChildArea(clientX, clientY);
@@ -307,13 +406,29 @@ export class BlockWorkspace {
     }
 
     const b = this.createBlock(data.type, data.label, data.icon, data.category, data.params, mx - 110, my - 20);
-    this._trySnap(b.id, mx, my);
+    this._trySnap(b.id, mx, my, [b.id]);
     audioManager.playSfx('snap');
     this.save();
     return b;
   }
 
   _findChildArea(cx, cy) {
+    for (const [, b] of this.blocks) {
+      if (!b.ctrl || !b.parent || !b.el) continue;
+      const r = b.el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        const ca = b.el.querySelector('.sb-child-area');
+        const cr = ca ? ca.getBoundingClientRect() : null;
+        const ea = b.el.querySelector('.sb-else-area');
+        const er = ea ? ea.getBoundingClientRect() : null;
+
+        const inCa = cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+        const inEa = er && cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom;
+
+        if (inCa) return ca;
+        if (inEa) return ea;
+      }
+    }
     for (const [, b] of this.blocks) {
       if (!b.ctrl || !b.el) continue;
       const ca = b.el.querySelector('.sb-child-area');
@@ -341,9 +456,6 @@ export class BlockWorkspace {
     const pd = this.blocks.get(pe.dataset.bid);
     if (!pd) return null;
 
-    const hint = area.querySelector('.sb-child-hint');
-    if (hint) hint.remove();
-
     const b = this.createBlock(data.type, data.label, data.icon, data.category, data.params, 0, 0);
     b.parent = pd.id;
     if (isElse) pd.elseChildren.push(b.id);
@@ -353,27 +465,225 @@ export class BlockWorkspace {
     b.el.style.left = '';
     b.el.style.top = '';
     b.el.classList.add('sb-nested');
-    this._applyInlineContentStyles(b.el, true);
     area.appendChild(b.el);
+    this._applyInlineContentStyles(b.el, true);
     this._updateHeight(pd);
     audioManager.playSfx('snap');
     return b;
   }
 
-  _createGhost(b, x, y) {
+  _dropChainInChild(area, chainIds) {
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (block && block.el && block.el.contains(area)) {
+        return;
+      }
+    }
+
+    const isElse = area.classList.contains('sb-else-area');
+    const pe = area.closest('.sb-block');
+    if (!pe) return;
+    const pd = this.blocks.get(pe.dataset.bid);
+    if (!pd) return;
+
+    let prevBlockId = null;
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (!block) continue;
+
+      block.parent = pd.id;
+      block.prev = prevBlockId;
+      if (prevBlockId) {
+        const prevB = this.blocks.get(prevBlockId);
+        if (prevB) prevB.next = block.id;
+      }
+
+      block.el.style.position = 'relative';
+      block.el.style.left = '';
+      block.el.style.top = '';
+      block.el.classList.add('sb-nested');
+      this._applyInlineContentStyles(block.el, true);
+      area.appendChild(block.el);
+
+      if (!prevBlockId) {
+        if (isElse) pd.elseChildren.push(block.id);
+        else pd.children.push(block.id);
+      }
+
+      prevBlockId = block.id;
+    }
+
+    this._updateHeight(pd);
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (block && block.ctrl) this._updateHeight(block);
+    }
+    audioManager.playSfx('snap');
+  }
+
+  _trySnap(id, mx, my, chainIds) {
+    const b = this.blocks.get(id);
+    if (!b || b.type === 'custom_var') return false;
+
+    chainIds = chainIds || [id];
+    const chainSet = new Set(chainIds);
+    const sn = SNAP_DISTANCE / this.zoom;
+    const chainH = chainIds.length > 1 ? this._getChainHeight(chainIds) : (b.el ? b.el.offsetHeight / this.zoom : (b.h || 40));
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
+
+    for (const [, o] of this.blocks) {
+      if (chainSet.has(o.id) || o.parent) continue;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      const ox = (or.left - crt.left) / this.zoom;
+      const oy = (or.top - crt.top) / this.zoom;
+      const oWidth = or.width / this.zoom;
+      const oHeight = or.height / this.zoom;
+
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
+
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr = ca.getBoundingClientRect();
+            const cdy = my - (cr.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
+          }
+        }
+        bestBelow = { target: o };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr = ca.getBoundingClientRect();
+            const cdy = my - (cr.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
+          }
+        }
+        bestAbove = { target: o };
+        bestDistAbove = ddyAbove;
+      }
+    }
+
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    const repositionChain = () => {
+      if (this._drag && this._drag.offsets) {
+        for (const off of this._drag.offsets) {
+          if (off.id === b.id) continue;
+          const block = this.blocks.get(off.id);
+          if (!block) continue;
+          block.x = b.x + off.dx;
+          block.y = b.y + off.dy;
+          this._pos(block);
+        }
+      } else {
+        for (const cid of chainIds) {
+          if (cid === b.id) continue;
+          const block = this.blocks.get(cid);
+          if (block) this._pos(block);
+        }
+      }
+    };
+
+    if (useAbove) {
+      const o = bestAbove.target;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      b.x = (or.left - crt.left) / this.zoom;
+      b.y = (or.top - crt.top) / this.zoom - chainH;
+
+      const oldPrevId = o.prev;
+      const lastId = chainIds[chainIds.length - 1];
+
+      if (lastId !== id) {
+        const lastBlock = this.blocks.get(lastId);
+        if (lastBlock) lastBlock.next = o.id;
+      } else {
+        b.next = o.id;
+      }
+      o.prev = lastId;
+      b.prev = null;
+
+      if (oldPrevId) {
+        const oldPrev = this.blocks.get(oldPrevId);
+        if (oldPrev) {
+          oldPrev.next = b.id;
+          b.prev = oldPrevId;
+        }
+      }
+
+      this._pos(b);
+      repositionChain();
+      return true;
+    }
+
+    if (bestBelow) {
+      const o = bestBelow.target;
+      const or = o.el.getBoundingClientRect();
+      const crt = this._canvas.getBoundingClientRect();
+      b.x = (or.left - crt.left) / this.zoom;
+      b.y = (or.top - crt.top) / this.zoom + or.height / this.zoom;
+      b.prev = o.id;
+      o.next = b.id;
+      this._pos(b);
+      repositionChain();
+      return true;
+    }
+
+    return false;
+  }
+
+  _createGhost(b, x, y, chainIds) {
     this._removeGhost();
-    const ghost = this._render(b);
-    ghost.classList.add('sb-block-ghost');
-    ghost.style.left = x + 'px';
-    ghost.style.top = y + 'px';
-    ghost.style.position = 'absolute';
-    const del = ghost.querySelector('.sb-del');
-    if (del) del.remove();
-    this._canvas.appendChild(ghost);
-    this._ghostEl = ghost;
+    if (chainIds && chainIds.length > 1) {
+      const firstB = this.blocks.get(chainIds[0]);
+      if (!firstB) return;
+      const els = [];
+      for (const cid of chainIds) {
+        const block = this.blocks.get(cid);
+        if (!block) continue;
+        const ghost = this._render(block);
+        ghost.classList.add('sb-block-ghost');
+        const dx = block.x - firstB.x;
+        const dy = block.y - firstB.y;
+        ghost.style.left = (x + dx) + 'px';
+        ghost.style.top = (y + dy) + 'px';
+        ghost.style.position = 'absolute';
+        const del = ghost.querySelector('.sb-del');
+        if (del) del.remove();
+        this._canvas.appendChild(ghost);
+        els.push(ghost);
+      }
+      this._ghostEls = els;
+    } else {
+      const ghost = this._render(b);
+      ghost.classList.add('sb-block-ghost');
+      ghost.style.left = x + 'px';
+      ghost.style.top = y + 'px';
+      ghost.style.position = 'absolute';
+      const del = ghost.querySelector('.sb-del');
+      if (del) del.remove();
+      this._canvas.appendChild(ghost);
+      this._ghostEl = ghost;
+    }
   }
 
   _removeGhost() {
+    if (this._ghostEls) {
+      for (const el of this._ghostEls) el.remove();
+      this._ghostEls = null;
+    }
     if (this._ghostEl) {
       this._ghostEl.remove();
       this._ghostEl = null;
@@ -382,15 +692,17 @@ export class BlockWorkspace {
 
   _createPaletteGhost(data, x, y) {
     this._removePaletteGhost();
+    const isSetVar = data.type === 'set_var';
     const temp = {
       type: data.type,
       label: data.label,
       icon: data.icon,
       category: data.category,
       ctrl: CONTROL_TYPES.has(data.type),
-      w: 220,
+      w: isSetVar ? 260 : 220,
       h: CONTROL_TYPES.has(data.type) ? 80 : 40,
       value: data.params?.value,
+      varName: data.params?.varName || null,
       condition: data.params?.condition || null,
       children: [],
       elseChildren: []
@@ -413,6 +725,37 @@ export class BlockWorkspace {
     }
   }
 
+  _isVariableDefined(varName) {
+    for (const [, b] of this.blocks) {
+      if (b.type === 'set_var' && b.varName === varName) return true;
+    }
+    return false;
+  }
+
+  _findVarSlot(cx, cy) {
+    for (const [, b] of this.blocks) {
+      if (b.type === 'repeat' && !b.varName && b.el) {
+        const slot = b.el.querySelector('.sb-var-slot:not(.sb-var-slot-filled)');
+        if (slot) {
+          const r = slot.getBoundingClientRect();
+          if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+            return { repeatBlock: b, slotEl: slot };
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  _dockVariableToRepeat(repeatBlock, slotEl, varName) {
+    repeatBlock.varName = varName;
+    slotEl.outerHTML = `<span class="sb-var-slot sb-var-slot-filled" data-bid="${repeatBlock.id}">
+      <span class="sb-var-slot-name">${varName}</span>
+      <button class="sb-var-slot-clear" data-bid="${repeatBlock.id}">&times;</button>
+    </span>`;
+    this.save();
+  }
+
   _showPaletteGuide(cx, cy) {
     this._removeGhost();
     const crt = this._canvas.getBoundingClientRect();
@@ -420,12 +763,59 @@ export class BlockWorkspace {
     const my = (cy - crt.top) / this.zoom;
     if (!this._paletteDragData) return;
 
-    const sn = SNAP_DISTANCE / this.zoom;
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
 
+    for (const [, o] of this.blocks) {
+      if (!o.ctrl || !o.parent || !o.el) continue;
+      const r = o.el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        const ca = o.el.querySelector('.sb-child-area');
+        const cr = ca ? ca.getBoundingClientRect() : null;
+        const ea = o.el.querySelector('.sb-else-area');
+        const er = ea ? ea.getBoundingClientRect() : null;
+
+        const inCa = cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+        const inEa = er && cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom;
+
+        if (inCa && ca) ca.classList.add('sb-snap-target');
+        if (inEa && ea) ea.classList.add('sb-snap-target');
+      }
+    }
+
+    if (this._paletteDragData.type === 'custom_var') {
+      const varName = this._paletteDragData.params?.varName;
+      if (varName) {
+        for (const [, ob] of this.blocks) {
+          if (ob.type === 'repeat' && !ob.varName && ob.el) {
+            const slot = ob.el.querySelector('.sb-var-slot:not(.sb-var-slot-filled)');
+            if (slot) {
+              const sr = slot.getBoundingClientRect();
+              if (cx >= sr.left && cx <= sr.right && cy >= sr.top && cy <= sr.bottom) {
+                if (this._isVariableDefined(varName)) {
+                  slot.classList.add('sb-snap-target');
+                  this._removePaletteGhost();
+                } else {
+                  slot.classList.add('sb-var-slot-reject');
+                  setTimeout(() => slot.classList.remove('sb-var-slot-reject'), 300);
+                  audioManager.playSfx('error');
+                  if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+                }
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const sn = SNAP_DISTANCE / this.zoom;
+    const ghostH = CONTROL_TYPES.has(this._paletteDragData.type) ? 80 : 40;
+
     let inChildArea = false;
-    let bestChain = null;
-    let bestDist = sn;
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
 
     for (const [, o] of this.blocks) {
       if (o.ctrl && o.el) {
@@ -447,14 +837,18 @@ export class BlockWorkspace {
         }
       }
 
-      if (o.parent) continue;
+      if (o.parent || o.type === 'custom_var') continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
-      const ddx = Math.abs(mx - (ox + o.w / 2));
-      const ddy = my - (oy + or.height / this.zoom);
+      const oWidth = or.width / this.zoom;
+      const oHeight = or.height / this.zoom;
 
-      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
+
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
         if (o.ctrl) {
           const ca = o.el.querySelector('.sb-child-area');
           if (ca) {
@@ -463,17 +857,45 @@ export class BlockWorkspace {
             if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
           }
         }
-        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
-        bestDist = ddy;
+        bestBelow = { target: o, ox, oy, height: oHeight };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestAbove = { target: o, ox, oy, height: oHeight };
+        bestDistAbove = ddyAbove;
       }
     }
 
-    if (bestChain) {
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    if (useAbove) {
       if (inChildArea) {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
       }
-      const gx = bestChain.ox;
-      const gy = bestChain.oy + bestChain.height;
+      const gx = bestAbove.ox;
+      const gy = bestAbove.oy - ghostH;
+      if (!this._paletteGhostEl) {
+        this._createPaletteGhost(this._paletteDragData, gx, gy);
+      } else {
+        this._paletteGhostEl.style.left = gx + 'px';
+        this._paletteGhostEl.style.top = gy + 'px';
+      }
+    } else if (bestBelow) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestBelow.ox;
+      const gy = bestBelow.oy + bestBelow.height;
       if (!this._paletteGhostEl) {
         this._createPaletteGhost(this._paletteDragData, gx, gy);
       } else {
@@ -485,57 +907,30 @@ export class BlockWorkspace {
     }
   }
 
-  _trySnap(id, mx, my) {
-    const b = this.blocks.get(id);
-    if (!b) return false;
-
-    const sn = SNAP_DISTANCE / this.zoom;
-    let best = null;
-    let bestDist = sn;
-
-    for (const [, o] of this.blocks) {
-      if (o.id === id || o.parent) continue;
-      const or = o.el.getBoundingClientRect();
-      const crt = this._canvas.getBoundingClientRect();
-      const ox = (or.left - crt.left) / this.zoom;
-      const oy = (or.top - crt.top) / this.zoom;
-      const oHeight = or.height / this.zoom;
-
-      const ddx = Math.abs(mx - (ox + o.w / 2));
-      const ddy = my - (oy + oHeight);
-
-      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
-        if (o.ctrl) {
-          const ca = o.el.querySelector('.sb-child-area');
-          if (ca) {
-            const cr = ca.getBoundingClientRect();
-            const cdy = my - (cr.top - crt.top) / this.zoom;
-            if (cdy >= 0 && cdy < ca.offsetHeight) continue;
-          }
-        }
-        best = { target: o, dy: ddy };
-        bestDist = ddy;
-      }
+  _getChain(id) {
+    const ids = [];
+    let cur = this.blocks.get(id);
+    while (cur) {
+      ids.push(cur.id);
+      cur = cur.next ? this.blocks.get(cur.next) : null;
     }
+    return ids;
+  }
 
-    if (best) {
-      const o = best.target;
-      const or = o.el.getBoundingClientRect();
-      const crt = this._canvas.getBoundingClientRect();
-      b.x = (or.left - crt.left) / this.zoom;
-      b.y = (or.top - crt.top) / this.zoom + or.height / this.zoom;
-      b.prev = o.id;
-      o.next = b.id;
-      this._pos(b);
-      return true;
+  _getChainHeight(chainIds) {
+    let h = 0;
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (block) h += block.el ? block.el.offsetHeight / this.zoom : (block.h || 40);
     }
-
-    return false;
+    return h;
   }
 
   startDrag(id, cx, cy) {
     const b = this.blocks.get(id);
     if (!b) return;
+
+    const chainIds = this._getChain(id);
 
     if (b.parent) {
       const p = this.blocks.get(b.parent);
@@ -544,32 +939,49 @@ export class BlockWorkspace {
         p.elseChildren = p.elseChildren.filter(c => c !== id);
       }
     }
+
     if (b.prev) {
       const p = this.blocks.get(b.prev);
-      if (p) p.next = b.next;
-    }
-    if (b.next) {
-      const n = this.blocks.get(b.next);
-      if (n) n.prev = b.prev;
+      if (p) p.next = null;
     }
     b.prev = null;
-    b.next = null;
     b.parent = null;
 
     const cr = this._canvas.getBoundingClientRect();
-
     const br = b.el.getBoundingClientRect();
-    b.x = (br.left - cr.left) / this.zoom;
-    b.y = (br.top - cr.top) / this.zoom;
 
-    b.el.style.position = 'absolute';
-    b.el.style.left = b.x + 'px';
-    b.el.style.top = b.y + 'px';
-    b.el.classList.remove('sb-nested');
-    this._applyInlineContentStyles(b.el, false);
-    this._canvas.appendChild(b.el);
+    const baseX = (br.left - cr.left) / this.zoom;
+    const baseY = (br.top - cr.top) / this.zoom;
 
-    this._drag = { id, ox: (cx - cr.left) / this.zoom - b.x, oy: (cy - cr.top) / this.zoom - b.y };
+    const offsets = [];
+    for (const cid of chainIds) {
+      const block = this.blocks.get(cid);
+      if (!block) continue;
+      const blockRect = block.el.getBoundingClientRect();
+      offsets.push({
+        id: cid,
+        dx: (blockRect.left - cr.left) / this.zoom - baseX,
+        dy: (blockRect.top - cr.top) / this.zoom - baseY
+      });
+      block.el.style.position = 'absolute';
+      block.el.style.left = block.x + 'px';
+      block.el.style.top = block.y + 'px';
+      block.el.classList.remove('sb-nested');
+      block.el.style.minWidth = '';
+      block.el.style.width = block.w + 'px';
+      this._applyInlineContentStyles(block.el, false);
+      this._canvas.appendChild(block.el);
+    }
+
+    b.x = baseX;
+    b.y = baseY;
+    this._pos(b);
+
+    this._drag = {
+      id, chainIds, offsets,
+      ox: (cx - cr.left) / this.zoom - b.x,
+      oy: (cy - cr.top) / this.zoom - b.y
+    };
     b.el.classList.add('dragging');
   }
 
@@ -578,13 +990,28 @@ export class BlockWorkspace {
     const b = this.blocks.get(this._drag.id);
     if (!b) return;
     const cr = this._canvas.getBoundingClientRect();
-    b.x = (cx - cr.left) / this.zoom - this._drag.ox;
-    b.y = (cy - cr.top) / this.zoom - this._drag.oy;
+    const newX = (cx - cr.left) / this.zoom - this._drag.ox;
+    const newY = (cy - cr.top) / this.zoom - this._drag.oy;
+    const dx = newX - b.x;
+    const dy = newY - b.y;
+
+    b.x = newX;
+    b.y = newY;
     this._pos(b);
-    this._showSnapGuide(b.id, cx, cy);
+
+    for (const cid of this._drag.chainIds) {
+      if (cid === this._drag.id) continue;
+      const block = this.blocks.get(cid);
+      if (!block) continue;
+      block.x += dx;
+      block.y += dy;
+      this._pos(block);
+    }
+
+    this._showSnapGuide(b.id, cx, cy, this._drag.chainIds);
   }
 
-  _showSnapGuide(id, cx, cy) {
+  _showSnapGuide(id, cx, cy, chainIds) {
     this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
     this._removeGhost();
 
@@ -594,12 +1021,56 @@ export class BlockWorkspace {
     const b = this.blocks.get(id);
     if (!b) return;
 
-    const sn = SNAP_DISTANCE / this.zoom;
+    chainIds = chainIds || (this._drag ? this._drag.chainIds : null) || [id];
+    const chainSet = new Set(chainIds);
 
-    // Check for child/else area nesting AND chain snap simultaneously
+    for (const [, o] of this.blocks) {
+      if (!o.ctrl || !o.parent || !o.el) continue;
+      const r = o.el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        const ca = o.el.querySelector('.sb-child-area');
+        const cr = ca ? ca.getBoundingClientRect() : null;
+        const ea = o.el.querySelector('.sb-else-area');
+        const er = ea ? ea.getBoundingClientRect() : null;
+
+        const inCa = cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+        const inEa = er && cx >= er.left && cx <= er.right && cy >= er.top && cy <= er.bottom;
+
+        if (inCa && ca) ca.classList.add('sb-snap-target');
+        if (inEa && ea) ea.classList.add('sb-snap-target');
+      }
+    }
+
+    if (b.type === 'custom_var') {
+      for (const [, ob] of this.blocks) {
+        if (ob.type === 'repeat' && !ob.varName && ob.el) {
+          const slot = ob.el.querySelector('.sb-var-slot:not(.sb-var-slot-filled)');
+          if (slot) {
+            const sr = slot.getBoundingClientRect();
+            if (cx >= sr.left && cx <= sr.right && cy >= sr.top && cy <= sr.bottom) {
+              if (this._isVariableDefined(b.varName)) {
+                slot.classList.add('sb-snap-target');
+              } else {
+                slot.classList.add('sb-var-slot-reject');
+                setTimeout(() => slot.classList.remove('sb-var-slot-reject'), 300);
+                audioManager.playSfx('error');
+                if (this.onError) this.onError(`A variável "${b.varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+              }
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    const sn = SNAP_DISTANCE / this.zoom;
+    const chainH = chainIds.length > 1 ? this._getChainHeight(chainIds) : (b.el ? b.el.offsetHeight / this.zoom : (b.h || 40));
+
     let inChildArea = false;
-    let bestChain = null;
-    let bestDist = sn;
+    let bestBelow = null;
+    let bestDistBelow = sn;
+    let bestAbove = null;
+    let bestDistAbove = sn;
 
     for (const [, o] of this.blocks) {
       if (o.ctrl && o.el) {
@@ -621,14 +1092,18 @@ export class BlockWorkspace {
         }
       }
 
-      if (o.id === id || o.parent) continue;
+      if (chainSet.has(o.id) || o.parent || o.type === 'custom_var') continue;
       const or = o.el.getBoundingClientRect();
       const ox = (or.left - crt.left) / this.zoom;
       const oy = (or.top - crt.top) / this.zoom;
-      const ddx = Math.abs(mx - (ox + o.w / 2));
-      const ddy = my - (oy + or.height / this.zoom);
+      const oWidth = or.width / this.zoom;
+      const oHeight = or.height / this.zoom;
 
-      if (ddx < sn && ddy >= 0 && ddy < bestDist) {
+      const ddx = Math.abs(mx - (ox + oWidth / 2));
+      if (ddx >= sn) continue;
+
+      const ddy = my - (oy + oHeight);
+      if (ddy >= 0 && ddy < bestDistBelow) {
         if (o.ctrl) {
           const ca = o.el.querySelector('.sb-child-area');
           if (ca) {
@@ -637,42 +1112,92 @@ export class BlockWorkspace {
             if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
           }
         }
-        bestChain = { target: o, ox, oy, height: or.height / this.zoom };
-        bestDist = ddy;
+        bestBelow = { target: o, ox, oy, height: oHeight };
+        bestDistBelow = ddy;
+      }
+
+      const ddyAbove = oy - my;
+      if (ddyAbove >= 0 && ddyAbove < bestDistAbove) {
+        if (o.ctrl) {
+          const ca = o.el.querySelector('.sb-child-area');
+          if (ca) {
+            const cr2 = ca.getBoundingClientRect();
+            const cdy = my - (cr2.top - crt.top) / this.zoom;
+            if (cdy >= 0 && cdy < ca.offsetHeight / this.zoom) continue;
+          }
+        }
+        bestAbove = { target: o, ox, oy, height: oHeight };
+        bestDistAbove = ddyAbove;
       }
     }
 
-    // If we have a chain snap AND the cursor is in a child area of a DIFFERENT block,
-    // remove the child area highlight and show the ghost
-    if (bestChain) {
+    const useAbove = bestAbove && (!bestBelow || bestDistAbove < bestDistBelow);
+
+    if (useAbove) {
       if (inChildArea) {
         this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
       }
-      const gx = bestChain.ox;
-      const gy = bestChain.oy + bestChain.height;
-      this._createGhost(b, gx, gy);
+      const gx = bestAbove.ox;
+      const gy = bestAbove.oy - chainH;
+      this._createGhost(b, gx, gy, chainIds);
+    } else if (bestBelow) {
+      if (inChildArea) {
+        this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      }
+      const gx = bestBelow.ox;
+      const gy = bestBelow.oy + bestBelow.height;
+      this._createGhost(b, gx, gy, chainIds);
     }
   }
 
   endDrag(cx, cy) {
     if (!this._drag) return;
     const b = this.blocks.get(this._drag.id);
-    if (b) {
-      b.el.classList.remove('dragging');
-      const childArea = this._findChildArea(cx, cy);
-      if (childArea) {
-        const data = { type: b.type, label: b.label, icon: b.icon, category: b.category, params: { value: b.value, condition: b.condition } };
-        this.removeBlock(b.id);
-        this._dropChild(childArea, data);
-      } else {
-        const { x: mx, y: my } = this._clientToCanvas(cx, cy);
-        this._trySnap(b.id, mx, my);
+    try {
+      if (b) {
+        b.el.classList.remove('dragging');
+        const chainIds = this._drag.chainIds || [b.id];
+
+        if (b.type === 'custom_var') {
+          const varName = b.varName;
+          if (varName && this._isVariableDefined(varName)) {
+            const slotResult = this._findVarSlot(cx, cy);
+            if (slotResult) {
+              for (const cid of chainIds) this.removeBlock(cid);
+              this._dockVariableToRepeat(slotResult.repeatBlock, slotResult.slotEl, varName);
+              audioManager.playSfx('snap');
+              return;
+            }
+          } else if (varName && !this._isVariableDefined(varName)) {
+            audioManager.playSfx('error');
+            if (this.onError) this.onError(`A variável "${varName}" precisa ser definida com um bloco "Definir" antes de usar no "Repetir".`);
+          }
+        }
+
+        const childArea = this._findChildArea(cx, cy);
+        if (childArea) {
+          const pe = childArea.closest('.sb-block');
+          const isCycle = chainIds.some(cid => {
+            const cb = this.blocks.get(cid);
+            return cb && cb.el && (cb.el.contains(pe) || cb.el.contains(childArea));
+          });
+          if (!isCycle) {
+            this._dropChainInChild(childArea, chainIds);
+          } else {
+            const { x: mx, y: my } = this._clientToCanvas(cx, cy);
+            this._trySnap(b.id, mx, my, chainIds);
+          }
+        } else {
+          const { x: mx, y: my } = this._clientToCanvas(cx, cy);
+          this._trySnap(b.id, mx, my, chainIds);
+        }
       }
+    } finally {
+      this._removeGhost();
+      this._drag = null;
+      this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
+      this.save();
     }
-    this._removeGhost();
-    this._drag = null;
-    this._canvas.querySelectorAll('.sb-snap-target').forEach(el => el.classList.remove('sb-snap-target'));
-    this.save();
   }
 
   save() {
@@ -681,7 +1206,7 @@ export class BlockWorkspace {
       data.push({
         id: b.id, type: b.type, label: b.label, icon: b.icon,
         category: b.category, x: b.x, y: b.y,
-        value: b.value, condition: b.condition,
+        value: b.value, varName: b.varName, condition: b.condition,
         prev: b.prev, next: b.next, parent: b.parent,
         children: b.children, elseChildren: b.elseChildren, ctrl: b.ctrl
       });
@@ -713,14 +1238,12 @@ export class BlockWorkspace {
         const isElse = p.elseChildren.includes(b.id);
         const area = p.el.querySelector(isElse ? '.sb-else-area' : '.sb-child-area');
         if (!area) continue;
-        const hint = area.querySelector('.sb-child-hint');
-        if (hint) hint.remove();
         b.el.style.position = 'relative';
         b.el.style.left = '';
         b.el.style.top = '';
         b.el.classList.add('sb-nested');
-        this._applyInlineContentStyles(b.el, true);
         area.appendChild(b.el);
+        this._applyInlineContentStyles(b.el, true);
       }
 
       for (const [, b] of this.blocks) {
@@ -739,7 +1262,7 @@ export class BlockWorkspace {
       id: bd.id, type: bd.type, label: bd.label, icon: bd.icon,
       category: bd.category, x: bd.x, y: bd.y,
       w: bd.w || 220, h: bd.h || (bd.ctrl ? 80 : 40),
-      value: bd.value, condition: bd.condition,
+      value: bd.value, varName: bd.varName, condition: bd.condition,
       prev: bd.prev, next: bd.next, parent: bd.parent,
       children: [...(bd.children || [])],
       elseChildren: [...(bd.elseChildren || [])],
@@ -863,6 +1386,33 @@ export class BlockWorkspace {
       this.save();
     });
 
+    this.ct.addEventListener('change', (e) => {
+      const select = e.target.closest('.sb-var-select');
+      if (!select) return;
+      const pe = select.closest('.sb-block');
+      if (!pe) return;
+      const b = this.blocks.get(pe.dataset.bid);
+      if (b) b.varName = select.value;
+      this.save();
+    });
+
+    this.ct.addEventListener('mousedown', (e) => {
+      const select = e.target.closest('.sb-var-select');
+      if (select) {
+        const pe = select.closest('.sb-block');
+        if (pe) {
+          const b = this.blocks.get(pe.dataset.bid);
+          if (b) {
+            if (b.type === 'change_var') {
+              this._populateChangeVarSelect(select, b);
+            } else {
+              this._populateVarSelect(select, b);
+            }
+          }
+        }
+      }
+    });
+
     this.ct.addEventListener('input', (e) => {
       const inp = e.target.closest('.sb-input');
       if (!inp) return;
@@ -874,9 +1424,28 @@ export class BlockWorkspace {
     });
 
     this.ct.addEventListener('click', (e) => {
+      const clearBtn = e.target.closest('.sb-var-slot-clear');
+      if (clearBtn) {
+        const bid = clearBtn.dataset.bid;
+        const b = this.blocks.get(bid);
+        if (b && b.type === 'repeat') {
+          b.varName = null;
+          const slot = clearBtn.closest('.sb-var-slot');
+          if (slot) {
+            const parent = slot.parentNode;
+            const newSlot = document.createElement('span');
+            newSlot.className = 'sb-var-slot';
+            newSlot.dataset.bid = bid;
+            newSlot.innerHTML = '<span class="sb-var-slot-placeholder">var</span>';
+            parent.replaceChild(newSlot, slot);
+          }
+          this.save();
+        }
+        return;
+      }
       this.ct.querySelectorAll('.sb-block.selected').forEach(el => el.classList.remove('selected'));
       const block = e.target.closest('.sb-block');
-      if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip')) {
+      if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq, .sb-var-slot-clear')) {
         block.classList.add('selected');
       }
     });
@@ -885,7 +1454,7 @@ export class BlockWorkspace {
       if (e.target.closest('.sb-zoom-controls, .btn-zoom')) return;
       const block = e.target.closest('.sb-block');
       if (!block) return;
-      if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip')) return;
+      if (e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq, .sb-var-slot-clear')) return;
       const b = this.blocks.get(block.dataset.bid);
       if (!b) return;
       this._dragStartPos = { x: e.clientX, y: e.clientY };

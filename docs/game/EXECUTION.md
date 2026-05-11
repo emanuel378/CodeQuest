@@ -45,8 +45,7 @@ O validador (`js/engine/validator.js`) verifica a árvore de comandos antes da e
 
 ```
 move, turnRight, turnLeft, jump,
-attack, pickup, drop, activate,
-detectObstacle, detectEnemy,
+attack, custom_var,
 if, repeat, while
 ```
 

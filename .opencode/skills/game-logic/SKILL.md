@@ -19,7 +19,7 @@ Esta skill é um **atalho inteligente** - `GAME.md` é a fonte da verdade.
 ### Categorias de Blocos
 - *Movimento* → Blue (`var(--primary)`)
 - *Controle* → Purple (`var(--secondary)`)
-- *Sensores* → Green (`var(--tertiary)`)
+
 - *Ações* → Sem cor específica
 
 ### Tipos de Obstáculos
@@ -32,7 +32,7 @@ Esta skill é um **atalho inteligente** - `GAME.md` é a fonte da verdade.
 ### Progressão de Níveis
 | Nível | Tema | Blocos Novos | Objetivo |
 | --- | --- | --- | --- |
-| 0 | Tutorial | Mover Frente, Girar Dir/Esq, Pular, Detectar, Atacar, Pegar, Soltar, Ativar | Aprender controles |
+| 0 | Tutorial | Mover Frente, Girar Dir/Esq, Pular, Detectar, Atacar, Variável | Aprender controles |
 | 1 | Cidade da Lógica | Se (if), Senão (else) | Mover até inimigo e Atacar |
 | 2 | Floresta dos Algoritmos | Repetir, Enquanto | Chegar ao inimigo, atacar quando necessário |
 | 3 | Núcleo de Logicron | Nenhum | Derrotar o boss final |
@@ -56,7 +56,7 @@ Esta skill é um **atalho inteligente** - `GAME.md` é a fonte da verdade.
 ## Regras para Agentes (do GAME.md)
 - Sempre seguir o formato exato das tabelas do GAME.md
 - Usar números para níveis (0, 1, 2, 3...)
-- Categorias devem ser: *Movimento*, *Controle*, *Sensores*, *Ações*
+- Categorias devem ser: *Movimento*, *Controle*, *Ações*
 - Obstáculos devem ser tipos específicos, nunca apenas "Contém"/"Não contém"
 
 ## Checklist de Verificação

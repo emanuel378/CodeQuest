@@ -31,7 +31,7 @@ Ao adicionar um novo bloco, siga **exatamente**:
 ## Categorias Válidas
 - *Movimento* (cor: Blue / `var(--primary)`)
 - *Controle* (cor: Purple / `var(--secondary)`)
-- *Sensores* (cor: Green / `var(--tertiary)`)
+
 - *Ações* (sem cor específica no DESIGN.md)
 
 ## Regras de Validação

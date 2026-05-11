@@ -18,7 +18,7 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy'],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var'],
     description: 'Primeiros passos: use mover e pular para alcançar o portal.'
   },
   {
@@ -38,8 +38,8 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else'],
-    description: 'Use Se/Senão para decidir: o inimigo está à frente? Ataque ou avance.'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else'],
+    description: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!'
   },
   {
     id: 2,
@@ -61,8 +61,8 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat'],
-    description: 'Use Repetir para contornar barris em padrão. Economize blocos com laços!'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Desvie da torre giratória e atravesse o porto.'
   },
   {
     id: 3,
@@ -92,8 +92,8 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'Use Enquanto para atacar até o inimigo ser derrotado. Avance até o portal.'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Use as rochas como cobertura contra o feixe do laser.'
   },
   {
     id: 4,
@@ -119,11 +119,36 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'Combine Se dentro de Enquanto: avance decidindo entre atacar e desviar a cada passo.'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Use repetição para navegar pela floresta e derrotar inimigos.'
   },
   {
     id: 5,
+    name: 'Ruínas da Recursão',
+    theme: 'forest',
+    gridSize: 6,
+    idealBlockCount: 6,
+    complexity: 1,
+    difficulty: 1,
+    playerStart: { x: 0, y: 5, direction: 0 },
+    goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
+    obstacles: [
+      { x: 2, y: 1, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
+      { x: 4, y: 2, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo2.png' },
+      { x: 1, y: 4, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
+      { x: 3, y: 4, type: 'rock', sprite: 'assets/sprites/obstacles/obstaculo1.png' }
+    ],
+    enemies: [{ x: 3, y: 2, hp: 1, type: 2, direction: 1 }],
+    items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Um perseguidor patrulha as ruínas. Movimente-se rápido ou enfrente-o.'
+  },
+  {
+    id: 6,
     name: 'Labirinto Binário',
     theme: 'forest',
     gridSize: 6,
@@ -149,37 +174,8 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'Caminhos bifurcados com múltiplas condições. Combine Repetir, Se e Enquanto para navegar.'
-  },
-  {
-    id: 6,
-    name: 'Ruínas da Coleção',
-    theme: 'forest',
-    gridSize: 6,
-    idealBlockCount: 10,
-    complexity: 4,
-    difficulty: 3,
-    playerStart: { x: 0, y: 5, direction: 1 },
-    goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
-    obstacles: [
-      { x: 2, y: 2, type: 'barril', sprite: 'assets/sprites/obstacles/barril.png' },
-      { x: 4, y: 4, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' },
-      { x: 3, y: 5, type: 'barreira', sprite: 'assets/sprites/obstacles/barreira.png' }
-    ],
-    enemies: [
-      { x: 1, y: 3, hp: 2, type: 2, direction: 1 },
-      { x: 5, y: 2, hp: 1, type: 0, direction: 3 }
-    ],
-    items: [
-      { x: 1, y: 1, type: 'cristal' }
-    ],
-    objectives: [
-      { id: 'require_item', description: 'Colete o cristal e alcance o portal' },
-      { id: 'survive', description: 'Mantenha o herói vivo' }
-    ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'Colete o cristal antes de chegar ao portal. O item é obrigatório para vencer!'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Laser e torre protegem o labirinto. Planeje sua rota com cuidado.'
   },
   {
     id: 7,
@@ -207,8 +203,8 @@ export const LEVELS = [
       { id: 'defeat_enemies', description: 'Derrote todos os inimigos' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'O boss final guarda o núcleo. Combine todos os conceitos para vencer!'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Derrote o boss final e chegue ao núcleo do Logicron!'
   },
   {
     id: 8,
@@ -236,8 +232,8 @@ export const LEVELS = [
       { id: 'reach_goal', description: 'Alcance o portal de saída' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'Use Ativar para alternar barreiras no mapa. Escolha o momento certo para abrir caminho.'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Perseguidor e laser no abismo. A rota mais curta pode ser a mais perigosa.'
   },
   {
     id: 9,
@@ -271,8 +267,8 @@ export const LEVELS = [
       { id: 'defeat_enemies', description: 'Derrote todos os inimigos' },
       { id: 'survive', description: 'Mantenha o herói vivo' }
     ],
-    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
-    description: 'O desafio supremo: colete o cristal, derrote todos os inimigos e alcance o portal. Use tudo que aprendeu!'
+    availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'custom_var', 'set_var', 'if', 'else', 'repeat', 'while'],
+    description: 'Todos os inimigos reunidos. Use todas as habilidades para vencer.'
   }
 ];
 

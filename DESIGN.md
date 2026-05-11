@@ -110,7 +110,7 @@ Background: usar token `background` do YAML frontmatter.
 Gradientes devem partir de `var(--background)` usando variações de `surface-*`.
 
 - **Primary (tokens: `primary` / `primary-container`):** Ações primárias, blocos de código ativos, foco de navegação
-- **Secondary (tokens: `secondary` / `secondary-container`):** Portas lógicas, dados de sensores, power-ups
+- **Secondary (tokens: `secondary` / `secondary-container`):** Portas lógicas, dados, power-ups
 - **Tertiary (tokens: `tertiary` / `tertiary-container`):** Estados de execução, execução bem-sucedida, saúde do sistema
 - **Surfaces (tokens: `surface-*`):** Camadas escuras semitransparentes; `surface-container` para painéis base
 
@@ -148,7 +148,7 @@ Glassmorphism + Camadas Luminosas (sem sombras tradicionais).
 ## Componentes
 
 - **Action Buttons:** Ghost, borda neon 1px, hover preenche com baixa opacidade + brilho intenso
-- **Programming Blocks:** Cards modulares com barra esquerda por função (Movement=`var(--primary)`, Logic=`var(--secondary)`, Sensors=`var(--tertiary)`)
+- **Programming Blocks:** Cards modulares com barra esquerda por função (Movement=`var(--primary)`, Logic=`var(--secondary)`)
 - **Status Chips:** Pílula com ponto pulsante ("Active" / "Standby")
 - **Glow-Line Icons:** Stroke 2px, ativo: `var(--primary)` com brilho
 - **Data Visualizers:** Sparklines com `var(--secondary)`, sidebars glassmórficas

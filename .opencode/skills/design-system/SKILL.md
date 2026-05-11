@@ -63,7 +63,7 @@ color: var(--on-background);
 - Barra esquerda por função:
   - Movement = `var(--primary)`
   - Logic = `var(--secondary)`
-  - Sensors = `var(--tertiary)`
+
 - Formas entrelaçadas (CSS `clip-path` ou pseudo-elementos)
 
 ## Checklist de Verificação
