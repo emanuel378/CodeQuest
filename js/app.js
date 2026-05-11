@@ -982,7 +982,7 @@ function initGame() {
         const rankConfig = AttributeSystem.calculateRank(blocksUsed, idealBlocks)
         const effMultiplier = rankConfig.xpMultiplier
 
-        const baseXP = level ? Math.max(100, (level.id + 1) * 30 + level.complexity * 30) : 100
+        const baseXP = level ? Math.max(50, (level.id + 1) * 25 + level.difficulty * 40 + level.complexity * 15) : 50
         const finalScore = Math.round(baseXP * effMultiplier)
 
         const attrMultiplier = AttributeSystem.getXpMultiplier(

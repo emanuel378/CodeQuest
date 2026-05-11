@@ -5,8 +5,8 @@ const ATTRIBUTE_DEFS = {
     icon: 'memory',
     description: 'Controla quantas tentativas você tem por fase. Cada erro consome uma tentativa. Se zerar, você volta à fase anterior.',
     color: 'var(--primary-container)',
-    maxLevel: 5,
-    attemptsPerLevel: [5, 6, 7, 8, 10]
+    maxLevel: 4,
+    attemptsPerLevel: [5, 7, 9, 12]
   },
   eficienciaAlgoritmo: {
     id: 'eficienciaAlgoritmo',
@@ -20,13 +20,13 @@ const ATTRIBUTE_DEFS = {
 }
 
 const RANK_CONFIG = {
-  S: { minRatio: 0.9, xpMultiplier: 2.0, attrXP: 40, label: 'S', color: 'var(--color-gold)' },
-  A: { minRatio: 0.65, xpMultiplier: 1.5, attrXP: 25, label: 'A', color: 'var(--primary-container)' },
-  B: { minRatio: 0.4, xpMultiplier: 1.0, attrXP: 10, label: 'B', color: 'var(--secondary)' },
+  S: { minRatio: 0.8, xpMultiplier: 2.0, attrXP: 40, label: 'S', color: 'var(--color-gold)' },
+  A: { minRatio: 0.55, xpMultiplier: 1.5, attrXP: 25, label: 'A', color: 'var(--primary-container)' },
+  B: { minRatio: 0.3, xpMultiplier: 1.0, attrXP: 10, label: 'B', color: 'var(--secondary)' },
   C: { minRatio: 0, xpMultiplier: 0.5, attrXP: 0, label: 'C', color: 'var(--error)' }
 }
 
-const PLAYER_XP_THRESHOLDS = [0, 150, 350, 600, 900, 1250, 1700, 2200]
+const PLAYER_XP_THRESHOLDS = [0, 200, 500, 900, 1400, 2000, 2700, 3500]
 const PLAYER_MAX_LEVEL = 8
 
 export class AttributeSystem {
