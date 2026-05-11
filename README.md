@@ -34,7 +34,7 @@
 
 Em um mundo digital onde algoritmos governam tudo, a **Cidade da Lógica** está sob ameaça. Você é um programador em ascensão. Comande o robô **Autômato** através de desafios codificados, arrastando e encaixando blocos de código visual para superar obstáculos, derrotar inimigos e restaurar a ordem no sistema.
 
-CodeQuest é um **RPG educativo de programação** que ensina lógica computacional sem exigir conhecimento prévio de código — perfect para iniciantes em algoritmo e pensamento computacional.
+CodeQuest é um **RPG educativo de programação** que ensina lógica computacional sem exigir conhecimento prévio de código — perfeito para iniciantes em algoritmo e pensamento computacional.
 
 > 🎯 **Objetivo:** Arraste blocos da paleta para o workspace, forme uma sequência de comandos e execute para guiar o herói até o portal de saída enquanto cumpre os objetivos de cada nível.
 
