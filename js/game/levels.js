@@ -6,11 +6,16 @@ export const LEVELS = [
     gridSize: 5,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 0, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [],
     enemies: [],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy'],
     description: 'Aprenda os controles básicos movendo o herói até o objetivo.'
   },
@@ -21,11 +26,16 @@ export const LEVELS = [
     gridSize: 5,
     idealBlockCount: 8,
     complexity: 2,
+    difficulty: 2,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: null,
     obstacles: [],
     enemies: [{ x: 2, y: 1, hp: 1, type: 1, direction: 2 }],
     items: [],
+    objectives: [
+      { id: 'defeat_enemies', description: 'Derrote o inimigo' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else'],
     description: 'Use if/else para tomar decisões. Mova até o inimigo e ataque!'
   },
@@ -36,6 +46,7 @@ export const LEVELS = [
     gridSize: 5,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 0, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [
@@ -43,6 +54,10 @@ export const LEVELS = [
     ],
     enemies: [{ x: 3, y: 1, hp: 1, type: 1, direction: 0 }],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Desvie da torre giratória e atravesse o porto.'
   },
@@ -53,6 +68,7 @@ export const LEVELS = [
     gridSize: 5,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 4, direction: 0 },
     goal: { x: 4, y: 4, sprite: 'assets/sprites/goal/portalciano.png' },
     obstacles: [
@@ -61,6 +77,10 @@ export const LEVELS = [
     ],
     enemies: [{ x: 3, y: 0, hp: 1, type: 0, direction: 2 }, { x: 1, y: 0, hp: 1, type: 0, direction: 2 }],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Use as rochas como cobertura contra o feixe do laser.'
   },
@@ -71,7 +91,8 @@ export const LEVELS = [
     gridSize: 6,
     idealBlockCount: 10,
     complexity: 4,
-    playerStart: { x: 0, y: 5, direction: 0 },
+    difficulty: 2,
+    playerStart: { x: 0, y: 4, direction: 0 },
     goal: null,
     obstacles: [
       { x: 2, y: 2, type: 'tree', sprite: 'assets/sprites/obstacles/obstaculo3.png' },
@@ -80,6 +101,10 @@ export const LEVELS = [
     ],
     enemies: [{ x: 5, y: 0, hp: 1, type: 0, direction: 2 }],
     items: [],
+    objectives: [
+      { id: 'defeat_enemies', description: 'Derrote o inimigo' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Use repetição para navegar pela floresta e derrotar inimigos.'
   },
@@ -90,6 +115,7 @@ export const LEVELS = [
     gridSize: 6,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
     obstacles: [
@@ -100,6 +126,10 @@ export const LEVELS = [
     ],
     enemies: [{ x: 3, y: 2, hp: 1, type: 2, direction: 1 }],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Um perseguidor patrulha as ruínas. Movimente-se rápido ou enfrente-o.'
   },
@@ -110,6 +140,7 @@ export const LEVELS = [
     gridSize: 6,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 5, direction: 0 },
     goal: { x: 5, y: 0, sprite: 'assets/sprites/goal/portalverde.png' },
     obstacles: [
@@ -124,6 +155,10 @@ export const LEVELS = [
       { x: 4, y: 2, hp: 1, type: 1, direction: 0 }
     ],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Laser e torre protegem o labirinto. Planeje sua rota com cuidado.'
   },
@@ -134,6 +169,7 @@ export const LEVELS = [
     gridSize: 7,
     idealBlockCount: 18,
     complexity: 8,
+    difficulty: 3,
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 0, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
@@ -146,6 +182,11 @@ export const LEVELS = [
       { x: 1, y: 3, hp: 2, type: 2, direction: 1 }
     ],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o núcleo do Logicron' },
+      { id: 'defeat_enemies', description: 'Derrote todos os inimigos' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Derrote o boss final e chegue ao núcleo do Logicron!'
   },
@@ -156,6 +197,7 @@ export const LEVELS = [
     gridSize: 7,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 0, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
@@ -170,6 +212,10 @@ export const LEVELS = [
       { x: 6, y: 5, hp: 1, type: 0, direction: 3 }
     ],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Perseguidor e laser no abismo. A rota mais curta pode ser a mais perigosa.'
   },
@@ -180,6 +226,7 @@ export const LEVELS = [
     gridSize: 7,
     idealBlockCount: 6,
     complexity: 1,
+    difficulty: 1,
     playerStart: { x: 0, y: 6, direction: 0 },
     goal: { x: 6, y: 6, sprite: 'assets/sprites/goal/portalrosa.png' },
     obstacles: [
@@ -196,6 +243,10 @@ export const LEVELS = [
       { x: 5, y: 5, hp: 2, type: 2, direction: 3 }
     ],
     items: [],
+    objectives: [
+      { id: 'reach_goal', description: 'Alcance o portal de saída' },
+      { id: 'survive', description: 'Mantenha o herói vivo' }
+    ],
     availableCommands: ['move', 'turnRight', 'turnLeft', 'jump', 'attack', 'pickup', 'drop', 'activate', 'detectObstacle', 'detectEnemy', 'if', 'else', 'repeat', 'while'],
     description: 'Todos os inimigos reunidos. Use todas as habilidades para vencer.'
   }
