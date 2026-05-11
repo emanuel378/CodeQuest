@@ -722,8 +722,13 @@ function initGame() {
   errorLog.className = 'error-log';
   els.workspace.appendChild(errorLog);
 
+  if (gs && gs.objectivesPanel) {
+    gs.objectivesPanel.destroy();
+  }
+
   const objectivesPanel = new ObjectivesPanel();
-  objectivesPanel.mount(els.workspace);
+  const mountTarget = window.innerWidth <= 767 ? document.body : els.workspace;
+  objectivesPanel.mount(mountTarget);
 
   gs = {
     workspace, palette, player, stage, progression,

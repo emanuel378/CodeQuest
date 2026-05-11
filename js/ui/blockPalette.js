@@ -51,6 +51,8 @@ export class BlockPalette {
     this.container = containerEl;
     this.activeCategory = null;
     this._variables = [];
+    this._varBlocksEl = null;
+    this._varInput = null;
     this._render();
     this._setupDrag();
   }
@@ -83,56 +85,55 @@ export class BlockPalette {
     const content = document.createElement('div');
     content.className = 'sb-palette-content';
     this.container.appendChild(content);
-
     this._content = content;
+
+    this._catPanels = {};
+    for (const cat of CATEGORIES) {
+      const panel = document.createElement('div');
+      panel.className = 'sb-category-panel';
+      panel.dataset.cat = cat.id;
+
+      if (cat.id === 'variavel') {
+        this._renderVariablePanel(panel);
+      } else {
+        for (const blockDef of cat.blocks) {
+          panel.appendChild(this._createBlockEl(blockDef, cat.id));
+        }
+      }
+
+      this._content.appendChild(panel);
+      this._catPanels[cat.id] = panel;
+    }
+
     this._selectCategory(CATEGORIES[0].id);
   }
 
-  _selectCategory(catId) {
-    this.activeCategory = catId;
+  _createBlockEl(blockDef, catId) {
+    const el = document.createElement('div');
+    el.className = 'sb-palette-block';
+    el.draggable = true;
+    el.dataset.type = blockDef.type;
+    el.dataset.label = blockDef.label;
+    el.dataset.icon = blockDef.icon;
+    el.dataset.category = catId;
+    el.dataset.params = JSON.stringify(blockDef.params || {});
 
-    this.container.querySelectorAll('.sb-cat-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.cat === catId);
-    });
-
-    const cat = CATEGORIES.find(c => c.id === catId);
-    if (!cat) return;
-
-    this._content.innerHTML = '';
-
-    if (catId === 'variavel') {
-      this._renderVariableCategory();
-      return;
-    }
-
-    for (const blockDef of cat.blocks) {
-      const el = document.createElement('div');
-      el.className = 'sb-palette-block';
-      el.draggable = true;
-      el.dataset.type = blockDef.type;
-      el.dataset.label = blockDef.label;
-      el.dataset.icon = blockDef.icon;
-      el.dataset.category = catId;
-      el.dataset.params = JSON.stringify(blockDef.params || {});
-
-      const color = CATEGORY_COLORS[catId] || 'var(--on-surface-variant)';
-      el.innerHTML = `
-        <div class="sb-palette-headlight" style="--cat-color:${color}"><div class="sb-palette-headlight-lens"></div></div>
-        <span class="material-symbols-outlined" style="color:${color}">${blockDef.icon}</span>
-        <span>${blockDef.label}</span>
-      `;
-
-      this._content.appendChild(el);
-    }
+    const color = CATEGORY_COLORS[catId] || 'var(--on-surface-variant)';
+    el.innerHTML = `
+      <div class="sb-palette-headlight" style="--cat-color:${color}"><div class="sb-palette-headlight-lens"></div></div>
+      <span class="material-symbols-outlined" style="color:${color}">${blockDef.icon}</span>
+      <span>${blockDef.label}</span>
+    `;
+    return el;
   }
 
-  _renderVariableCategory() {
+  _renderVariablePanel(panel) {
     const color = CATEGORY_COLORS.variavel;
 
     const label = document.createElement('div');
     label.className = 'sb-var-label';
     label.textContent = 'Criar variável';
-    this._content.appendChild(label);
+    panel.appendChild(label);
 
     const inputRow = document.createElement('div');
     inputRow.className = 'sb-var-input-row';
@@ -150,8 +151,8 @@ export class BlockPalette {
       if (!/^[a-zA-Z_]\w*$/.test(name)) return;
       if (this._variables.includes(name)) return;
       this._variables.push(name);
+      this._appendVariableBlock(name);
       input.value = '';
-      this._selectCategory('variavel');
     };
 
     addBtn.addEventListener('click', doAdd);
@@ -159,46 +160,52 @@ export class BlockPalette {
       if (e.key === 'Enter') doAdd();
     });
 
-    this._content.appendChild(inputRow);
+    panel.appendChild(inputRow);
+    this._varInput = input;
+
+    const varBlocks = document.createElement('div');
+    varBlocks.className = 'sb-var-blocks';
+    panel.appendChild(varBlocks);
+    this._varBlocksEl = varBlocks;
 
     for (const varName of this._variables) {
-      const el = document.createElement('div');
-      el.className = 'sb-palette-block sb-palette-block-var';
-      el.draggable = true;
-      el.dataset.type = 'custom_var';
-      el.dataset.label = varName;
-      el.dataset.icon = '';
-      el.dataset.category = 'variavel';
-      el.dataset.params = JSON.stringify({ varName });
-      el.innerHTML = `<span>${varName}</span>`;
-      this._content.appendChild(el);
+      this._appendVariableBlock(varName);
     }
 
     const sep = document.createElement('div');
     sep.className = 'sb-var-separator';
-    this._content.appendChild(sep);
+    panel.appendChild(sep);
 
     const cat = CATEGORIES.find(c => c.id === 'variavel');
     if (cat) {
       for (const blockDef of cat.blocks) {
-        const el = document.createElement('div');
-        el.className = 'sb-palette-block';
-        el.draggable = true;
-        el.dataset.type = blockDef.type;
-        el.dataset.label = blockDef.label;
-        el.dataset.icon = blockDef.icon;
-        el.dataset.category = 'variavel';
-        el.dataset.params = JSON.stringify(blockDef.params || {});
-
-        const c = CATEGORY_COLORS.variavel;
-        el.innerHTML = `
-          <div class="sb-palette-headlight" style="--cat-color:${c}"><div class="sb-palette-headlight-lens"></div></div>
-          <span class="material-symbols-outlined" style="color:${c}">${blockDef.icon}</span>
-          <span>${blockDef.label}</span>
-        `;
-
-        this._content.appendChild(el);
+        panel.appendChild(this._createBlockEl(blockDef, 'variavel'));
       }
+    }
+  }
+
+  _appendVariableBlock(varName) {
+    const el = document.createElement('div');
+    el.className = 'sb-palette-block sb-palette-block-var';
+    el.draggable = true;
+    el.dataset.type = 'custom_var';
+    el.dataset.label = varName;
+    el.dataset.icon = '';
+    el.dataset.category = 'variavel';
+    el.dataset.params = JSON.stringify({ varName });
+    el.innerHTML = `<span>${varName}</span>`;
+    this._varBlocksEl.appendChild(el);
+  }
+
+  _selectCategory(catId) {
+    this.activeCategory = catId;
+
+    this.container.querySelectorAll('.sb-cat-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.cat === catId);
+    });
+
+    for (const [id, panel] of Object.entries(this._catPanels)) {
+      panel.classList.toggle('active', id === catId);
     }
   }
 

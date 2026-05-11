@@ -464,6 +464,10 @@
   align-items: center;
   gap: var(--sp-sm);
   color: var(--on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .rank-avatar-icon {

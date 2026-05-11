@@ -421,6 +421,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   max-width: 300px;
+  max-height: 300px;
   position: relative;
   border: 1px solid rgba(0, 242, 255, 0.3);
   box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
@@ -2286,7 +2287,7 @@
   right: 8px;
   z-index: 45;
   min-width: 200px;
-  max-width: 260px;
+  max-width: min(260px, calc(100vw - 24px));
   background: color-mix(in srgb, var(--surface-container) 85%, transparent);
   backdrop-filter: blur(12px);
   border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--outline-variant));
@@ -2301,12 +2302,29 @@
   pointer-events: none;
 }
 
+.objectives-panel--mobile {
+  position: fixed;
+  z-index: 100;
+  touch-action: none;
+}
+
 .objectives-header {
   display: flex;
   align-items: center;
   gap: var(--sp-xs);
   padding-bottom: var(--sp-xs);
   border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--outline-variant));
+  cursor: pointer;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.objectives-panel--mobile .objectives-header {
+  cursor: grab;
+}
+
+.objectives-header.dragging {
+  cursor: grabbing;
 }
 
 .objectives-header-icon {
@@ -2322,12 +2340,53 @@
   letter-spacing: 0.15em;
   color: var(--color-accent);
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.objectives-counter {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-accent);
+  background: var(--surface-container-high);
+  padding: 1px 6px;
+  border-radius: var(--rounded-full);
+  margin-left: auto;
+  line-height: 1.4;
+}
+
+.objectives-toggle-icon {
+  font-size: 16px;
+  color: var(--color-accent);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
 
 .objectives-list {
   display: flex;
   flex-direction: column;
   gap: var(--sp-xs);
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease, padding-top 0.25s ease, padding-bottom 0.25s ease;
+  padding-top: var(--sp-xs);
+  padding-bottom: 0;
+}
+
+.collapsed .objectives-list {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.collapsed .objectives-header {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .objective-item {
