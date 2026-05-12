@@ -1,5 +1,6 @@
 import { PageComponent } from './pageComponent.js';
 import { router } from '../routes.js';
+import { GlossaryModal } from '../glossaryModal.js';
 
 class GamePage extends PageComponent {
   _render() {
@@ -27,6 +28,18 @@ class GamePage extends PageComponent {
       homeBtn.addEventListener('click', handler);
       this._handlers.push({ el: homeBtn, type: 'click', handler });
     }
+
+    const glossaryBtn = this.el.querySelector('[data-action="glossary"]');
+    if (glossaryBtn) {
+      const handler = () => {
+        this._glossaryModal = new GlossaryModal(() => {
+          this._glossaryModal = null;
+        });
+        this._glossaryModal.show();
+      };
+      glossaryBtn.addEventListener('click', handler);
+      this._handlers.push({ el: glossaryBtn, type: 'click', handler });
+    }
   }
 
   _unbindEvents() {
@@ -34,6 +47,10 @@ class GamePage extends PageComponent {
       el.removeEventListener(type, handler);
     }
     this._handlers = [];
+    if (this._glossaryModal) {
+      this._glossaryModal._destroy();
+      this._glossaryModal = null;
+    }
   }
 
   getRequiredElement(selector) {
