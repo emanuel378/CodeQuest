@@ -40,6 +40,20 @@ class GamePage extends PageComponent {
       glossaryBtn.addEventListener('click', handler);
       this._handlers.push({ el: glossaryBtn, type: 'click', handler });
     }
+
+    const glossaryEnemyHandler = (e) => {
+      if (!this._glossaryModal) {
+        this._glossaryModal = new GlossaryModal(() => {
+          this._glossaryModal = null;
+        });
+      }
+      this._glossaryModal.show({
+        tab: 'enemies',
+        scrollToEnemy: e.detail?.enemyName
+      });
+    };
+    document.addEventListener('enemy:open-glossary', glossaryEnemyHandler);
+    this._handlers.push({ el: document, type: 'enemy:open-glossary', handler: glossaryEnemyHandler });
   }
 
   _unbindEvents() {
@@ -75,6 +89,7 @@ class GamePage extends PageComponent {
       indicator:  this.getRequiredElement('.level-indicator'),
       simViewport: this.getRequiredElement('.sim-viewport'),
       attrPanel: document.getElementById('attributes-panel'),
+      enemyInfo: document.getElementById('enemy-info'),
     };
   }
 }

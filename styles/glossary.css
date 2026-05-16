@@ -391,3 +391,18 @@
     grid-template-columns: 1fr;
   }
 }
+
+.glossary-enemy-highlight {
+  animation: glossary-enemy-pulse 1.5s ease;
+  border-color: var(--error) !important;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--error) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--error) 10%, transparent) !important;
+}
+
+@keyframes glossary-enemy-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--error) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--error) 10%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 40px color-mix(in srgb, var(--error) 50%, transparent), inset 0 0 20px color-mix(in srgb, var(--error) 20%, transparent);
+  }
+}

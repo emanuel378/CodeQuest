@@ -15,6 +15,7 @@ import { ObjectivesPanel } from './ui/objectivesPanel.js';
 import { audioManager } from './audio/audioManager.js';
 import { AttributesPanel } from './ui/attributesPanel.js';
 import { AttributeSystem } from './game/attributes.js';
+import { EnemyInfoPanel } from './ui/enemyInfoPanel.js';
 
 let gs = null;
 let executingBlockIds = new Set();
@@ -93,6 +94,7 @@ function loadLevelById(levelId, skipMusic = false) {
   if (gs.indicator) gs.indicator.textContent = `Nível ${level.id}: ${level.name}`;
 
   renderSimGrid(level);
+  if (gs.enemyInfoPanel) gs.enemyInfoPanel.update(gs.stage.enemies);
   gs.palette.filterByUnlocked(gs.progression.getUnlockedCommands());
   if (gs.objectivesPanel) {
     gs.objectivesPanel.setObjectives(gs.stage.objectives);
@@ -369,6 +371,7 @@ function tickEnemiesAndSync() {
   }
 
   syncSimEntities();
+  if (gs.enemyInfoPanel) gs.enemyInfoPanel.update(gs.stage.enemies);
   updateSimView();
 
   if (gs.stage.checkAllObjectives() && gs.objectivesPanel) {
@@ -758,9 +761,15 @@ function initGame() {
   const mountTarget = window.innerWidth <= 767 ? document.body : els.workspace;
   objectivesPanel.mount(mountTarget);
 
+  const enemyInfoPanel = new EnemyInfoPanel(els.enemyInfo, {
+    onGlossaryRequest: (enemyName) => {
+      document.dispatchEvent(new CustomEvent('enemy:open-glossary', { detail: { enemyName } }));
+    }
+  });
+
   gs = {
     workspace, palette, player, stage, progression,
-    attrPanel, playerManager, objectivesPanel,
+    attrPanel, playerManager, objectivesPanel, enemyInfoPanel,
     simGrid, statusDot, statusText, indicator, errorLog, els,
     activeLevelId: null,
     isRunning: false,
@@ -811,6 +820,21 @@ function initGame() {
   gs.profileMenu = profileMenu;
 
   const runWithGuard = withGuard;
+
+  if (gs.simGrid) {
+    gs.simGrid.addEventListener('mouseover', (e) => {
+      const enemyEl = e.target.closest('.sim-enemy');
+      if (enemyEl && gs.enemyInfoPanel) {
+        gs.enemyInfoPanel.highlightById(enemyEl.dataset.enemyId);
+      }
+    });
+    gs.simGrid.addEventListener('mouseout', (e) => {
+      const enemyEl = e.target.closest('.sim-enemy');
+      if (enemyEl && gs.enemyInfoPanel) {
+        gs.enemyInfoPanel.clearHighlight();
+      }
+    });
+  }
 
   els.runBtn?.addEventListener('click', async () => {
     if (gs.isRunning) return;
@@ -937,6 +961,7 @@ function initGame() {
       attack: runWithGuard(async () => {
         stage.attackEnemy();
         syncSimEntities();
+        if (gs.enemyInfoPanel) gs.enemyInfoPanel.update(gs.stage.enemies);
         await new Promise(r => setTimeout(r, 350));
       }),
 
@@ -1210,6 +1235,7 @@ document.addEventListener(ROUTE_CHANGE, (e) => {
       if (gs._resizeObserver) gs._resizeObserver.disconnect();
       if (gs.profileMenu) gs.profileMenu.destroy();
       if (gs.objectivesPanel) gs.objectivesPanel.destroy();
+      if (gs.enemyInfoPanel) gs.enemyInfoPanel.destroy();
     }
     _gameInitialized = false;
     gs = null;

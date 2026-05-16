@@ -2527,3 +2527,144 @@
   text-decoration: line-through;
   opacity: 0.7;
 }
+
+/* ===== Enemy Info Panel (Simulation Stage) ===== */
+
+.sim-enemy-info {
+  position: absolute;
+  top: var(--sp-sm);
+  left: var(--sp-sm);
+  right: var(--sp-sm);
+  z-index: 5;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--sp-sm);
+  pointer-events: none;
+  min-height: 0;
+}
+
+.sim-enemy-info.hidden {
+  display: none;
+}
+
+.sim-enemy-info-card {
+  width: 64px;
+  height: 64px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--sp-xs);
+  background: color-mix(in srgb, var(--error) 12%, var(--surface-container));
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  border-radius: var(--rounded-sm);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--error) 20%, transparent);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: default;
+  pointer-events: auto;
+}
+
+.sim-enemy-info-card.highlight {
+  border-color: var(--error);
+  box-shadow:
+    0 0 16px color-mix(in srgb, var(--error) 80%, transparent),
+    0 0 32px color-mix(in srgb, var(--error) 60%, transparent),
+    0 0 48px color-mix(in srgb, var(--error) 40%, transparent);
+}
+}
+
+.sim-enemy-info-sprite {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--rounded-sm);
+  overflow: hidden;
+}
+
+.sim-enemy-info-sprite .sim-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sim-enemy-info-name {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.sim-enemy-info-hp-text {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--error);
+  line-height: 1;
+  text-align: center;
+}
+
+.sim-enemy-info-glossary-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--rounded-full);
+  background: color-mix(in srgb, var(--surface-container) 70%, transparent);
+  border: 1px solid var(--outline);
+  color: var(--on-surface-variant);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.sim-enemy-info-glossary-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 6px rgba(0, 242, 255, 0.3);
+}
+
+/* Grid enemy highlight (hover from panel or grid) */
+.sim-enemy-highlight {
+  box-shadow:
+    0 0 20px var(--error),
+    0 0 40px color-mix(in srgb, var(--error) 70%, transparent),
+    0 0 60px color-mix(in srgb, var(--error) 40%, transparent) !important;
+  transform: scale(1.15);
+  z-index: 25;
+  transition: all 0.2s ease;
+}
+
+
+
+
+.sim-enemy.sim-enemy-highlight .enemy-hp {
+  color: var(--error);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--error) 80%, transparent);
+  font-weight: 800;
+}
+

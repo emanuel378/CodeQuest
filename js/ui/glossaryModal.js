@@ -246,6 +246,7 @@ class GlossaryModal {
     for (const enemy of ENEMIES) {
       const item = document.createElement('div');
       item.className = 'glossary-enemy-item';
+      item.dataset.enemyName = enemy.name;
       item.style.setProperty('--item-color', enemy.color);
 
       const sprite = document.createElement('div');
@@ -340,16 +341,38 @@ class GlossaryModal {
     }
   }
 
-  show() {
+  _switchToEnemy(enemyName) {
+    this._switchTab('enemies');
+    const target = this._el.querySelector(`.glossary-enemy-item[data-enemy-name="${enemyName}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add('glossary-enemy-highlight');
+      setTimeout(() => target.classList.remove('glossary-enemy-highlight'), 1500);
+    }
+  }
+
+  show(options = {}) {
     this._build();
     this._setupEvents();
     document.body.style.overflow = 'hidden';
     document.body.appendChild(this._el);
-    requestAnimationFrame(() => {
+
+    const init = () => {
       this._el.classList.add('active');
       const modal = this._el.querySelector('.glossary-modal');
       if (modal) modal.classList.add('active');
-    });
+
+      if (options.tab) {
+        this._switchTab(options.tab);
+      }
+      if (options.scrollToEnemy) {
+        requestAnimationFrame(() => {
+          this._switchToEnemy(options.scrollToEnemy);
+        });
+      }
+    };
+
+    requestAnimationFrame(init);
   }
 }
 
