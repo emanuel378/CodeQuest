@@ -55,6 +55,7 @@ export class BlockPalette {
     this._varInput = null;
     this._render();
     this._setupDrag();
+    this._setupGlossaryBtns();
   }
 
   _render() {
@@ -123,6 +124,7 @@ export class BlockPalette {
       <div class="sb-palette-headlight" style="--cat-color:${color}"><div class="sb-palette-headlight-lens"></div></div>
       <span class="material-symbols-outlined" style="color:${color}">${blockDef.icon}</span>
       <span>${blockDef.label}</span>
+      <button class="sb-palette-glossary-btn" data-block-type="${blockDef.type}" title="Ver no glossário" tabindex="-1">?</button>
     `;
     return el;
   }
@@ -278,6 +280,18 @@ export class BlockPalette {
     });
 
     this._content.addEventListener('mouseleave', _removeTooltip);
+  }
+
+  _setupGlossaryBtns() {
+    this._content.addEventListener('click', (e) => {
+      const btn = e.target.closest('.sb-palette-glossary-btn');
+      if (!btn) return;
+      e.stopPropagation();
+      const blockType = btn.dataset.blockType;
+      if (blockType) {
+        document.dispatchEvent(new CustomEvent('block:open-glossary', { detail: { blockType } }));
+      }
+    });
   }
 
   getVariables() {

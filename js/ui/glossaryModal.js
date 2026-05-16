@@ -5,10 +5,10 @@ const CATEGORIES = [
     color: 'var(--primary-container)',
     icon: 'navigation',
     blocks: [
-      { icon: 'arrow_upward', label: 'Mover Frente', desc: 'Move o jogador 1 célula para frente na direção atual', unlock: 0 },
-      { icon: 'rotate_right', label: 'Girar Direita', desc: 'Rotaciona o jogador 90° no sentido horário', unlock: 0 },
-      { icon: 'rotate_left', label: 'Girar Esquerda', desc: 'Rotaciona o jogador 90° no sentido anti-horário', unlock: 0 },
-      { icon: 'keyboard_double_arrow_up', label: 'Pular', desc: 'Faz o jogador pular 2 células para frente', unlock: 0 }
+      { type: 'move', icon: 'arrow_upward', label: 'Mover Frente', desc: 'Move o jogador 1 célula para frente na direção atual', unlock: 0 },
+      { type: 'turnRight', icon: 'rotate_right', label: 'Girar Direita', desc: 'Rotaciona o jogador 90° no sentido horário', unlock: 0 },
+      { type: 'turnLeft', icon: 'rotate_left', label: 'Girar Esquerda', desc: 'Rotaciona o jogador 90° no sentido anti-horário', unlock: 0 },
+      { type: 'jump', icon: 'keyboard_double_arrow_up', label: 'Pular', desc: 'Faz o jogador pular 2 células para frente', unlock: 0 }
     ]
   },
   {
@@ -17,9 +17,9 @@ const CATEGORIES = [
     color: 'var(--secondary-container)',
     icon: 'settings_ethernet',
     blocks: [
-      { icon: 'call_split', label: 'Se (if)', desc: 'Executa os blocos internos se a condição for verdadeira, senão executa o bloco else', unlock: 1 },
-      { icon: 'repeat', label: 'Repetir', desc: 'Repete os blocos internos N vezes (máx. 100)', unlock: 2 },
-      { icon: 'loop', label: 'Enquanto', desc: 'Repete os blocos internos enquanto a condição for verdadeira (máx. 200 iterações)', unlock: 2 }
+      { type: 'if', icon: 'call_split', label: 'Se (if)', desc: 'Executa os blocos internos se a condição for verdadeira, senão executa o bloco else', unlock: 1 },
+      { type: 'repeat', icon: 'repeat', label: 'Repetir', desc: 'Repete os blocos internos N vezes (máx. 100)', unlock: 2 },
+      { type: 'while', icon: 'loop', label: 'Enquanto', desc: 'Repete os blocos internos enquanto a condição for verdadeira (máx. 200 iterações)', unlock: 2 }
     ]
   },
   {
@@ -28,7 +28,7 @@ const CATEGORIES = [
     color: 'var(--error)',
     icon: 'swords',
     blocks: [
-      { icon: 'swords', label: 'Atacar', desc: 'Ataca o inimigo na célula frontal, causando 1 de dano', unlock: 0 }
+      { type: 'attack', icon: 'swords', label: 'Atacar', desc: 'Ataca o inimigo na célula frontal, causando 1 de dano', unlock: 0 }
     ]
   },
   {
@@ -37,8 +37,8 @@ const CATEGORIES = [
     color: 'var(--secondary)',
     icon: 'data_object',
     blocks: [
-      { icon: 'assignment', label: 'Definir', desc: 'Atribui um valor a uma variável', unlock: 0 },
-      { icon: 'edit', label: 'Alterar', desc: 'Modifica o valor de uma variável existente', unlock: 0 },
+      { type: 'set_var', icon: 'assignment', label: 'Definir', desc: 'Atribui um valor a uma variável', unlock: 0 },
+      { type: 'change_var', icon: 'edit', label: 'Alterar', desc: 'Modifica o valor de uma variável existente', unlock: 0 },
       { icon: 'data_object', label: 'Variável customizada', desc: 'Bloco de variável criado pelo usuário via input na paleta', unlock: 0 }
     ]
   }
@@ -205,6 +205,7 @@ class GlossaryModal {
         const item = document.createElement('div');
         item.className = 'glossary-block-item';
         item.style.setProperty('--item-color', cat.color);
+        if (block.type) item.dataset.blockType = block.type;
 
         const icon = document.createElement('span');
         icon.className = 'material-symbols-outlined glossary-block-icon';
@@ -351,6 +352,16 @@ class GlossaryModal {
     }
   }
 
+  _switchToBlock(blockType) {
+    this._switchTab('blocks');
+    const target = this._el.querySelector(`.glossary-block-item[data-block-type="${blockType}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add('glossary-block-highlight');
+      setTimeout(() => target.classList.remove('glossary-block-highlight'), 2000);
+    }
+  }
+
   show(options = {}) {
     this._build();
     this._setupEvents();
@@ -368,6 +379,11 @@ class GlossaryModal {
       if (options.scrollToEnemy) {
         requestAnimationFrame(() => {
           this._switchToEnemy(options.scrollToEnemy);
+        });
+      }
+      if (options.scrollToBlock) {
+        requestAnimationFrame(() => {
+          this._switchToBlock(options.scrollToBlock);
         });
       }
     };

@@ -54,6 +54,20 @@ class GamePage extends PageComponent {
     };
     document.addEventListener('enemy:open-glossary', glossaryEnemyHandler);
     this._handlers.push({ el: document, type: 'enemy:open-glossary', handler: glossaryEnemyHandler });
+
+    const glossaryBlockHandler = (e) => {
+      if (!this._glossaryModal) {
+        this._glossaryModal = new GlossaryModal(() => {
+          this._glossaryModal = null;
+        });
+      }
+      this._glossaryModal.show({
+        tab: 'blocks',
+        scrollToBlock: e.detail?.blockType
+      });
+    };
+    document.addEventListener('block:open-glossary', glossaryBlockHandler);
+    this._handlers.push({ el: document, type: 'block:open-glossary', handler: glossaryBlockHandler });
   }
 
   _unbindEvents() {

@@ -391,19 +391,41 @@
 }
 
 .glossary-enemy-highlight {
-  animation: glossary-enemy-pulse 1.5s ease;
+  animation: glossary-enemy-pulse 2s ease;
   border-color: var(--error) !important;
-  box-shadow: 0 0 20px color-mix(in srgb, var(--error) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--error) 10%, transparent) !important;
+  box-shadow: 0 0 40px color-mix(in srgb, var(--error) 50%, transparent), 0 0 80px color-mix(in srgb, var(--error) 20%, transparent), inset 0 0 20px color-mix(in srgb, var(--error) 15%, transparent) !important;
 }
 
 @keyframes glossary-enemy-pulse {
 
   0%,
   100% {
-    box-shadow: 0 0 20px color-mix(in srgb, var(--error) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--error) 10%, transparent);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--error) 50%, transparent), 0 0 80px color-mix(in srgb, var(--error) 20%, transparent), inset 0 0 20px color-mix(in srgb, var(--error) 15%, transparent);
+    transform: scale(1);
   }
 
   50% {
-    box-shadow: 0 0 40px color-mix(in srgb, var(--error) 50%, transparent), inset 0 0 20px color-mix(in srgb, var(--error) 20%, transparent);
+    box-shadow: 0 0 60px color-mix(in srgb, var(--error) 70%, transparent), 0 0 100px color-mix(in srgb, var(--error) 35%, transparent), inset 0 0 28px color-mix(in srgb, var(--error) 25%, transparent);
+    transform: scale(1.04);
+  }
+}
+
+.glossary-block-highlight {
+  animation: glossary-block-pulse 2s ease;
+  border-color: var(--primary-container) !important;
+  box-shadow: 0 0 40px color-mix(in srgb, var(--primary-container) 50%, transparent), 0 0 80px color-mix(in srgb, var(--primary-container) 20%, transparent), inset 0 0 20px color-mix(in srgb, var(--primary-container) 15%, transparent) !important;
+}
+
+@keyframes glossary-block-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 40px color-mix(in srgb, var(--primary-container) 50%, transparent), 0 0 80px color-mix(in srgb, var(--primary-container) 20%, transparent), inset 0 0 20px color-mix(in srgb, var(--primary-container) 15%, transparent);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 60px color-mix(in srgb, var(--primary-container) 70%, transparent), 0 0 100px color-mix(in srgb, var(--primary-container) 35%, transparent), inset 0 0 28px color-mix(in srgb, var(--primary-container) 25%, transparent);
+    transform: scale(1.04);
   }
 }

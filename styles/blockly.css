@@ -159,6 +159,40 @@
   opacity: 0.7;
 }
 
+.sb-palette-glossary-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--rounded-full);
+  background: color-mix(in srgb, var(--surface-container) 70%, transparent);
+  border: 1px solid var(--outline);
+  color: var(--on-surface-variant);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+  margin-left: auto;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.sb-palette-glossary-btn:hover {
+  border-color: var(--primary-container);
+  color: var(--primary-container);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--primary-container) 30%, transparent);
+}
+
+.sb-block-locked .sb-palette-glossary-btn {
+  opacity: 0.6;
+}
+
 .sb-locked-tooltip {
   position: fixed;
   background: var(--surface-container-highest);
