@@ -2535,11 +2535,9 @@
   top: var(--sp-sm);
   left: var(--sp-sm);
   right: var(--sp-sm);
-  z-index: 5;
+  z-index: 60;
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  flex-direction: column;
   gap: var(--sp-sm);
   pointer-events: none;
   min-height: 0;
@@ -2550,37 +2548,32 @@
 }
 
 .sim-enemy-info-card {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 54px;
   position: relative;
+  opacity: 0.55;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: var(--sp-xs);
+  padding: 0 4px;
   background: color-mix(in srgb, var(--error) 12%, var(--surface-container));
   backdrop-filter: blur(8px);
   border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
   border-radius: var(--rounded-sm);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--error) 20%, transparent);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease;
   cursor: default;
   pointer-events: auto;
 }
 
 .sim-enemy-info-card.highlight {
   border-color: var(--error);
-  box-shadow:
-    0 0 16px color-mix(in srgb, var(--error) 80%, transparent),
-    0 0 32px color-mix(in srgb, var(--error) 60%, transparent),
-    0 0 48px color-mix(in srgb, var(--error) 40%, transparent);
-}
 }
 
 .sim-enemy-info-sprite {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -2590,15 +2583,16 @@
 }
 
 .sim-enemy-info-sprite .sim-sprite {
-  width: 100%;
-  height: 100%;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   image-rendering: pixelated;
 }
 
 .sim-enemy-info-name {
+  flex-shrink: 0;
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -2612,11 +2606,12 @@
 
 .sim-enemy-info-hp-text {
   font-family: var(--font-display);
-  font-size: 8px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 900;
   color: var(--error);
   line-height: 1;
   text-align: center;
+  text-shadow: 0 0 6px color-mix(in srgb, var(--error) 60%, transparent);
 }
 
 .sim-enemy-info-glossary-btn {
@@ -2643,9 +2638,9 @@
 }
 
 .sim-enemy-info-glossary-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  box-shadow: 0 0 6px rgba(0, 242, 255, 0.3);
+  border-color: var(--primary-container);
+  color: var(--primary-container);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--primary-container) 30%, transparent);
 }
 
 /* Grid enemy highlight (hover from panel or grid) */

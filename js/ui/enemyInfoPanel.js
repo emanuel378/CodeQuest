@@ -48,11 +48,6 @@ class EnemyInfoPanel {
     img.className = 'sim-sprite';
     spriteBox.appendChild(img);
 
-    const nameRow = document.createElement('div');
-    nameRow.className = 'sim-enemy-info-name';
-    nameRow.textContent = typeInfo.name;
-    nameRow.style.color = typeInfo.color;
-
     const hpText = document.createElement('span');
     hpText.className = 'sim-enemy-info-hp-text';
     hpText.textContent = `HP ${currentHp}/${maxHp}`;
@@ -66,7 +61,6 @@ class EnemyInfoPanel {
     });
 
     card.appendChild(spriteBox);
-    card.appendChild(nameRow);
     card.appendChild(hpText);
     card.appendChild(glossaryBtn);
 
