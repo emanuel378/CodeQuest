@@ -92,39 +92,6 @@ class LandingPage extends PageComponent {
       this._handlers.push({ el: playBtn, type: 'click', handler });
     }
 
-    this._initMobileDrawer();
-  }
-
-  _initMobileDrawer() {
-    const menuBtn = this.el.querySelector('.mobile-menu-btn');
-    const drawer = this.el.querySelector('.mobile-drawer');
-    const closeBtn = this.el.querySelector('.mobile-drawer-close');
-    const overlay = this.el.querySelector('.mobile-drawer-overlay');
-    if (!menuBtn || !drawer || !overlay) return;
-
-    const open = () => {
-      drawer.classList.add('active');
-      overlay.classList.add('active');
-    };
-    const close = () => {
-      drawer.classList.remove('active');
-      overlay.classList.remove('active');
-    };
-
-    menuBtn.addEventListener('click', open);
-    this._handlers.push({ el: menuBtn, type: 'click', handler: open });
-
-    closeBtn?.addEventListener('click', close);
-    if (closeBtn) this._handlers.push({ el: closeBtn, type: 'click', handler: close });
-
-    overlay.addEventListener('click', close);
-    this._handlers.push({ el: overlay, type: 'click', handler: close });
-
-    drawer.querySelectorAll('.mobile-drawer-link').forEach((link) => {
-      const handler = () => close();
-      link.addEventListener('click', handler);
-      this._handlers.push({ el: link, type: 'click', handler });
-    });
   }
 
   _updateContinueButton() {

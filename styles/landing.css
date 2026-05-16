@@ -158,6 +158,7 @@
 .lp-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--sp-md);
   padding: var(--sp-lg) var(--sp-xl);
   border: none;
