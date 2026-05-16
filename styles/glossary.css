@@ -21,12 +21,10 @@
   width: 92%;
   max-width: 680px;
   max-height: 85vh;
-  background: linear-gradient(
-    165deg,
-    var(--surface-container-high) 0%,
-    var(--surface-container) 50%,
-    var(--surface-container-low) 100%
-  );
+  background: linear-gradient(165deg,
+      var(--surface-container-high) 0%,
+      var(--surface-container) 50%,
+      var(--surface-container-low) 100%);
   border: 1px solid var(--outline-variant);
   border-radius: var(--rounded-lg);
   box-shadow: 0 0 60px rgba(0, 219, 231, 0.12), 0 0 120px rgba(0, 0, 0, 0.4);
@@ -399,9 +397,12 @@
 }
 
 @keyframes glossary-enemy-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px color-mix(in srgb, var(--error) 30%, transparent), inset 0 0 12px color-mix(in srgb, var(--error) 10%, transparent);
   }
+
   50% {
     box-shadow: 0 0 40px color-mix(in srgb, var(--error) 50%, transparent), inset 0 0 20px color-mix(in srgb, var(--error) 20%, transparent);
   }

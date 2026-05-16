@@ -1164,15 +1164,17 @@ function initGame() {
 
 
   if (gs.simGrid) {
+    let _suppressResize = false;
     const ro = new ResizeObserver(() => {
+      if (_suppressResize) return;
       if (gs && gs.stage && gs.simGrid && !gs.isRunning && gs.activeLevelId !== null) {
         const level = getLevel(gs.activeLevelId);
         if (level) {
-          ro.disconnect();
+          _suppressResize = true;
           renderSimGrid(level);
           updateSimView();
           requestAnimationFrame(() => {
-            if (gs && gs.simGrid) ro.observe(gs.simGrid);
+            _suppressResize = false;
           });
         }
       }

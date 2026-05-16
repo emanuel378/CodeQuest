@@ -13,21 +13,21 @@ class EnemyInfoPanel {
   }
 
   update(enemies) {
+    const prevHighlightedId = this._highlightedId;
     if (!this._container) return;
 
     this._container.innerHTML = '';
     const aliveEnemies = (enemies || []).filter(e => e && e.alive);
-
-    if (aliveEnemies.length === 0) {
-      this._container.classList.add('hidden');
-      return;
-    }
-
-    this._container.classList.remove('hidden');
+    this._container.classList.toggle('hidden', aliveEnemies.length === 0);
+    if (aliveEnemies.length === 0) return;
 
     for (const enemy of aliveEnemies) {
       const card = this._renderCard(enemy);
       this._container.appendChild(card);
+    }
+
+    if (prevHighlightedId) {
+      this._onCardHover(prevHighlightedId);
     }
   }
 
@@ -39,6 +39,7 @@ class EnemyInfoPanel {
     const card = document.createElement('div');
     card.className = 'sim-enemy-info-card';
     card.dataset.enemyId = enemy.id;
+    card.dataset.type = enemy.type;
 
     const spriteBox = document.createElement('div');
     spriteBox.className = 'sim-enemy-info-sprite';
