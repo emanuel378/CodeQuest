@@ -46,16 +46,22 @@ const CATEGORY_COLORS = {
   variavel: 'var(--secondary)'
 };
 
+import { VariableModal } from './variableModal.js';
+
 export class BlockPalette {
   constructor(containerEl) {
     this.container = containerEl;
     this.activeCategory = null;
     this._variables = [];
     this._varBlocksEl = null;
-    this._varInput = null;
+    this._workspace = null;
     this._render();
     this._setupDrag();
     this._setupGlossaryBtns();
+  }
+
+  setWorkspace(ws) {
+    this._workspace = ws;
   }
 
   _render() {
@@ -132,38 +138,17 @@ export class BlockPalette {
   _renderVariablePanel(panel) {
     const color = CATEGORY_COLORS.variavel;
 
-    const label = document.createElement('div');
-    label.className = 'sb-var-label';
-    label.textContent = 'Criar variável';
-    panel.appendChild(label);
-
-    const inputRow = document.createElement('div');
-    inputRow.className = 'sb-var-input-row';
-    inputRow.innerHTML = `
-      <input class="sb-var-input" type="text" placeholder="ex: contador" maxlength="20">
-      <button class="sb-var-add-btn" style="border-color:${color};color:${color}">+</button>
+    const createBtn = document.createElement('button');
+    createBtn.className = 'sb-var-create-btn';
+    createBtn.innerHTML = `
+      <span class="material-symbols-outlined">add_circle</span>
+      <span>Crie uma variável</span>
     `;
-
-    const input = inputRow.querySelector('.sb-var-input');
-    const addBtn = inputRow.querySelector('.sb-var-add-btn');
-
-    const doAdd = () => {
-      const name = input.value.trim();
-      if (!name) return;
-      if (!/^[a-zA-Z_]\w*$/.test(name)) return;
-      if (this._variables.includes(name)) return;
-      this._variables.push(name);
-      this._appendVariableBlock(name);
-      input.value = '';
-    };
-
-    addBtn.addEventListener('click', doAdd);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') doAdd();
+    createBtn.addEventListener('click', () => {
+      const modal = new VariableModal(this, this._workspace, () => {});
+      modal.show();
     });
-
-    panel.appendChild(inputRow);
-    this._varInput = input;
+    panel.appendChild(createBtn);
 
     const varBlocks = document.createElement('div');
     varBlocks.className = 'sb-var-blocks';

@@ -519,6 +519,7 @@
   background: var(--surface-container-lowest);
   border-top: 1px solid rgba(58, 73, 75, 0.2);
   padding: var(--sp-lg) var(--sp-md);
+  padding-bottom: max(var(--sp-lg), env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
   align-items: center;

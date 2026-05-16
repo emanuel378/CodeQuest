@@ -68,6 +68,31 @@ class GamePage extends PageComponent {
     };
     document.addEventListener('block:open-glossary', glossaryBlockHandler);
     this._handlers.push({ el: document, type: 'block:open-glossary', handler: glossaryBlockHandler });
+
+    this._initMobileNav();
+  }
+
+  _initMobileNav() {
+    const sbLayout = this.el.querySelector('.sb-layout');
+    const mobileNav = this.el.querySelector('.mobile-nav');
+    if (!sbLayout || !mobileNav) return;
+
+    const setActiveTab = (tabName) => {
+      sbLayout.setAttribute('data-active-tab', tabName);
+      mobileNav.querySelectorAll('.mobile-nav-tab').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+      });
+    };
+
+    setActiveTab('workspace');
+
+    const navHandler = (e) => {
+      const tab = e.target.closest('.mobile-nav-tab');
+      if (!tab) return;
+      setActiveTab(tab.dataset.tab);
+    };
+    mobileNav.addEventListener('click', navHandler);
+    this._handlers.push({ el: mobileNav, type: 'click', handler: navHandler });
   }
 
   _unbindEvents() {

@@ -723,6 +723,7 @@ function initGame() {
 
   const palette = new BlockPalette(els.palette);
   const workspace = new BlockWorkspace(els.workspace, palette);
+  palette.setWorkspace(workspace);
   workspace.restore();
   const player = new Player(5);
   const stage = new Stage(5);

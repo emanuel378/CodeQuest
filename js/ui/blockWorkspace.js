@@ -315,6 +315,19 @@ export class BlockWorkspace {
     select.value = assignedVars.has(currentValue) ? currentValue : '';
   }
 
+  _refreshVarSelects() {
+    for (const [, b] of this.blocks) {
+      if (!b.el) continue;
+      const select = b.el.querySelector('.sb-var-select');
+      if (!select) continue;
+      if (b.type === 'change_var') {
+        this._populateChangeVarSelect(select, b);
+      } else {
+        this._populateVarSelect(select, b);
+      }
+    }
+  }
+
   _ctrlHtml(b, clr) {
     const l = b.label;
     const ic = b.icon;
@@ -754,6 +767,64 @@ export class BlockWorkspace {
       <button class="sb-var-slot-clear" data-bid="${repeatBlock.id}">&times;</button>
     </span>`;
     this.save();
+  }
+
+  _showSlotVarPicker(repeatBlock, slotEl) {
+    const vars = this.palette ? this.palette.getVariables() : [];
+    if (vars.length === 0) {
+      if (this.onError) this.onError('Crie uma variável na paleta antes de usá-la no bloco Repetir.');
+      return;
+    }
+
+    const assignedVars = new Set();
+    for (const [, b] of this.blocks) {
+      if (b.type === 'set_var' && b.varName) {
+        assignedVars.add(b.varName);
+      }
+    }
+
+    const availableVars = vars.filter(v => assignedVars.has(v));
+    if (availableVars.length === 0) {
+      if (this.onError) this.onError('Defina uma variável com o bloco "Definir" antes de usá-la no "Repetir".');
+      return;
+    }
+
+    const picker = document.createElement('div');
+    picker.className = 'sb-var-picker';
+    picker.innerHTML = `
+      <div class="sb-var-picker-label">Escolha a variável</div>
+      <div class="sb-var-picker-list">
+        ${availableVars.map(v => `<button class="sb-var-picker-item" data-name="${v}">${v}</button>`).join('')}
+      </div>
+    `;
+
+    const rect = slotEl.getBoundingClientRect();
+    const scrollRect = this._scrollEl.getBoundingClientRect();
+    picker.style.left = (rect.left - scrollRect.left + this._scrollEl.scrollLeft) + 'px';
+    picker.style.top = (rect.bottom - scrollRect.top + this._scrollEl.scrollTop + 4) + 'px';
+
+    this._canvas.appendChild(picker);
+
+    const closePicker = () => {
+      picker.remove();
+      document.removeEventListener('click', outsideClick);
+    };
+
+    const outsideClick = (ev) => {
+      if (!picker.contains(ev.target)) closePicker();
+    };
+
+    setTimeout(() => document.addEventListener('click', outsideClick), 10);
+
+    picker.querySelectorAll('.sb-var-picker-item').forEach(btn => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const varName = btn.dataset.name;
+        this._dockVariableToRepeat(repeatBlock, slotEl, varName);
+        closePicker();
+        audioManager.playSfx('snap');
+      });
+    });
   }
 
   _showPaletteGuide(cx, cy) {
@@ -1443,6 +1514,19 @@ export class BlockWorkspace {
         }
         return;
       }
+
+      const emptySlot = e.target.closest('.sb-var-slot:not(.sb-var-slot-filled)');
+      if (emptySlot) {
+        const pe = emptySlot.closest('.sb-block');
+        if (pe) {
+          const b = this.blocks.get(pe.dataset.bid);
+          if (b && b.type === 'repeat') {
+            this._showSlotVarPicker(b, emptySlot);
+          }
+        }
+        return;
+      }
+
       this.ct.querySelectorAll('.sb-block.selected').forEach(el => el.classList.remove('selected'));
       const block = e.target.closest('.sb-block');
       if (block && !e.target.closest('.sb-del, .sb-input, .sb-condition-chip, .sb-var-select, .sb-var-eq, .sb-var-slot-clear')) {
