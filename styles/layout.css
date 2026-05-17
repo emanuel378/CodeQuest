@@ -130,6 +130,7 @@ body {
 
   .sb-layout {
     flex-direction: column;
+    margin-top: 0;
     height: calc(100vh - 56px - 56px);
     height: calc(100dvh - 56px - 56px);
     padding-left: env(safe-area-inset-left);

@@ -759,7 +759,7 @@ function initGame() {
   }
 
   const objectivesPanel = new ObjectivesPanel();
-  const mountTarget = window.innerWidth <= 767 ? document.body : els.workspace;
+  const mountTarget = window.innerWidth <= 767 ? els.simViewport : els.workspace;
   objectivesPanel.mount(mountTarget);
 
   const enemyInfoPanel = new EnemyInfoPanel(els.enemyInfo, {
