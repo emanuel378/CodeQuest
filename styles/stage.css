@@ -5,6 +5,10 @@
   background-size: 20px 20px;
 }
 
+.game-container {
+  min-height: 100%;
+}
+
 .game-container,
 .game-container .top-navbar,
 .game-container .sb-layout,
@@ -2719,6 +2723,12 @@
 }
 
 @media (max-width: 575px) {
+  .top-navbar {
+    position: sticky;
+    top: 0;
+    height: auto;
+  }
+
   .menu-toggle {
     display: flex;
   }
