@@ -241,12 +241,8 @@ body {
     min-height: 80px;
   }
 
-  .sb-workspace-scroll {
-    padding: 60px;
-  }
-
   :root {
-    --workspace-pad: 300px;
+    --workspace-pad: 400px;
   }
 
   .sb-zoom-controls {
