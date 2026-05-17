@@ -1250,6 +1250,11 @@ body {
    PRINT — Estilo para impressão
    ============================================ */
 
+.hero-level-badge,
+.hero-player-name {
+  display: none;
+}
+
 /* ============================================
    MOBILE NAV — Bottom tab navigation
    ============================================ */
@@ -1313,6 +1318,35 @@ body {
     border-radius: 0 0 2px 2px;
   }
 
+  .mobile-nav-tab-badge {
+    position: absolute;
+    top: 2px;
+    right: calc(50% - 20px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: var(--rounded-full);
+    background: var(--color-gold);
+    color: var(--surface-container-lowest);
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 2;
+  }
+
+  .mobile-nav-tab.has-points .material-symbols-outlined {
+    color: var(--color-gold);
+    filter: drop-shadow(0 0 6px var(--color-gold));
+  }
+
+  .mobile-nav-tab.has-points.active .material-symbols-outlined {
+    filter: drop-shadow(0 0 6px var(--color-gold));
+  }
+
   /* Hide panels by default on mobile */
   .sb-layout .sb-palette,
   .sb-layout .sb-workspace,
@@ -1351,62 +1385,217 @@ body {
     width: min(72vw, 280px);
     height: min(72vw, 280px);
   }
-}
 
-@media (orientation: landscape) and (max-height: 500px) and (max-width: 767px) {
-  .sb-layout {
-    flex-direction: row;
-    padding-bottom: calc(40px + env(safe-area-inset-bottom));
-  }
-
-  .mobile-nav {
-    height: 40px;
-  }
-
-  .mobile-nav-tab {
-    flex-direction: row;
-    gap: 6px;
-    font-size: 11px;
-  }
-
-  .mobile-nav-tab .material-symbols-outlined {
-    font-size: 18px;
-  }
-
-  .mobile-nav-tab.active::after {
-    width: 32px;
-  }
-
-  .sb-layout .sb-palette,
-  .sb-layout .sb-workspace,
-  .sb-layout .simulation-panel {
+  .sb-layout[data-active-tab="simulation"] .sim-attributes {
     display: none !important;
   }
 
-  .sb-layout[data-active-tab="workspace"] .sb-palette {
+  .sb-layout[data-active-tab="attributes"] .simulation-panel {
     display: flex !important;
+    flex-direction: column;
     width: 100%;
-    max-height: 140px;
-    flex-shrink: 0;
-    border-right: none;
+    height: 100%;
+    border-top: none;
   }
 
-  .sb-layout[data-active-tab="workspace"] .sb-workspace {
+  .sb-layout[data-active-tab="attributes"] .sim-header,
+  .sb-layout[data-active-tab="attributes"] .sim-viewport,
+  .sb-layout[data-active-tab="attributes"] .sim-controls {
+    display: none !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attributes {
     display: block !important;
-    width: 100%;
-    height: 100%;
     flex: 1;
+    overflow-y: auto;
   }
 
-  .sb-layout[data-active-tab="simulation"] .simulation-panel {
-    display: flex !important;
-    width: 100%;
-    height: 100%;
+  .sb-layout[data-active-tab="attributes"] .sim-attributes-header {
+    margin-bottom: var(--sp-md);
   }
 
-  .sb-layout[data-active-tab="simulation"] .sim-grid {
-    width: min(50vh, 260px);
-    height: min(50vh, 260px);
+  .sb-layout[data-active-tab="attributes"] .attr-points-display {
+    padding: 4px 12px;
+    border-color: var(--color-gold);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-gold) 20%, transparent);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .attr-points-icon {
+    font-size: 18px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .attr-points-count {
+    font-size: 18px;
+    text-shadow: 0 0 6px var(--color-gold);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attributes-hero {
+    padding: var(--sp-md) 0;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attributes-hero-avatar {
+    width: 80px;
+    height: 80px;
+    border-width: 3px;
+    box-shadow: 0 0 24px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .hero-level-badge {
+    display: inline-flex;
+    font-size: 16px;
+    padding: 4px 14px;
+    margin-top: var(--sp-xs);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .hero-player-name {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    text-shadow: 0 0 8px var(--primary), 0 0 16px var(--primary-container);
+    margin-top: var(--sp-sm);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .player-level-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-sm);
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-bottom: var(--sp-md);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .player-level-header {
+    display: none;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .player-level-xp-row {
+    background: color-mix(in srgb, var(--surface-container-highest) 50%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+    border-radius: var(--rounded-default);
+    padding: var(--sp-sm);
+    gap: var(--sp-sm);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .player-level-xp-bar {
+    height: 12px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .player-level-xp-fill {
+    box-shadow: 0 0 12px color-mix(in srgb, var(--primary-container) 70%, transparent);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .player-level-xp-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attributes-grid {
+    gap: var(--sp-md);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-item {
+    padding: var(--sp-md);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-level-badge {
+    font-size: 14px;
+    padding: 3px 12px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-level-icon {
+    font-size: 14px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-label {
+    font-size: 13px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-icon {
+    font-size: 20px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-plus-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-plus-btn .material-symbols-outlined {
+    font-size: 20px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-plus-btn {
+    margin-top: var(--sp-sm);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-detail {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary);
+    opacity: 1;
+    text-shadow: 0 0 4px color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .attr-detail-value {
+    font-weight: 700;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attributes-grid {
+    gap: var(--sp-sm);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-item {
+    padding: var(--sp-sm);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-level-badge {
+    font-size: 13px;
+    padding: 2px 10px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-level-icon {
+    font-size: 13px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-label {
+    font-size: 12px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-icon {
+    font-size: 18px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-plus-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-plus-btn .material-symbols-outlined {
+    font-size: 18px !important;
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-plus-btn {
+    margin-top: var(--sp-xs);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .sim-attr-detail {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary);
+    opacity: 1;
+    text-shadow: 0 0 4px color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+
+  .sb-layout[data-active-tab="attributes"] .attr-detail-value {
+    font-weight: 700;
   }
 
   .sim-controls {

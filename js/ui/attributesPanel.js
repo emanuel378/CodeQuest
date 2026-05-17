@@ -12,6 +12,8 @@ export class AttributesPanel {
   setProgression(progression) {
     this._progression = progression
     this._update()
+    const nameEl = this._el.querySelector('.hero-player-name')
+    if (nameEl) nameEl.textContent = progression.playerName || 'Anônimo'
   }
 
   setLastRank(rankLabel) {
@@ -44,6 +46,11 @@ export class AttributesPanel {
         <div class="sim-attributes-hero-avatar">
           <img src="assets/sprites/player/principal_frente.png" alt="Herói" class="sim-attributes-hero-img" />
         </div>
+        <span class="hero-player-name">Jogador</span>
+        <span class="player-level-badge hero-level-badge">
+          <span class="material-symbols-outlined player-level-badge-icon">bolt</span>
+          Lv.<span class="player-level-num">1</span>
+        </span>
       </div>
       <div class="player-level-section">
         <div class="player-level-header">
@@ -121,13 +128,14 @@ export class AttributesPanel {
       item.querySelector('.attr-level-num').textContent = data.level
 
       const detail = item.querySelector('.sim-attr-detail')
+      const defColor = def.color
       if (attrId === 'nucleoLogico') {
         const allowed = this._progression.getAttemptsAllowed()
         const remaining = this._progression.getRemainingAttempts()
-        detail.textContent = `Tentativas: ${remaining}/${allowed}`
+        detail.innerHTML = `Tentativas: <span class="attr-detail-value" style="color:${defColor}; text-shadow: 0 0 6px ${defColor}">${remaining}/${allowed}</span>`
       } else if (attrId === 'eficienciaAlgoritmo') {
         const mult = AttributeSystem.getXpMultiplier(data.level)
-        detail.textContent = `Bônus: ×${mult.toFixed(1)} XP`
+        detail.innerHTML = `Bônus: <span class="attr-detail-value" style="color:${defColor}; text-shadow: 0 0 6px ${defColor}">×${mult.toFixed(1)}</span> XP`
       }
     }
 
@@ -135,6 +143,17 @@ export class AttributesPanel {
     if (ptsEl) ptsEl.textContent = this._progression.getAttributePoints()
 
     const pts = this._progression.getAttributePoints()
+
+    const mobileTab = document.querySelector('.mobile-nav-tab[data-tab="attributes"]')
+    if (mobileTab) {
+      mobileTab.classList.toggle('has-points', pts > 0)
+      const badge = mobileTab.querySelector('.mobile-nav-tab-badge')
+      if (badge) {
+        badge.textContent = pts
+        badge.style.display = pts > 0 ? 'flex' : 'none'
+      }
+    }
+
     for (const attrId of attrs) {
       const item = grid.querySelector(`[data-attr="${attrId}"]`)
       if (!item) continue
@@ -152,8 +171,7 @@ export class AttributesPanel {
     const progress = AttributeSystem.getPlayerXpProgress(xp)
     const maxLevel = AttributeSystem.getPlayerMaxLevel()
 
-    const numEl = this._el.querySelector('.player-level-num')
-    if (numEl) numEl.textContent = level
+    this._el.querySelectorAll('.player-level-num').forEach(el => el.textContent = level)
 
     const fill = this._el.querySelector('.player-level-xp-fill')
     if (fill) {
