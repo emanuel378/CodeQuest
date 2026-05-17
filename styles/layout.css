@@ -530,6 +530,8 @@ body {
     width: 94%;
     max-width: 360px;
     padding: 0;
+    max-height: 80vh;
+    overflow-y: auto;
   }
   .victory-body {
     padding: var(--sp-md) var(--sp-sm) var(--sp-sm);
