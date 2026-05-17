@@ -35,14 +35,16 @@ export class ProfileMenu {
       this._toggleDropdown();
     });
 
-    this._updateIcon();
-
     this._rankBtn = document.createElement('button');
     this._rankBtn.className = 'nav-rank-btn';
     this._rankBtn.title = 'Ranking';
-    this._rankBtn.innerHTML = '<span class="material-symbols-outlined">leaderboard</span>';
+    this._rankBtn.innerHTML = '<span class="material-symbols-outlined">leaderboard</span><span class="btn-label">Ranking</span>';
     this._rankBtn.addEventListener('click', () => router.navigate('/ranking'));
     container.prepend(this._rankBtn);
+
+    this._mountDrawerProfile();
+
+    this._updateIcon();
   }
 
   showAddPlayer() {
@@ -53,26 +55,98 @@ export class ProfileMenu {
     this._showPlayerList();
   }
 
+  _mountDrawerProfile() {
+    this._drawerProfile = document.getElementById('drawer-profile');
+    this._drawerOptions = document.getElementById('drawer-profile-options');
+    if (!this._drawerProfile) return;
+
+    this._drawerAvatar = document.getElementById('drawer-profile-avatar');
+    this._drawerName = document.getElementById('drawer-profile-name');
+    this._drawerXp = document.getElementById('drawer-profile-xp');
+    this._drawerArrow = document.getElementById('drawer-profile-arrow');
+
+    this._drawerToggleHandler = () => {
+      const open = this._drawerOptions.classList.toggle('open');
+      this._drawerArrow.classList.toggle('open', open);
+    };
+    this._drawerProfile.addEventListener('click', this._drawerToggleHandler);
+
+    const addBtn = this._drawerOptions.querySelector('[data-drawer-action="add-player"]');
+    const listBtn = this._drawerOptions.querySelector('[data-drawer-action="list-players"]');
+
+    if (addBtn) {
+      this._drawerAddHandler = () => {
+        this._drawerOptions.classList.remove('open');
+        this._drawerArrow.classList.remove('open');
+        this._showAddPlayerModal();
+      };
+      addBtn.addEventListener('click', this._drawerAddHandler);
+    }
+
+    if (listBtn) {
+      this._drawerListHandler = () => {
+        this._drawerOptions.classList.remove('open');
+        this._drawerArrow.classList.remove('open');
+        this._showPlayerList();
+      };
+      listBtn.addEventListener('click', this._drawerListHandler);
+    }
+  }
+
+  _updateDrawerProfile() {
+    if (!this._drawerProfile) return;
+    const player = this._pm.getActivePlayer();
+    if (player) {
+      this._drawerAvatar.textContent = player.name.charAt(0).toUpperCase();
+      this._drawerName.textContent = player.name;
+      this._drawerXp.textContent = this._getPlayerXP(player.id) + ' XP';
+    } else {
+      this._drawerAvatar.textContent = '?';
+      this._drawerName.textContent = 'Sem perfil';
+      this._drawerXp.textContent = '0 XP';
+    }
+  }
+
   destroy() {
     this._closeDropdown();
     this._closeOverlay();
+    if (this._drawerProfile && this._drawerToggleHandler) {
+      this._drawerProfile.removeEventListener('click', this._drawerToggleHandler);
+    }
+    if (this._drawerOptions) {
+      const addBtn = this._drawerOptions.querySelector('[data-drawer-action="add-player"]');
+      if (addBtn && this._drawerAddHandler) {
+        addBtn.removeEventListener('click', this._drawerAddHandler);
+      }
+      const listBtn = this._drawerOptions.querySelector('[data-drawer-action="list-players"]');
+      if (listBtn && this._drawerListHandler) {
+        listBtn.removeEventListener('click', this._drawerListHandler);
+      }
+    }
     if (this._rankBtn && this._rankBtn.parentNode) this._rankBtn.parentNode.removeChild(this._rankBtn);
     if (this._el && this._el.parentNode) this._el.parentNode.removeChild(this._el);
     this._el = null;
     this._rankBtn = null;
+    this._drawerProfile = null;
+    this._drawerOptions = null;
   }
 
   _updateIcon() {
     const player = this._pm.getActivePlayer();
     if (player) {
-      this._initial.textContent = player.name.charAt(0).toUpperCase();
-      this._btn.classList.add('active');
-      this._btn.title = player.name;
+      if (this._initial) {
+        this._initial.textContent = player.name.charAt(0).toUpperCase();
+        this._btn.classList.add('active');
+        this._btn.title = player.name;
+      }
     } else {
-      this._initial.textContent = '?';
-      this._btn.classList.remove('active');
-      this._btn.title = 'Nenhum jogador';
+      if (this._initial) {
+        this._initial.textContent = '?';
+        this._btn.classList.remove('active');
+        this._btn.title = 'Nenhum jogador';
+      }
     }
+    this._updateDrawerProfile();
   }
 
   _toggleDropdown() {

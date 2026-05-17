@@ -76,9 +76,6 @@ body {
     min-height: 56px;
   }
 
-  .nav-logo {
-    display: none !important;
-  }
 
   .nav-brand {
     position: static;

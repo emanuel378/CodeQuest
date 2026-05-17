@@ -26,31 +26,63 @@
               <span class="level-indicator">Nível 0: Tutorial</span>
             </h1>
           </div>
-          <div class="nav-controls">
-            <button class="btn-mute" data-action="mute" title="Alternar som">
-              <span class="material-symbols-outlined">volume_up</span>
-            </button>
-            <button class="btn-mute" data-action="glossary" title="Glossário">
-              <span class="material-symbols-outlined">menu_book</span>
-            </button>
-            <div class="progress-container">
-              <div class="progress-labels">
-                <span>Integridade do Sistema</span>
-                <span>0%</span>
+          <button class="menu-toggle" data-action="toggle-menu" title="Menu">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+
+          <div class="game-drawer-overlay" data-drawer></div>
+
+          <aside class="game-drawer" data-drawer>
+            <div class="game-drawer-header">
+              <div class="game-drawer-header-row">
+                <div class="drawer-profile" id="drawer-profile">
+                  <span class="drawer-profile-avatar" id="drawer-profile-avatar">?</span>
+                  <div class="drawer-profile-info">
+                    <span class="drawer-profile-name" id="drawer-profile-name">Sem perfil</span>
+                    <span class="drawer-profile-xp" id="drawer-profile-xp">0 XP</span>
+                  </div>
+                  <span class="material-symbols-outlined drawer-profile-arrow" id="drawer-profile-arrow">expand_more</span>
+                </div>
               </div>
-              <div class="progress-track">
-                <div class="progress-fill"></div>
+              <div class="drawer-profile-options" id="drawer-profile-options">
+                <button class="drawer-profile-option" data-drawer-action="add-player">
+                  <span class="material-symbols-outlined">person_add</span>
+                  Adicionar Jogador
+                </button>
+                <button class="drawer-profile-option" data-drawer-action="list-players">
+                  <span class="material-symbols-outlined">group</span>
+                  Jogadores Já Cadastrados
+                </button>
               </div>
             </div>
-            <div class="star-rating">
-              <span class="difficulty-label">DIFICULDADE</span>
-              <div class="star-icons">
-                <span class="material-symbols-outlined">star</span>
-                <span class="material-symbols-outlined">star</span>
-                <span class="material-symbols-outlined">star</span>
+            <div class="nav-controls">
+              <button class="btn-mute" data-action="mute" title="Alternar som">
+                <span class="material-symbols-outlined">volume_up</span>
+                <span class="btn-label">Música</span>
+              </button>
+              <button class="btn-mute" data-action="glossary" title="Glossário">
+                <span class="material-symbols-outlined">menu_book</span>
+                <span class="btn-label">Glossário</span>
+              </button>
+              <div class="progress-container">
+                <div class="progress-labels">
+                  <span>Integridade do Sistema</span>
+                  <span>0%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill"></div>
+                </div>
+              </div>
+              <div class="star-rating">
+                <span class="difficulty-label">DIFICULDADE</span>
+                <div class="star-icons">
+                  <span class="material-symbols-outlined">star</span>
+                  <span class="material-symbols-outlined">star</span>
+                  <span class="material-symbols-outlined">star</span>
+                </div>
               </div>
             </div>
-          </div>
+          </aside>
         </header>
 
         <main class="sb-layout">

@@ -70,6 +70,7 @@ class GamePage extends PageComponent {
     this._handlers.push({ el: document, type: 'block:open-glossary', handler: glossaryBlockHandler });
 
     this._initMobileNav();
+    this._initDrawer();
   }
 
   _initMobileNav() {
@@ -95,7 +96,67 @@ class GamePage extends PageComponent {
     this._handlers.push({ el: mobileNav, type: 'click', handler: navHandler });
   }
 
+  _initDrawer() {
+    const toggleBtn = this.el.querySelector('[data-action="toggle-menu"]');
+    const closeBtn = this.el.querySelector('[data-action="close-menu"]');
+    const overlay = this.el.querySelector('.game-drawer-overlay');
+    const drawer = this.el.querySelector('.game-drawer');
+    if (!toggleBtn || !overlay || !drawer) return;
+
+    const icon = toggleBtn.querySelector('.material-symbols-outlined');
+
+    const open = () => {
+      drawer.classList.add('open');
+      overlay.classList.add('visible');
+      if (icon) icon.textContent = 'close';
+      document.addEventListener('keydown', boundKeydown);
+    };
+
+    const close = () => {
+      drawer.classList.remove('open');
+      overlay.classList.remove('visible');
+      if (icon) icon.textContent = 'menu';
+      document.removeEventListener('keydown', boundKeydown);
+    };
+
+    const toggle = () => {
+      if (drawer.classList.contains('open')) {
+        close();
+      } else {
+        open();
+      }
+    };
+
+    this._drawerKeydownHandler = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    const boundKeydown = this._drawerKeydownHandler;
+
+    const toggleHandler = () => toggle();
+    toggleBtn.addEventListener('click', toggleHandler);
+    this._handlers.push({ el: toggleBtn, type: 'click', handler: toggleHandler });
+
+    if (closeBtn) {
+      const closeHandler = () => close();
+      closeBtn.addEventListener('click', closeHandler);
+      this._handlers.push({ el: closeBtn, type: 'click', handler: closeHandler });
+    }
+
+    const overlayHandler = () => close();
+    overlay.addEventListener('click', overlayHandler);
+    this._handlers.push({ el: overlay, type: 'click', handler: overlayHandler });
+  }
+
   _unbindEvents() {
+    if (this._drawerKeydownHandler) {
+      document.removeEventListener('keydown', this._drawerKeydownHandler);
+      this._drawerKeydownHandler = null;
+    }
+    const drawer = this.el?.querySelector('.game-drawer');
+    if (drawer?.classList.contains('open')) {
+      drawer.classList.remove('open');
+      this.el?.querySelector('.game-drawer-overlay')?.classList.remove('visible');
+    }
     for (const { el, type, handler } of this._handlers) {
       el.removeEventListener(type, handler);
     }
